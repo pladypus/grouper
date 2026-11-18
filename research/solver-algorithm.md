@@ -29,7 +29,7 @@ Once Clusters are merged, a Shuffle has to put *blocks* (sizes 1..k) into *Group
 
 ## Recommended algorithm in detail
 
-The prototype is [`research/solver-algorithm/solver.mjs`](solver-algorithm/solver.mjs) (about 170 lines, no dependencies).
+The prototype is [`research/solver-algorithm/solver.mjs`](solver-algorithm/solver.mjs) (about 180 lines, no dependencies).
 
 ### 1. Preprocess (`prepare`)
 - Keep only Present Students. Absent Students' Rules stay on the Roster but are ignored for this Shuffle.
@@ -71,7 +71,7 @@ Caveat: we have not proved that this chain can reach every valid grouping from e
 ## Why not just use a SAT solver?
 - **Spread is unsolved.** Solvers return an arbitrary first solution, so we would still need step 3.
 - **The hard case is still hard.** The pigeonhole principle ("n+1 Students who must all be apart, n Groups") has no short resolution proofs (Haken 1985), so CDCL SAT solvers, which are resolution-based, also struggle with it. The clique check plus symmetry breaking handles it in under 1 ms.
-- **Cost:** it adds a WASM or Emscripten dependency and async loading to a static app, for a problem that about 170 lines of JavaScript already solve.
+- **Cost:** it adds a WASM or Emscripten dependency and async loading to a static app, for a problem that about 180 lines of JavaScript already solve.
 
 ## Experiment results
 
