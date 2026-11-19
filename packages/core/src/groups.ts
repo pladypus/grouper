@@ -4,7 +4,8 @@
 // Wiring (both UIs):
 // - after every change to AppState, `board = boardAfterRosterChange(board, before, after)` with the
 //   open Roster before and after (handles out-of-date, switching Roster, the edited Split);
-// - Shuffle/Reshuffle button → `shuffle(roster, board)` (shuffle.ts);
+// - Shuffle/Reshuffle button → `shuffle(roster, board)` (shuffle.ts), toasting its `toast` if set;
+// - Lock toggle → `toggleLock(board, groupId)` (lock.ts);
 // - stepper → `setTargetSize` on the Roster, then `resetSplit(board)`;
 // - Split "Edit" → Save → `editSplit(board, roster, text)`.
 
@@ -23,9 +24,9 @@ export interface Group {
   readonly id: GroupId;
   /** Student ids, in display order. Absent or removed Students stay until the next Reshuffle. */
   readonly members: readonly StudentId[];
-  /** Fixed when the Group is made. */
+  /** Fixed when the Group is made (a Reshuffle shrinks a Locked Group that lost Absent or removed members). */
   readonly size: number;
-  /** Always false until Locks (#19). */
+  /** Set by the Lock toggle (`toggleLock`, lock.ts); a Reshuffle keeps a Locked Group (SPEC §4). */
   readonly locked: boolean;
   /** Header hue in degrees, from GROUP_HUES by position; kept by a Locked Group on Reshuffle. */
   readonly hue: number;
