@@ -65,7 +65,7 @@ function stateWith(...names: string[]): AppState {
 describe("Rosters", () => {
   it("creates a Roster, appends it, opens it, with the default Target size", () => {
     const { state, roster } = ok(createRoster(stateWith("Period 1"), "  Period   2 ", ids("x")));
-    expect(roster).toEqual({ id: "x1", name: "Period 2", students: [], pairs: [], target: DEFAULT_TARGET_SIZE });
+    expect(roster).toEqual({ id: "x1", name: "Period 2", students: [], pairs: [], target: DEFAULT_TARGET_SIZE, pairClock: 0 });
     expect(state.rosters.map((r) => r.name)).toEqual(["Period 1", "Period 2"]);
     expect(currentRoster(state)).toBe(roster);
   });
