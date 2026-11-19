@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { boardLayout, groupMembers } from "@grouper/core";
+  import { boardLayout, groupFlags, groupMembers } from "@grouper/core";
   import { getStore } from "../state.svelte";
   import GroupCard from "./GroupCard.svelte";
 
@@ -9,6 +9,8 @@
   const board = $derived(store.board);
   const roster = $derived(store.roster!);
   const phone = $derived(store.phone);
+  /** The Rules each Group breaks (SPEC §7), re-checked on every change and never stored. */
+  const flags = $derived(groupFlags(board, roster));
 
   let tiles: HTMLDivElement;
   let space = $state({ width: 0, height: 0 });
@@ -40,6 +42,6 @@
   class={phone ? "flex flex-col gap-[14px]" : "flex min-h-0 flex-1 flex-wrap content-start justify-center gap-[14px]"}
 >
   {#each board.groups as group, index (group.id)}
-    <GroupCard {group} {index} members={groupMembers(board, group, roster)} {size} {phone} />
+    <GroupCard {group} {index} members={groupMembers(board, group, roster)} flags={flags[group.id] ?? []} {size} {phone} />
   {/each}
 </div>

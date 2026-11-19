@@ -204,7 +204,7 @@ describe("lifecycle", () => {
     expect(screen.queryByText(`⚠ ${OUT_OF_DATE_MESSAGE}`)).not.toBeInTheDocument();
 
     await fireEvent.click(screen.getByRole("button", { name: "8/8 Present" }));
-    await fireEvent.click(screen.getByRole("button", { name: "Ana" }));
+    await fireEvent.click(within(screen.getByRole("dialog")).getByRole("button", { name: "Ana" }));
     await fireEvent.click(screen.getByRole("button", { name: "Edit list" }));
     await fireEvent.click(screen.getByRole("button", { name: "Remove Ben" }));
     await fireEvent.click(screen.getByRole("button", { name: "Done" }));

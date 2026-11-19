@@ -6,9 +6,11 @@ import {
   addPair,
   addStudent,
   boardAfterRosterChange,
+  cancelSelection,
   createRoster,
   currentRoster,
   deletePair,
+  dropStudent,
   deleteRoster,
   editSplit,
   EMPTY_BOARD,
@@ -28,16 +30,19 @@ import {
   selectRoster,
   setTargetSize,
   shuffle,
+  tapStudent,
   togglePresent,
   updateRoster,
   type AppState,
   type Board,
   type IdGenerator,
+  type MoveOutcome,
   type PairId,
   type PairType,
   type RemovedStudent,
   type Rng,
   type Roster,
+  type Selection,
   type ShuffleConflict,
   type StorageLike,
   type StudentId,
@@ -96,6 +101,14 @@ export class GrouperStore {
   conflict = $state.raw<Conflict | null>(null);
   /** The refusal from the last Split "Edit" Save, shown on the board. */
   splitError = $state<string | null>(null);
+  /** The Student picked for a tap / keyboard swap (SPEC §7 Manual move), or null. */
+  selected = $state<Selection>(null);
+  /** The Student being dragged, or null. */
+  dragging = $state<StudentId | null>(null);
+  /** The Student under the pointer while dragging (shows ⇄ there, also on touch), or null. */
+  dragOver = $state<StudentId | null>(null);
+  /** The polite live region's text: the selection instruction, "Swapped Ana and Ben.", … */
+  announcement = $state("");
   /** The viewport width, bound to the window by App: phones get one column and a pinned Reshuffle. */
   viewportWidth = $state(typeof window === "undefined" ? 1024 : window.innerWidth);
 
@@ -129,6 +142,7 @@ export class GrouperStore {
     this.board = boardAfterRosterChange(this.board, before, after);
     if (before !== after) this.conflict = null;
     if (before?.id !== after?.id) {
+      this.selected = null;
       this.splitEditing = false;
       this.splitError = null;
     }
@@ -290,6 +304,7 @@ export class GrouperStore {
       return result;
     }
     this.board = result.board;
+    this.selected = null;
     this.closeSplitEdit();
     return { ok: true };
   }
@@ -301,6 +316,7 @@ export class GrouperStore {
   shuffle(): Outcome {
     const roster = this.roster;
     if (!roster) return { ok: true };
+    this.selected = null;
     const result = shuffle(roster, this.board, { rng: this.#rng, newId: this.#newId });
     if (!result.ok) {
       if (result.conflict) this.conflict = { ...result.conflict, message: result.message };
@@ -310,6 +326,47 @@ export class GrouperStore {
     this.board = result.board;
     this.conflict = null;
     return { ok: true };
+  }
+
+  // --- Manual move (swap) ---------------------------------------------------------------------
+
+  /** The Student selected or being dragged: swappable names show ⇄ and Locked Groups fade back. */
+  get moving(): StudentId | null {
+    return this.dragging ?? this.selected;
+  }
+
+  /** Tap, Enter or Space on a Student: select them, cancel, or swap with the selected one. */
+  tapStudent(id: StudentId): void {
+    const roster = this.roster;
+    if (!roster) return;
+    this.#move(tapStudent(this.board, roster, this.selected, id));
+  }
+
+  /** ✕ on the selected Student, or Esc. */
+  cancelSelection(): void {
+    this.#move(cancelSelection(this.board));
+  }
+
+  startDrag(id: StudentId): void {
+    this.dragging = id;
+    this.dragOver = null;
+  }
+
+  /** The end of a drag: `target` is the Student it was dropped onto, or null for anywhere else. */
+  drop(target: StudentId | null): void {
+    const dragged = this.dragging;
+    const roster = this.roster;
+    this.dragging = null;
+    this.dragOver = null;
+    if (dragged === null || !roster) return;
+    this.#move(dropStudent(this.board, roster, dragged, target));
+  }
+
+  #move(outcome: MoveOutcome): void {
+    this.board = outcome.board;
+    this.selected = outcome.selected;
+    if (outcome.toast) this.showToast(outcome.toast);
+    this.announcement = outcome.announcement ?? "";
   }
 
   // --- UI --------------------------------------------------------------------------------------

@@ -300,10 +300,10 @@ describe("Shuffle with Pairs", () => {
     await addPair("Good pair", "Ana", "Ben");
     await addPair("Good pair", "Ben", "Cal");
     await fireEvent.click(within(drawer()).getByRole("button", { name: "Done" }));
-    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+    expect(within(screen.getByRole("main")).queryByRole("alert")).not.toBeInTheDocument();
 
     await fireEvent.click(shuffleButton());
-    expect(screen.getByRole("alert")).toHaveTextContent(chainTooBigMessage(["Ana", "Ben", "Cal"], 2));
+    expect(within(screen.getByRole("main")).getByRole("alert")).toHaveTextContent(chainTooBigMessage(["Ana", "Ben", "Cal"], 2));
     expect(groupNames()).toEqual(before);
     // Still out of date: the Groups don't follow the new Pairs.
     expect(screen.getByText(`⚠ ${OUT_OF_DATE_MESSAGE}`)).toBeInTheDocument();
@@ -311,7 +311,7 @@ describe("Shuffle with Pairs", () => {
     // A Roster change clears the notice.
     await openPairs();
     await fireEvent.click(screen.getByRole("button", { name: "Delete Ben & Cal" }));
-    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+    expect(within(screen.getByRole("main")).queryByRole("alert")).not.toBeInTheDocument();
   });
 
   it("shows the search's Conflict sentence, cleared by the next successful Shuffle", async () => {
@@ -321,7 +321,7 @@ describe("Shuffle with Pairs", () => {
       pairs: ["Ben", "Cal", "Dee", "Eli"].map((name, i) => pair("keep apart", "Ana", name, i + 1)),
     });
     await fireEvent.click(shuffleButton());
-    expect(screen.getByRole("alert")).toHaveTextContent(noGroupingMessage([3, 3]));
+    expect(within(screen.getByRole("main")).getByRole("alert")).toHaveTextContent(noGroupingMessage([3, 3]));
     expect(groupNames()).toEqual([]);
     expect(screen.queryByText(EMPTY_BOARD_MESSAGE)).not.toBeInTheDocument();
 
@@ -329,10 +329,10 @@ describe("Shuffle with Pairs", () => {
     await fireEvent.click(screen.getByRole("button", { name: "Edit" }));
     await fireEvent.input(screen.getByLabelText("Group sizes, comma separated"), { target: { value: "2, 2, 2" } });
     await fireEvent.click(screen.getByRole("button", { name: "Save" }));
-    expect(screen.getByRole("alert")).toHaveTextContent(noGroupingMessage([3, 3]));
+    expect(within(screen.getByRole("main")).getByRole("alert")).toHaveTextContent(noGroupingMessage([3, 3]));
 
     await fireEvent.click(shuffleButton());
-    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+    expect(within(screen.getByRole("main")).queryByRole("alert")).not.toBeInTheDocument();
     const groups = groupNames();
     expect(groups).toHaveLength(3);
     expect(groups.find((g) => g.includes("Ana"))).toEqual(expect.arrayContaining(["Ana", "Fay"]));
