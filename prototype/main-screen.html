@@ -49,23 +49,51 @@
   .refuse { background:var(--bad-soft); border:1px solid var(--bad-line); border-radius:6px; padding:6px 10px; }
   .warn { color:var(--warn); margin:2px 0; font-size:14px; }
 
-  /* top bar */
-  .bar { position:sticky; top:0; z-index:5; display:flex; flex-wrap:wrap; align-items:center; gap:10px 14px; padding:10px 16px; background:var(--bar); color:var(--bar-ink); }
-  .brand { font-weight:800; font-size:20px; }
-  .bar select, .bar button:not(.shuffle), .bar input { background:var(--bar-btn); color:var(--bar-ink); border-color:var(--bar-line); }
-  .bar small, .bar label { color:var(--bar-mute); }
-  .bar .warn { color:#ffc56b; }
-  .bar .err { color:#ff9c94; }
-  .spacer { flex:1; }
-  .sizes { display:flex; flex-wrap:wrap; align-items:center; gap:4px 12px; }
-  .sizes .msgs { flex-basis:100%; }
-  .stepper { display:inline-flex; align-items:center; }
-  .stepper button { width:32px; padding:4px 0; }
-  .stepper output { min-width:34px; text-align:center; font-weight:700; font-size:18px; }
+  /* TOP BAR (iterating) */
+  .bar { position:sticky; top:0; z-index:5; display:flex; flex-wrap:wrap; align-items:center; gap:10px 20px; padding:10px 16px;
+    background:var(--panel); border-bottom:1px solid var(--line); }
+  .zone { display:flex; align-items:center; gap:8px; }
+  .zone + .zone { padding-left:20px; border-left:1px solid var(--line); }
+  .bar select { font-weight:700; font-size:17px; padding:6px 10px; }
+  .iconbtn { width:36px; height:36px; padding:0; display:inline-grid; place-items:center; border-radius:8px; font-size:16px; }
+  .pillbtn { padding:7px 12px; border-radius:999px; font-weight:600; }
+  .pillbtn b { color:var(--accent); }
+  .sizes { display:flex; flex-direction:column; gap:2px; }
+  .sizes > label { font-size:12px; color:var(--mute); text-transform:uppercase; letter-spacing:.04em; font-weight:600; }
+  .sizes .row { display:flex; align-items:center; gap:10px; }
+  .stepper { display:inline-flex; align-items:center; border:1px solid var(--line); border-radius:8px; overflow:hidden; }
+  .stepper button { width:32px; height:32px; padding:0; border:0; border-radius:0; background:var(--field); }
+  .stepper output { min-width:34px; text-align:center; font-weight:800; font-size:18px; }
+  .split { color:var(--mute); font-size:14px; }
   .split input { width:130px; }
-  .shuffle { background:var(--accent); color:var(--accent-ink); border:0; font-weight:700; font-size:20px; padding:10px 26px; border-radius:8px; }
-  .shuffle small { color:inherit; opacity:.8; font-weight:400; font-size:14px; }
-  .theme { font-size:13px; }
+  .spacer { flex:1; }
+  .shuffle { display:inline-flex; flex-direction:column; align-items:center; line-height:1.1; background:var(--accent); color:var(--accent-ink); border:0; font-weight:800; font-size:20px; padding:9px 28px; border-radius:10px; }
+  .shuffle small { color:inherit; opacity:.85; font-weight:500; font-size:12px; }
+  .pillbtn { display:inline-flex; align-items:center; gap:7px; white-space:nowrap; }
+  .sr-only { position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); }
+  /* swap mode: the selected name carries its own cancel, targets get a dashed outline, Locked Groups step back */
+  .chip .nm { flex:1; }
+  .chip .cancel { font-size:.6em; opacity:.8; }
+  .tiles.swapping .group:not(.locked) .chip:not(.sel) { cursor:pointer; }
+  .tiles.swapping .group:not(.locked) .chip:not(.sel):hover { background:var(--c-soft); border-color:var(--c); }
+  .tiles.swapping .group:not(.locked) .chip:not(.sel):hover::after { content:"⇄"; margin-left:auto; font-size:.7em; color:var(--c); }
+  .tiles.swapping .group.locked { opacity:.55; }
+  .pillbtn svg, .iconbtn svg { width:18px; height:18px; flex:none; }
+  .pillbtn .chev { width:14px; height:14px; color:var(--mute); margin-left:-2px; }
+  @media (max-width: 760px) {
+    .bar { display:grid; grid-template-columns:1fr auto; gap:10px; padding:10px 12px; }
+    .zone + .zone { padding-left:0; border-left:0; }
+    .zone.people { grid-column:1 / -1; }
+    .zone.people .pillbtn { flex:1 1 0; justify-content:center; }
+    .selhint { position:fixed; left:12px; right:12px; bottom:84px; z-index:30; white-space:normal; border-radius:12px; background:var(--panel); box-shadow:0 8px 24px rgba(0,0,0,.25); }
+    .selhint button { margin-left:auto; }
+    .zone.size { grid-column:1 / -1; }
+    .bar .spacer { display:none; }
+    .bar .iconbtn { grid-column:2; grid-row:1; }
+    .shuffle { position:fixed; left:12px; right:12px; bottom:12px; z-index:20; flex-direction:row; justify-content:center; gap:10px; padding:14px; box-shadow:0 8px 24px rgba(0,0,0,.25); }
+    .board { padding-bottom:84px; }
+    #statepanel { display:none; }
+  }
 
   /* board */
   #app { height:100vh; height:100dvh; display:flex; flex-direction:column; }
@@ -92,22 +120,23 @@
   .lockbtn:hover { opacity:1; border-color:currentColor; background:rgba(255,255,255,.15); }
   .lockbtn svg { width:16px; height:16px; }
   .lockbtn[aria-pressed=true] { background:var(--on-c); color:var(--lock); border-color:var(--on-c); opacity:1; }
-  .group .members { flex:1; min-height:0; list-style:none; margin:0; padding:10px 12px; display:flex; flex-direction:column; justify-content:center; gap:min(1.2cqh, 10px); }
+  .group .members { flex:1; min-height:0; list-style:none; margin:0; padding:10px 12px; display:flex; flex-direction:column; gap:min(1.2cqh, 10px); overflow:hidden; }
+  .group .members > li:first-child { margin-top:auto; }
+  .group .members > li:last-child { margin-bottom:auto; }
   .group .members.two { display:grid; grid-template-columns:1fr 1fr; align-content:center; }
   .chip { width:100%; min-height:0; line-height:1.2; display:flex; align-items:center; gap:12px; text-align:left; border-radius:10px; padding:.22em .45em;
-    font-size:clamp(16px, min(8.5cqw, 9cqh), 46px); font-weight:500; background:transparent; border:2px solid transparent; user-select:none; touch-action:manipulation; cursor:grab; }
+    font-size:clamp(15px, min(8.5cqw, calc((100cqh - 76px - var(--f, 0) * 32px) / (var(--rows-n, 4) * 1.95))), 46px); font-weight:500; background:transparent; border:2px solid transparent; user-select:none; touch-action:manipulation; cursor:grab; }
   .chip::before { content:""; width:10px; height:10px; border-radius:50%; background:var(--c); flex:none; }
   .chip:hover { background:var(--c-soft); border-color:transparent; }
   .chip.sel { background:var(--accent); color:var(--accent-ink); border-color:var(--accent); }
   .chip.sel::before { background:var(--accent-ink); }
   .chip.gone { text-decoration:line-through; color:var(--mute); }
   .chip.over { border-style:dashed; border-color:var(--accent); background:var(--accent-soft); }
-  .group.locked { border-color:var(--lock-band); box-shadow:0 0 0 2px var(--lock-band); }
-  .group.locked header { background:var(--lock-band); }
-  .group.locked .lockbtn[aria-pressed=true] { color:var(--lock-band); }
-  .group.locked .members { background:var(--lock-tint); }
+  /* Locked keeps the Group's colour: a ring in that colour, a tinted body, and a solid lock pill */
+  .group.locked { border-color:var(--c); box-shadow:0 0 0 3px var(--c); }
+  .group.locked .lockbtn[aria-pressed=true] { color:var(--c); }
+  .group.locked .members { background:var(--c-soft); }
   .group.locked .chip { cursor:not-allowed; }
-  .group.locked .chip::before { background:var(--lock-band); }
   .group.flagged { border-color:var(--warn); box-shadow:0 0 0 2px var(--warn); }
   .flag { display:flex; gap:6px; align-items:center; color:var(--warn); background:var(--warn-soft); padding:6px 14px; margin:0; font-size:14px; border-top:1px solid var(--warn-line); }
   .emptystate { flex:1; display:grid; place-items:center; color:var(--mute); font-size:22px; border:2px dashed var(--line); border-radius:14px; text-align:center; padding:40px; }
@@ -397,17 +426,22 @@ function switchRoster(id) {
   S.rosterId = id;
   Object.assign(S, { groups: null, stale: false, conflict: null, selected: null, splitOverride: null, ruleError: null, undo: null });
 }
+function friendlySplit(sizes) {
+  const c = {}; sizes.forEach(s => c[s] = (c[s] || 0) + 1);
+  return Object.keys(c).map(Number).sort((a, b) => a - b).map(s => `${c[s]} group${c[s] > 1 ? 's' : ''} of ${s}`).join(', ');
+}
 function sizeControls() {
-  const n = presentIds().length, sp = currentSplit(), warns = sizeWarnings();
-  const nLocked = S.groups?.filter(g => g.locked).length || 0;
-  return `<div class="sizes">
-    <label>Number of students in group</label>
-    <span class="stepper"><button data-action="target-dec" aria-label="Fewer">−</button><output>${S.target}</output><button data-action="target-inc" aria-label="More">+</button></span>
+  const sp = currentSplit();
+  return `<div class="sizes"><label>Number of students in group</label>
+    <div class="row"><span class="stepper"><button data-action="target-dec" aria-label="Fewer">−</button><output>${S.target}</output><button data-action="target-inc" aria-label="More">+</button></span>
     <span class="split">${S.editingSplit
       ? `<input data-draft="splitText" value="${esc(S.drafts.splitText)}" aria-label="Group sizes, comma separated"> <button data-action="split-save">Save</button> <button data-action="split-cancel">Cancel</button>`
-      : `<b>${splitText(sp)}</b> <small>(${n} Present${S.splitOverride ? ', edited' : ''})</small> <button class="link" data-action="split-edit">Edit</button>${S.splitOverride ? `<button class="link" data-action="split-reset">Automatic</button>` : ''}`}</span>
-    ${S.splitError || warns.length ? `<div class="msgs">${S.splitError ? `<p class="err">${esc(S.splitError)}</p>` : ''}${warns.map(w => `<p class="warn">⚠ ${esc(w)}</p>`).join('')}</div>` : ''}
+      : `${friendlySplit(sp)}${S.splitOverride ? ' (edited)' : ''} <button class="link" data-action="split-edit">Edit</button>${S.splitOverride ? `<button class="link" data-action="split-reset">Automatic</button>` : ''}`}</span></div>
   </div>`;
+}
+function sizeMessages() { // moved out of the bar so the bar never changes height
+  const warns = sizeWarnings();
+  return (S.splitError ? `<div class="notice conflict">${esc(S.splitError)}</div>` : '') + warns.map(w => `<div class="notice stale">⚠ ${esc(w)}</div>`).join('');
 }
 function notices() {
   let h = '';
@@ -417,23 +451,44 @@ function notices() {
       ${rules.length ? `<details><summary>Show the pairs involved</summary><ul>${rules.map(r => `<li><a href="#" data-action="focus-rule" data-rid="${r.id}">${esc(ruleText(r))}</a></li>`).join('')}</ul></details>` : ''}</div>`;
   }
   if (S.stale) h += `<div class="notice stale">⚠ The Roster changed since these Groups were made, so they're out of date. <button data-action="shuffle">Reshuffle</button></div>`;
-  if (S.selected) h += `<div class="notice hint"><span><b>${esc(nm(S.selected))}</b> selected. Tap a Student in another Group to swap.</span> <button data-action="deselect">Cancel</button></div>`;
   return h;
 }
 function chip(id) {
-  const s = stu(id);
-  return `<button class="chip ${S.selected === id ? 'sel' : ''} ${!s || !s.present ? 'gone' : ''}" draggable="true" data-action="chip" data-sid="${id}">${esc(nm(id))}</button>`;
+  const s = stu(id), sel = S.selected === id;
+  return `<button class="chip ${sel ? 'sel' : ''} ${!s || !s.present ? 'gone' : ''}" draggable="true" data-action="chip" data-sid="${id}" ${sel ? 'aria-pressed="true" title="Tap again to cancel"' : ''}><span class="nm">${esc(nm(id))}</span>${sel ? '<span class="cancel" aria-hidden="true">✕</span>' : ''}</button>`;
+}
+// measure the real space the Groups have, then pick the column count whose cards come closest
+// to a comfortable shape with few empty slots
+function layoutTiles() {
+  const t = document.querySelector('.tiles'); if (!t || !S.groups) return;
+  const n = S.groups.length, W = t.clientWidth, H = t.clientHeight;
+  if (innerWidth <= 760) return;
+  let best = Infinity, cols = 1, rows = 1, aspect = 1;
+  for (let c = 1; c <= n; c++) {
+    const r = Math.ceil(n / c), w = (W - (c - 1) * 14) / c, h = (H - (r - 1) * 14) / r;
+    const score = Math.abs(Math.log((w / h) / 1.2)) + 0.35 * (r * c - n);
+    if (score < best) { best = score; cols = c; rows = r; aspect = w / h; }
+  }
+  t.style.setProperty('--cols', cols); t.style.setProperty('--rows', rows);
+  t.querySelectorAll('.members').forEach(m => m.classList.toggle('two', m.children.length > 6 && aspect > 0.95));
 }
 const HUES = [212, 152, 28, 280, 350, 190, 48, 110, 250, 320];
 const ICON_LOCK = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>`;
 const ICON_UNLOCK = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 7.5-2"/></svg>`;
 const ICON_WARN = `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 3 2 20h20L12 3z"/><path d="M12 10v4M12 17.5v.5"/></svg>`;
+const svg = p => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${p}</svg>`;
+const ICON_PEOPLE = svg('<circle cx="9" cy="8" r="3.2"/><path d="M3 20c.6-3.4 3-5.2 6-5.2s5.4 1.8 6 5.2"/><circle cx="17" cy="9" r="2.6"/><path d="M16.5 14.6c2.4.2 4 1.8 4.5 4.6"/>');
+const ICON_PAIR = svg('<circle cx="8" cy="12" r="4.5"/><circle cx="16" cy="12" r="4.5"/>');
+const ICON_CHEV = svg('<path d="m9 6 6 6-6 6"/>').replace('<svg', '<svg class="chev"');
+const ICON_SUN = svg('<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>');
+const ICON_MOON = svg('<path d="M20 14.5A8 8 0 1 1 9.5 4 6.5 6.5 0 0 0 20 14.5z"/>');
+const ICON_AUTO = svg('<circle cx="12" cy="12" r="8.5"/><path d="M12 3.5v17a8.5 8.5 0 0 0 0-17z" fill="currentColor"/>');
 function groupCard(g, i, flags, aspect = 1) {
   const f = [...new Set(flags[g.id] || [])];
-  return `<section class="group ${g.locked ? 'locked' : ''} ${f.length ? 'flagged' : ''}" data-gid="${g.id}" style="--hue:${HUES[i % HUES.length]}" aria-label="Group ${i + 1}">
+  return `<section class="group ${g.locked ? 'locked' : ''} ${f.length ? 'flagged' : ''}" data-gid="${g.id}" style="--hue:${HUES[i % HUES.length]};--rows-n:${Math.max(3, g.members.length)};--f:${f.length}" aria-label="Group ${i + 1}">
     <header><h3>Group ${i + 1}</h3><span class="gcount">${g.members.length} students</span>
       <button class="lockbtn" data-action="lock" data-gid="${g.id}" aria-pressed="${g.locked}" aria-label="${g.locked ? 'Unlock' : 'Lock'} Group ${i + 1}" title="${g.locked ? 'Locked: Reshuffle keeps this Group' : 'Lock: Reshuffle keeps this Group'}">${g.locked ? ICON_LOCK + 'Locked' : ICON_UNLOCK + 'Lock'}</button></header>
-    <ul class="members ${g.members.length > 6 && aspect > 0.95 ? "two" : ""}">${g.members.map(id => `<li>${chip(id)}</li>`).join('')}</ul>
+    <ul class="members">${g.members.map(id => `<li>${chip(id)}</li>`).join('')}</ul>
     ${f.map(m => `<p class="flag">${ICON_WARN}<span>${esc(m)}</span></p>`).join('')}</section>`;
 }
 function rollCall() {
@@ -461,27 +516,19 @@ function pairsEditor() {
 
 function render() {
   const flags = violations(), d = S.drawer, g = S.groups;
-  // choose the column count whose cards come closest to a comfortable portrait-ish shape, with few empty slots
-  let cols = 1, rows = 1, aspect = 1;
-  if (g) {
-    const W = innerWidth - 32, H = innerHeight - 90 - (S.conflict || S.stale || S.selected ? 56 : 0);
-    let best = Infinity;
-    for (let c = 1; c <= g.length; c++) {
-      const r = Math.ceil(g.length / c), w = (W - (c - 1) * 14) / c, h = (H - (r - 1) * 14) / r;
-      const score = Math.abs(Math.log((w / h) / 1.2)) + 0.35 * (r * c - g.length);
-      if (score < best) { best = score; cols = c; rows = r; aspect = w / h; }
-    }
-  }
   document.getElementById('app').innerHTML = `
-    <div class="bar"><div class="brand">grouper</div>${rosterPicker()}
-      <button data-action="drawer" data-d="students">✓ ${presentIds().length}/${R().students.length} Present</button>
-      <button data-action="drawer" data-d="rules">Pairs (${R().rules.length})</button>
-      ${sizeControls()}<span class="spacer"></span>
-      <button class="theme" data-action="theme" title="Theme">${{ auto: '◐ Auto', light: '☀ Light', dark: '☾ Dark' }[theme]}</button>
-      <button class="shuffle" data-action="shuffle">${g ? 'Reshuffle' : 'Shuffle'}${g?.some(x => x.locked) ? ` <small>keeps ${g.filter(x => x.locked).length} Locked</small>` : ''}</button></div>
-    <div class="board">${notices()}
-      ${g ? `<div class="tiles" style="--cols:${cols};--rows:${rows}">${g.map((x, i) => groupCard(x, i, flags, aspect)).join("")}</div>` : (S.conflict ? '' : `<div class="emptystate">Take the roll (✓ Present), then Shuffle.</div>`)}</div>
+    <div class="bar">
+      <div class="zone">${rosterPicker()}</div>
+      <div class="zone people"><button class="pillbtn" data-action="drawer" data-d="students">${ICON_PEOPLE}<span><b>${presentIds().length}</b>/${R().students.length} Present</span>${ICON_CHEV}</button>
+        <button class="pillbtn" data-action="drawer" data-d="rules">${ICON_PAIR}<span><b>${R().rules.length}</b> Pairs</span>${ICON_CHEV}</button></div>
+      <div class="zone size">${sizeControls()}</div>
+      <span class="spacer"></span><span class="sr-only" role="status">${S.selected ? `${esc(nm(S.selected))} selected. Tap a Student in another Group to swap, or press Escape.` : ''}</span>
+      <button class="iconbtn" data-action="theme" title="Theme: ${theme} (click to change)" aria-label="Theme: ${theme}">${{ auto: ICON_AUTO, light: ICON_SUN, dark: ICON_MOON }[theme]}</button>
+      <button class="shuffle" data-action="shuffle">${g ? 'Reshuffle' : 'Shuffle'}${g?.some(x => x.locked) ? `<small>keeps ${g.filter(x => x.locked).length} Locked</small>` : ''}</button></div>
+    <div class="board">${sizeMessages()}${notices()}
+      ${g ? `<div class="tiles ${S.selected ? 'swapping' : ''}">${g.map((x, i) => groupCard(x, i, flags)).join("")}</div>` : (S.conflict ? '' : `<div class="emptystate">Take the roll (✓ Present), then Shuffle.</div>`)}</div>
     ${d ? `<div class="overlay" data-action="drawer" data-d=""></div><aside class="drawer"><header><h3>${{ students: 'Students', rules: 'Pairs', roster: esc(R().name) }[d]}</h3><button data-action="drawer" data-d="">Done</button></header>${{ students: rollCall, rules: pairsEditor, roster: rosterDrawer }[d]()}</aside>` : ''}`;
+  layoutTiles();
   document.getElementById('statepre').textContent = JSON.stringify({
     roster: R().name, present: `${presentIds().length}/${R().students.length}`, studentsPerGroup: S.target,
     split: splitText(currentSplit()), splitEdited: !!S.splitOverride, stale: S.stale, selected: S.selected && nm(S.selected), lastMove: S.lastMove,
