@@ -11,6 +11,9 @@ function pairs(list: ReadonlyArray<readonly [number, number]>, prefix = "p"): So
   return list.map(([a, b], i) => ({ id: `${prefix}${i}`, a, b, created: i }));
 }
 
+/** The ids `pairs` gives its first `n` Pairs, newest first (the order explain lists them in). */
+const newestFirst = (n: number, prefix = "p") => range(n).reverse().map((i) => `${prefix}${i}`);
+
 /** Every Pair among each other ("mutually kept apart"). */
 function allPairs(students: readonly number[]): [number, number][] {
   const out: [number, number][] = [];
@@ -196,18 +199,20 @@ describe("solver: the research's hand-made cases", () => {
     expectValid(input, solve(input));
   });
 
-  it("odd wheel W5 in 3 Groups: max clique is 3, but search proves there's no grouping", () => {
+  it("odd wheel W5 in 3 Groups: max clique is 3, but search proves there's no grouping; the 10 wheel Pairs clash", () => {
     const keepApart = pairs([[0, 1], [1, 2], [2, 3], [3, 4], [4, 0], [5, 0], [5, 1], [5, 2], [5, 3], [5, 4]]);
     const { result, ms } = timed({ students: range(40), split: deriveSplit(40, 13), keepApart, rng: seededRng(3) });
-    expect(result).toEqual({ ok: false, conflict: { kind: "no-solution" } });
+    expect(result).toEqual({ ok: false, conflict: { kind: "no-solution", pairIds: newestFirst(10) } });
     expect(ms).toBeLessThan(100);
   });
 
-  it("11 chains of 3 in 10 Groups of 4: search proves there's no grouping", () => {
+  it("11 chains of 3 in 10 Groups of 4: search proves there's no grouping; all but the oldest Good pair clash", () => {
     const goodPairs = pairs(range(11).flatMap((i) => [[3 * i, 3 * i + 1], [3 * i + 1, 3 * i + 2]] as [number, number][]));
     const keepApart = pairs([[33, 34], [35, 36], [0, 39]], "k");
     const { result, ms } = timed({ students: range(40), split: deriveSplit(40, 4), goodPairs, keepApart, target: 4, rng: seededRng(4) });
-    expect(result).toEqual({ ok: false, conflict: { kind: "no-solution" } });
+    // 10 whole chains of 3 fill every Group but one seat each, so the newer Good pair of the oldest
+    // chain (a chain of 2) can't fit; the Keep apart pairs don't matter.
+    expect(result).toEqual({ ok: false, conflict: { kind: "no-solution", pairIds: newestFirst(22).slice(0, 21) } });
     expect(ms).toBeLessThan(100);
   });
 
@@ -221,10 +226,10 @@ describe("solver: the research's hand-made cases", () => {
     expect(result).toMatchObject({ ok: false, conflict: { kind: "apart-inside-chain", pairId: "k0" } });
   });
 
-  it("one Student kept apart from all 39 others, groups of 2: no grouping", () => {
+  it("one Student kept apart from all 39 others, groups of 2: no grouping; all 39 Pairs clash", () => {
     const keepApart = pairs(range(39).map((i) => [0, i + 1] as [number, number]));
     const { result, ms } = timed({ students: range(40), split: deriveSplit(40, 2), keepApart, target: 2, rng: seededRng(5) });
-    expect(result).toEqual({ ok: false, conflict: { kind: "no-solution" } });
+    expect(result).toEqual({ ok: false, conflict: { kind: "no-solution", pairIds: newestFirst(39) } });
     expect(ms).toBeLessThan(100);
   });
 
@@ -243,7 +248,16 @@ describe("solver: the research's hand-made cases", () => {
     expect(split).toEqual([...new Array<number>(11).fill(2), 3]);
     expect(solve({ students: range(25), split, goodPairs, keepApart, target: 2 })).toMatchObject({
       ok: false,
-      conflict: { kind: "chain-too-big", students: [0, 1, 2], limit: 2 },
+      conflict: { kind: "chain-too-big", students: [0, 1, 2], limit: 2, pairIds: ["g0", "g1"] },
+    });
+  });
+
+  it("…and without a Target size (only the Split): both chains' Good pairs clash", () => {
+    const goodPairs = pairs([[0, 1], [1, 2], [3, 4], [4, 5]], "g");
+    const keepApart = pairs([[6, 7], [8, 9]], "k");
+    expect(solve({ students: range(25), split: deriveSplit(25, 2), goodPairs, keepApart, rng: seededRng(8) })).toEqual({
+      ok: false,
+      conflict: { kind: "no-solution", pairIds: newestFirst(4, "g") },
     });
   });
 });

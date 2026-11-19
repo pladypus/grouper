@@ -2,9 +2,10 @@
 // the free pool and returns Groups that match the Split and keep every Rule, or a Conflict.
 //
 // Stages: prepare (blocks + Keep apart edges, quick checks) → search (backtracking with restarts)
-// → spread (set-swap mixing). Explain (QuickXplain over the Pairs, #17) will run after a
-// `no-solution` result. Lock handling and the lone-Leftover check happen in the caller.
+// → spread (set-swap mixing); when the search proves there is no grouping, explain (QuickXplain over
+// the Pairs) names the clashing Pairs. Lock handling and the lone-Leftover check happen in the caller.
 
+import { explain } from "./explain";
 import { prepare, type SolverConflict, type SolverPair } from "./prepare";
 import { shuffleInPlace, type Rng } from "./rng";
 import { search } from "./search";
@@ -12,7 +13,8 @@ import { spread, SPREAD_STEPS } from "./spread";
 
 export { maxClique, prepare, type Prepared, type PrepareResult, type SolverConflict, type SolverPair } from "./prepare";
 export { randomInt, seededRng, shuffleInPlace, type Rng } from "./rng";
-export { FIRST_NODE_BUDGET, NODE_BUDGET_GROWTH, search } from "./search";
+export { FIRST_NODE_BUDGET, NODE_BUDGET_GROWTH, OUT_OF_BUDGET, search, searchWithin } from "./search";
+export { EXPLAIN_NODE_BUDGET, explain, type ExplainInput, type Explanation } from "./explain";
 export { spread, SPREAD_STEPS } from "./spread";
 
 export interface SolveInput {
@@ -50,7 +52,10 @@ export function solve(input: SolveInput): SolveResult {
   const { prepared } = prep;
 
   const assign = search(prepared, rng);
-  if (!assign) return { ok: false, conflict: { kind: "no-solution" } };
+  if (!assign) {
+    const { pairIds } = explain({ students, split, goodPairs, keepApart, target, rng });
+    return { ok: false, conflict: { kind: "no-solution", pairIds } };
+  }
   spread(prepared, assign, spreadSteps, rng);
 
   const groups: number[][] = split.map(() => []);

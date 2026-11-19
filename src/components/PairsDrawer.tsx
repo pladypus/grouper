@@ -3,11 +3,12 @@ import {
   PAIR_TYPES,
   pairsByType,
   PICK_TWO_STUDENTS_MESSAGE,
+  type PairId,
   type PairType,
   type PairView,
 } from "../lib";
 import X from "lucide-react/icons/x";
-import { useId, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { useRosters } from "../state";
 import { Drawer, drawerErrorClass } from "./Drawer";
 
@@ -23,8 +24,17 @@ const addClass: Record<PairType, string> = {
   "keep apart": "flex-1 rounded-md border border-bad bg-panel p-2 font-semibold text-bad",
 };
 
+export interface PairsDrawerProps {
+  /**
+   * A Pair to highlight (from the Conflict notice's "Show the Rules involved"): it is marked,
+   * scrolled into view and focused, ready to delete.
+   */
+  highlight?: PairId | null;
+  onClose: () => void;
+}
+
 /** SPEC §8 Pairs drawer: pick two Students, ＋ Good pair / ＋ Keep apart; the Pairs listed by kind, each deletable. */
-export function PairsDrawer({ onClose }: { onClose: () => void }) {
+export function PairsDrawer({ highlight = null, onClose }: PairsDrawerProps) {
   const { roster, addPair } = useRosters();
   const [a, setA] = useState("");
   const [b, setB] = useState("");
@@ -82,15 +92,23 @@ export function PairsDrawer({ onClose }: { onClose: () => void }) {
           {error}
         </p>
       )}
-      <PairList type="good pair" pairs={lists.goodPairs} />
-      <PairList type="keep apart" pairs={lists.keepApart} />
+      <PairList type="good pair" pairs={lists.goodPairs} highlight={highlight} />
+      <PairList type="keep apart" pairs={lists.keepApart} highlight={highlight} />
     </Drawer>
   );
 }
 
-function PairList({ type, pairs }: { type: PairType; pairs: readonly PairView[] }) {
+function PairList({ type, pairs, highlight }: { type: PairType; pairs: readonly PairView[]; highlight: PairId | null }) {
   const { deletePair } = useRosters();
   const { heading, hint } = LISTS[type];
+  const highlighted = useRef<HTMLLIElement>(null);
+  const hasHighlight = pairs.some((v) => v.pair.id === highlight);
+  useEffect(() => {
+    const row = highlighted.current;
+    if (!row) return;
+    row.scrollIntoView?.({ block: "nearest" });
+    row.focus();
+  }, [highlight, hasHighlight]);
   return (
     <div>
       <h3 className="mt-3.5 mb-1 font-bold">
@@ -101,7 +119,15 @@ function PairList({ type, pairs }: { type: PairType; pairs: readonly PairView[] 
           <li className="px-2 py-1.5 text-mute">None yet</li>
         ) : (
           pairs.map((v) => (
-            <li key={v.pair.id} className="flex items-center justify-between gap-1.5 rounded-md px-2 py-1.5 hover:bg-bg">
+            <li
+              key={v.pair.id}
+              ref={v.pair.id === highlight ? highlighted : undefined}
+              tabIndex={v.pair.id === highlight ? -1 : undefined}
+              aria-current={v.pair.id === highlight ? "true" : undefined}
+              className={`flex items-center justify-between gap-1.5 rounded-md px-2 py-1.5 ${
+                v.pair.id === highlight ? "bg-accent-soft ring-2 ring-accent outline-none" : "hover:bg-bg"
+              }`}
+            >
               <span>{v.label}</span>
               <button
                 type="button"

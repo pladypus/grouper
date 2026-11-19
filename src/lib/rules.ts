@@ -6,7 +6,9 @@
 // - drawer: pick two Students, then ＋ Good pair / ＋ Keep apart → `addPair(roster, type, a, b, newId)`;
 //   on refusal show `message` as a red line; list `pairsByType(roster)`, each with a delete button →
 //   `deletePair(roster, pair.id)`;
-// - board: one warning line per `oversizeChains(roster)` entry (`.message`); Shuffle stays enabled.
+// - board: one warning line per `oversizeChains(roster)` entry (`.message`); Shuffle stays enabled;
+//   the Conflict notice's "Show the Rules involved" lists `conflictPairs(roster, conflict.pairIds)`,
+//   each opening the Pairs drawer with that Pair highlighted.
 // Pair edits mark Groups out of date through `boardAfterRosterChange` (groups.ts).
 
 import {
@@ -318,6 +320,20 @@ export function pairsByType(roster: Roster): PairsByType {
     goodPairs: views.filter((v) => v.pair.type === "good pair"),
     keepApart: views.filter((v) => v.pair.type === "keep apart"),
   };
+}
+
+/** The Conflict notice's expander (SPEC §6), listing the clashing Pairs. */
+export const SHOW_RULES_INVOLVED = "Show the Rules involved";
+
+/**
+ * The Pairs behind a Conflict (`conflict.pairIds`) for "Show the Rules involved": newest first, the
+ * order they are blamed in. Ids no longer on the Roster are left out.
+ */
+export function conflictPairs(roster: Roster, pairIds: readonly PairId[]): PairView[] {
+  const wanted = new Set(pairIds);
+  return byCreated(roster.pairs.filter((p) => wanted.has(p.id)))
+    .reverse()
+    .map((p) => pairView(roster, p));
 }
 
 /** A Present chain bigger than the Target size, with the board's warning sentence. */
