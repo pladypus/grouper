@@ -397,3 +397,26 @@ These were not settled by a ticket. Each follows from the decisions above and is
 - **Spread steps** fixed at 300 (research range 200–500).
 - **Storage-unavailable notice** and the exact Import refusal wording.
 - **CSV column guess** heuristic.
+
+---
+
+## 15. Build tickets
+
+The build is split into vertical slices, each a GitHub issue labelled `ready-for-agent` with native "blocked by" links. Start with any ticket whose blockers are closed.
+
+| Ticket | Blocked by |
+|---|---|
+| #12 Scaffold the app and deploy a placeholder site | none |
+| #13 Repo upkeep: Dependabot, auto-merge with deploy, main ruleset | #12 |
+| #14 Rosters and Students saved in the browser | #12 |
+| #15 Shuffle Present Students into Groups (no Rules yet) | #14 |
+| #16 Pairs that every Shuffle obeys | #15 |
+| #17 Explain a Conflict with the Rules involved | #16 |
+| #18 Manual move: swap two Students by drag or tap | #16 |
+| #19 Lock Groups and Reshuffle around them | #18 |
+| #20 Export, Backup and Import of Grouper files | #16 |
+| #21 Add names: paste or drop a class list into a Roster | #14 |
+| #22 Import a .txt or .csv list as a new Roster | #20, #21 |
+| #23 Share menu: Copy as text, Print, Full screen | #15 |
+| #24 Copy picture of the Groups | #23 |
+| #25 Works offline and as a Home Screen app | #14 |
