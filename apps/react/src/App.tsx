@@ -87,6 +87,7 @@ function Main() {
         onShuffle={runShuffle}
         onNewRoster={() => setDialog("new")}
         onAddStudents={() => setDrawer("edit")}
+        onToast={setToast}
       />
       {roster && drawer === "pairs" && <PairsDrawer onClose={closeDrawer} />}
       {roster && (drawer === "attendance" || drawer === "edit") && (

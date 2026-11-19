@@ -9,6 +9,9 @@ import {
   addStudent,
   deletePair,
   boardAfterRosterChange,
+  cancelSelection,
+  dropStudent,
+  tapStudent,
   editSplit,
   EMPTY_BOARD,
   resetSplit,
@@ -31,6 +34,8 @@ import {
   type Board,
   type Rng,
   type IdGenerator,
+  type MoveOutcome,
+  type Selection,
   type PairId,
   type PairType,
   type ShuffleConflict,
@@ -53,6 +58,13 @@ export interface State {
    * as they were. Cleared by the next successful Shuffle and by any Roster change.
    */
   readonly conflict: ConflictNotice | null;
+  /**
+   * The Student picked by tap / Enter / Space for a swap (SPEC §7 Manual move), or null. Cleared by
+   * every Shuffle and Roster switch.
+   */
+  readonly selected: Selection;
+  /** The last Manual move sentence for the polite live region ("Ana selected. …", "Swapped …"). */
+  readonly announcement: string;
 }
 
 export interface ConflictNotice extends ShuffleConflict {
@@ -78,15 +90,21 @@ export type Action =
   | { type: "setBoard"; board: Board }
   /** A Shuffle that hit a Conflict: the Board stays, the notice shows. */
   | { type: "setConflict"; conflict: ConflictNotice }
-  | { type: "resetSplit" };
+  | { type: "resetSplit" }
+  /** A Manual move outcome (tap, drop, cancel) the command already worked out. */
+  | { type: "move"; outcome: MoveOutcome };
 
 /**
  * Applies one action, then keeps the Board in step with the open Roster (out of date after
  * attendance, Student or Pair edits, cleared when another Roster opens) and drops a stale Conflict.
  */
 export function reducer(state: State, action: Action): State {
-  const next = applyAction(state, action);
+  let next = applyAction(state, action);
   if (next.app === state.app) return next;
+  // Another Roster opened: the selection goes with its Groups.
+  if (next.selected !== null && currentRoster(next.app)?.id !== currentRoster(state.app)?.id) {
+    next = { ...next, selected: null };
+  }
   const board = boardAfterRosterChange(next.board, currentRoster(state.app), currentRoster(next.app));
   return board === next.board && next.conflict === null ? next : { ...next, board, conflict: null };
 }
@@ -153,9 +171,16 @@ function applyAction(state: State, action: Action): State {
       return { ...state, app: updateRoster(app, roster.id, () => updated), board: resetSplit(state.board) };
     }
     case "setBoard":
-      return { ...state, board: action.board, conflict: null };
+      return { ...state, board: action.board, conflict: null, selected: null };
     case "setConflict":
-      return { ...state, conflict: action.conflict };
+      return { ...state, conflict: action.conflict, selected: null };
+    case "move":
+      return {
+        ...state,
+        board: action.outcome.board,
+        selected: action.outcome.selected,
+        announcement: action.outcome.announcement ?? "",
+      };
     case "resetSplit":
       return { ...state, board: resetSplit(state.board) };
   }
@@ -194,6 +219,15 @@ export interface Rosters {
    * as do new Groups; any other refusal (fewer than 2 Present) is returned.
    */
   shuffle(): Refusal;
+  /** Tap, Enter or Space on a Student: select, swap or cancel. Returns the refusal toast or null. */
+  tapStudent(studentId: StudentId): Refusal;
+  /** ✕ or Esc while a Student is selected. */
+  cancelSelection(): void;
+  /**
+   * The end of a drag: `target` is the Student it was dropped onto, or null for anywhere else.
+   * Returns the toast ("Drop onto a Student to swap with them.", a Locked refusal) or null.
+   */
+  dropStudent(dragged: StudentId, target: StudentId | null): Refusal;
 }
 
 const RostersContext = createContext<Rosters | null>(null);
@@ -221,6 +255,8 @@ export function RostersProvider({ storage, newId, rng = Math.random, children }:
     removed: null,
     board: EMPTY_BOARD,
     conflict: null,
+    selected: null,
+    announcement: "",
   });
   const [saveOk, setSaveOk] = useState(true);
   const askedToPersist = useRef(false);
@@ -335,6 +371,21 @@ export function RostersProvider({ storage, newId, rng = Math.random, children }:
       }
       dispatch({ type: "setBoard", board: r.board });
       return null;
+    },
+    tapStudent(studentId) {
+      if (!roster) return null;
+      const outcome = tapStudent(state.board, roster, state.selected, studentId);
+      dispatch({ type: "move", outcome });
+      return outcome.toast ?? null;
+    },
+    cancelSelection() {
+      dispatch({ type: "move", outcome: cancelSelection(state.board) });
+    },
+    dropStudent(dragged, target) {
+      if (!roster) return null;
+      const outcome = dropStudent(state.board, roster, dragged, target);
+      dispatch({ type: "move", outcome });
+      return outcome.toast ?? null;
     },
   };
 
