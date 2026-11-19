@@ -8,6 +8,8 @@ import {
   hasGroups,
   OUT_OF_DATE_MESSAGE,
   oversizeChains,
+  printSubtitle,
+  shareTitle,
   STORAGE_UNAVAILABLE_MESSAGE,
   type Board as BoardState,
   type Roster,
@@ -54,7 +56,9 @@ export function Board({ phone, splitErrorId, splitError, onShuffle, onNewRoster,
   const showGroups = !!roster && hasGroups(board);
   return (
     // On phones the pinned Reshuffle covers the bottom 84 px, so leave room for it.
-    <main className={`flex min-h-0 flex-1 flex-col overflow-auto px-4 pt-3 ${phone && roster ? "pb-[84px]" : "pb-4"}`}>
+    <main
+      className={`flex min-h-0 flex-1 flex-col overflow-auto px-4 pt-3 print:block print:overflow-visible print:p-0 ${phone && roster ? "pb-[84px]" : "pb-4"}`}
+    >
       {/* Manual move instructions and results for screen readers (SPEC §7); always rendered. */}
       <p role="status" aria-live="polite" className="sr-only">
         {showGroups ? state.announcement : ""}
@@ -62,14 +66,14 @@ export function Board({ phone, splitErrorId, splitError, onShuffle, onNewRoster,
       {!saving && (
         <p
           role="alert"
-          className="mb-2.5 flex items-center gap-2.5 rounded-lg border border-warn-line bg-warn-soft px-3.5 py-2.5 text-warn"
+          className="mb-2.5 flex items-center gap-2.5 rounded-lg border border-warn-line bg-warn-soft px-3.5 py-2.5 text-warn print:hidden"
         >
           <TriangleAlert aria-hidden="true" className="size-4 flex-none" />
           {STORAGE_UNAVAILABLE_MESSAGE}
         </p>
       )}
       {roster && splitError && (
-        <p id={splitErrorId} role="alert" className="mb-2.5 rounded-lg border border-bad-line bg-bad-soft px-3.5 py-2.5 text-bad">
+        <p id={splitErrorId} role="alert" className="mb-2.5 rounded-lg border border-bad-line bg-bad-soft px-3.5 py-2.5 text-bad print:hidden">
           {splitError}
         </p>
       )}
@@ -78,7 +82,7 @@ export function Board({ phone, splitErrorId, splitError, onShuffle, onNewRoster,
           <p
             key={chain.students.join(" ")}
             role="status"
-            className="mb-2.5 flex items-center gap-2.5 rounded-lg border border-warn-line bg-warn-soft px-3.5 py-2.5 text-warn"
+            className="mb-2.5 flex items-center gap-2.5 rounded-lg border border-warn-line bg-warn-soft px-3.5 py-2.5 text-warn print:hidden"
           >
             <TriangleAlert aria-hidden="true" className="size-4 flex-none" />
             {chain.message}
@@ -88,7 +92,7 @@ export function Board({ phone, splitErrorId, splitError, onShuffle, onNewRoster,
       {showGroups && board.outOfDate && (
         <div
           role="status"
-          className="mb-2.5 flex flex-wrap items-center gap-x-2.5 gap-y-1.5 rounded-lg border border-warn-line bg-warn-soft px-3.5 py-2.5"
+          className="mb-2.5 flex flex-wrap items-center gap-x-2.5 gap-y-1.5 rounded-lg border border-warn-line bg-warn-soft px-3.5 py-2.5 print:hidden"
         >
           <span>⚠ {OUT_OF_DATE_MESSAGE}</span>
           <button
@@ -114,7 +118,10 @@ export function Board({ phone, splitErrorId, splitError, onShuffle, onNewRoster,
           </div>
         </section>
       ) : showGroups ? (
-        <Groups board={board} roster={roster} phone={phone} onToast={onToast} />
+        <>
+          <PrintHeader board={board} roster={roster} />
+          <Groups board={board} roster={roster} phone={phone} onToast={onToast} />
+        </>
       ) : roster.students.length === 0 ? (
         <div className={emptyClass}>
           <div>
@@ -129,6 +136,16 @@ export function Board({ phone, splitErrorId, splitError, onShuffle, onNewRoster,
         <div className={emptyClass}>{EMPTY_BOARD_MESSAGE}</div>
       )}
     </main>
+  );
+}
+
+/** Paper only (SPEC §9): "Period 2 groups" with the date and the number of Students. */
+function PrintHeader({ board, roster }: { board: BoardState; roster: Roster }) {
+  return (
+    <div className="hidden items-baseline justify-between border-b-2 border-black pb-1.5 mb-[14px] print:flex">
+      <h1 className="text-[20pt] font-bold">{shareTitle(roster)}</h1>
+      <span className="text-[11pt] text-[#555]">{printSubtitle(board, new Date())}</span>
+    </div>
   );
 }
 
@@ -239,7 +256,9 @@ function Groups({
     >
       <div
         ref={ref}
-        className={phone ? "flex flex-col gap-[14px]" : "flex min-h-0 flex-1 flex-wrap content-start justify-center gap-[14px]"}
+        className={`${
+          phone ? "flex flex-col gap-[14px]" : "flex min-h-0 flex-1 flex-wrap content-start justify-center gap-[14px]"
+        } print:grid print:grid-cols-3 print:gap-[10px]`}
       >
         {board.groups.map((g, i) => (
           <GroupCard

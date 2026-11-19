@@ -7,7 +7,7 @@ import type { ConflictNotice as Conflict } from "../state";
  */
 export function ConflictNotice({ conflict }: { conflict: Conflict }) {
   return (
-    <div role="alert" className="mb-2.5 rounded-lg border border-bad-line bg-bad-soft px-3.5 py-2.5 text-bad">
+    <div role="alert" className="mb-2.5 rounded-lg border border-bad-line bg-bad-soft px-3.5 py-2.5 text-bad print:hidden">
       <p>{conflict.message}</p>
     </div>
   );

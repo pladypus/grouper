@@ -1,8 +1,15 @@
 @import "tailwindcss";
 
 /* The theme is chosen in the app (auto / light / dark) and applied as data-theme on <html>,
-   so `dark:` follows that attribute rather than the media query. */
-@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+   so `dark:` follows that attribute rather than the media query. Paper is always light (SPEC §9),
+   so the dark theme applies on screen only. */
+@custom-variant dark {
+  @media screen {
+    &:where([data-theme="dark"], [data-theme="dark"] *) {
+      @slot;
+    }
+  }
+}
 
 /* Theme tokens from the main-screen prototype's :root block (SPEC §8). Light values here; the dark
    values override the same variables below, so every `bg-panel`, `text-ink`… utility switches. */
@@ -48,39 +55,56 @@
   --hue-soft-l: 94%;
 }
 
-:root[data-theme="dark"] {
-  color-scheme: dark;
-  --hue-s: 38%;
-  --hue-l: 36%;
-  --hue-soft-l: 21%;
+@media screen {
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --hue-s: 38%;
+    --hue-l: 36%;
+    --hue-soft-l: 21%;
 
-  --color-bg: #15161a;
-  --color-panel: #1f2127;
-  --color-ink: #e8e9ee;
-  --color-mute: #9a9fac;
-  --color-line: #343741;
-  --color-field: #272a31;
-  --color-bar: #0c0d10;
-  --color-bar-ink: #e8e9ee;
-  --color-bar-mute: #9a9fac;
-  --color-bar-btn: #23252c;
-  --color-bar-line: #3a3d46;
-  --color-accent: #7d97ff;
-  --color-accent-ink: #0c0d10;
-  --color-accent-soft: #25305a;
-  --color-warn: #ffb950;
-  --color-warn-soft: #3a2a12;
-  --color-warn-line: #6b4b1c;
-  --color-bad: #ff8a80;
-  --color-bad-soft: #3d1c1a;
-  --color-bad-line: #6e2f2a;
-  --color-ok: #5fd394;
-  --color-ok-soft: #173726;
-  --color-lock: #b39dff;
-  --color-lock-soft: #2a2342;
-  --color-flash: #5a4a10;
-  --color-off: #2a2c33;
-  --color-on-c: #f2f3f7;
-  --color-lock-band: #4a4f5c;
-  --color-lock-tint: #262930;
+    --color-bg: #15161a;
+    --color-panel: #1f2127;
+    --color-ink: #e8e9ee;
+    --color-mute: #9a9fac;
+    --color-line: #343741;
+    --color-field: #272a31;
+    --color-bar: #0c0d10;
+    --color-bar-ink: #e8e9ee;
+    --color-bar-mute: #9a9fac;
+    --color-bar-btn: #23252c;
+    --color-bar-line: #3a3d46;
+    --color-accent: #7d97ff;
+    --color-accent-ink: #0c0d10;
+    --color-accent-soft: #25305a;
+    --color-warn: #ffb950;
+    --color-warn-soft: #3a2a12;
+    --color-warn-line: #6b4b1c;
+    --color-bad: #ff8a80;
+    --color-bad-soft: #3d1c1a;
+    --color-bad-line: #6e2f2a;
+    --color-ok: #5fd394;
+    --color-ok-soft: #173726;
+    --color-lock: #b39dff;
+    --color-lock-soft: #2a2342;
+    --color-flash: #5a4a10;
+    --color-off: #2a2c33;
+    --color-on-c: #f2f3f7;
+    --color-lock-band: #4a4f5c;
+    --color-lock-tint: #262930;
+  }
+}
+
+/* Print layout (SPEC §9), the same for Print… and Ctrl+P: A4 portrait on white, Group colours
+   kept. The rest is `print:` variants on the components (hidden parts, cards three across). */
+@page {
+  size: A4 portrait;
+  margin: 12mm;
+}
+
+@media print {
+  body {
+    background: #fff;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
 }

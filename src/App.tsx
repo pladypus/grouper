@@ -66,7 +66,7 @@ function Main() {
   }, [dismissUndo]);
 
   return (
-    <div className="flex h-dvh flex-col">
+    <div className="flex h-dvh flex-col print:block print:h-auto">
       <TopBar
         phone={phone}
         splitErrorId={SPLIT_ERROR_ID}
@@ -79,6 +79,7 @@ function Main() {
         onRenameRoster={() => setDialog("rename")}
         onDeleteRoster={() => setDialog("delete")}
         onDeleteRefused={() => setToast(ONLY_ROSTER_MESSAGE)}
+        onToast={setToast}
       />
       <Board
         phone={phone}
