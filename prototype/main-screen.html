@@ -19,21 +19,21 @@
     --accent:#3a5bd9; --accent-ink:#ffffff; --accent-soft:#e6ebfd;
     --warn:#a15c00; --warn-soft:#fff3df; --warn-line:#f0cf9a;
     --bad:#b42318; --bad-soft:#fde8e6; --bad-line:#f3b7b0;
-    --ok:#1d7a46; --ok-soft:#e3f3e9; --lock:#5b3fb5; --lock-soft:#efeafd; --flash:#ffe58f; --off:#eeeeee; }
+    --ok:#1d7a46; --ok-soft:#e3f3e9; --lock:#5b3fb5; --lock-soft:#efeafd; --flash:#ffe58f; --off:#eeeeee; --hue-s:58%; --hue-l:40%; --hue-soft-l:94%; --on-c:#ffffff; --lock-band:#3d4250; --lock-tint:#eef0f3; }
   @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { color-scheme: dark;
     --bg:#15161a; --panel:#1f2127; --ink:#e8e9ee; --mute:#9a9fac; --line:#343741; --field:#272a31;
     --bar:#0c0d10; --bar-ink:#e8e9ee; --bar-mute:#9a9fac; --bar-btn:#23252c; --bar-line:#3a3d46;
     --accent:#7d97ff; --accent-ink:#0c0d10; --accent-soft:#25305a;
     --warn:#ffb950; --warn-soft:#3a2a12; --warn-line:#6b4b1c;
     --bad:#ff8a80; --bad-soft:#3d1c1a; --bad-line:#6e2f2a;
-    --ok:#5fd394; --ok-soft:#173726; --lock:#b39dff; --lock-soft:#2a2342; --flash:#5a4a10; --off:#2a2c33; } }
+    --ok:#5fd394; --ok-soft:#173726; --lock:#b39dff; --lock-soft:#2a2342; --flash:#5a4a10; --off:#2a2c33; --hue-s:38%; --hue-l:36%; --hue-soft-l:21%; --on-c:#f2f3f7; --lock-band:#4a4f5c; --lock-tint:#262930; } }
   :root[data-theme="dark"] { color-scheme: dark;
     --bg:#15161a; --panel:#1f2127; --ink:#e8e9ee; --mute:#9a9fac; --line:#343741; --field:#272a31;
     --bar:#0c0d10; --bar-ink:#e8e9ee; --bar-mute:#9a9fac; --bar-btn:#23252c; --bar-line:#3a3d46;
     --accent:#7d97ff; --accent-ink:#0c0d10; --accent-soft:#25305a;
     --warn:#ffb950; --warn-soft:#3a2a12; --warn-line:#6b4b1c;
     --bad:#ff8a80; --bad-soft:#3d1c1a; --bad-line:#6e2f2a;
-    --ok:#5fd394; --ok-soft:#173726; --lock:#b39dff; --lock-soft:#2a2342; --flash:#5a4a10; --off:#2a2c33; }
+    --ok:#5fd394; --ok-soft:#173726; --lock:#b39dff; --lock-soft:#2a2342; --flash:#5a4a10; --off:#2a2c33; --hue-s:38%; --hue-l:36%; --hue-soft-l:21%; --on-c:#f2f3f7; --lock-band:#4a4f5c; --lock-tint:#262930; }
 
   * { box-sizing:border-box; }
   html, body { margin:0; height:100%; }
@@ -68,28 +68,48 @@
   .theme { font-size:13px; }
 
   /* board */
-  .board { padding:12px 16px 80px; display:flex; flex-direction:column; min-height:calc(100vh - 64px); }
+  #app { height:100vh; height:100dvh; display:flex; flex-direction:column; }
+  .bar { flex:none; }
+  .board { flex:1; min-height:0; overflow:auto; padding:12px 16px 16px; display:flex; flex-direction:column; }
   .notice { border-radius:8px; padding:10px 14px; margin:0 0 10px; display:flex; flex-wrap:wrap; gap:6px 10px; align-items:center; }
   .notice.stale { background:var(--warn-soft); border:1px solid var(--warn-line); }
   .notice.conflict { background:var(--bad-soft); border:1px solid var(--bad-line); display:block; }
   .notice.conflict details { margin-top:6px; }
   .notice.conflict a { color:var(--accent); }
   .notice.hint { background:var(--accent-soft); }
-  .tiles { flex:1; display:grid; gap:14px; grid-template-columns:repeat(var(--cols,3), minmax(0,1fr)); grid-auto-rows:minmax(200px,1fr); }
-  @media (max-width: 760px) { .tiles { grid-template-columns:1fr; grid-auto-rows:auto; } }
-  .group { background:var(--panel); border:2px solid var(--line); border-radius:14px; padding:14px 16px; display:flex; flex-direction:column; }
-  .group header { display:flex; align-items:center; gap:10px; margin-bottom:10px; }
-  .group header h3 { font-size:clamp(18px, 1.8vw, 28px); }
-  .group .count { color:var(--mute); margin-right:auto; }
-  .group .members { flex:1; display:flex; flex-wrap:wrap; align-content:center; gap:10px; }
-  .group.locked { background:var(--lock-soft); border-color:var(--lock); }
-  .group.flagged { border-color:var(--warn); }
-  .flag { color:var(--warn); background:var(--warn-soft); border-radius:6px; padding:3px 8px; margin:0 0 8px; font-size:14px; }
-  .chip { border-radius:999px; padding:8px 18px; font-size:clamp(17px, 1.9vw, 30px); background:var(--field); border:1px solid var(--line); user-select:none; touch-action:manipulation; }
-  .chip.sel { outline:3px solid var(--accent); background:var(--accent-soft); }
+  .tiles { flex:1; min-height:0; display:flex; flex-wrap:wrap; justify-content:center; align-content:stretch; gap:14px; }
+  .tiles > .group { min-height:0; container-type:size; width:calc((100% - (var(--cols) - 1) * 14px) / var(--cols)); height:calc((100% - (var(--rows) - 1) * 14px) / var(--rows)); }
+  @media (max-width: 760px) { .tiles > .group { width:100%; height:auto; container-type:inline-size; } .chip { font-size:20px !important; min-height:44px !important; } }
+  /* GROUP CARD v2 */
+  .group { --c: hsl(var(--hue) var(--hue-s) var(--hue-l)); --c-soft: hsl(var(--hue) var(--hue-s) var(--hue-soft-l));
+    background:var(--panel); border:1px solid var(--line); border-radius:14px;
+    display:flex; flex-direction:column; overflow:hidden; box-shadow:0 1px 3px rgba(0,0,0,.08); }
+  .group header { display:flex; align-items:center; gap:10px; padding:10px 12px 10px 16px; background:var(--c); color:var(--on-c); }
+  .group header h3 { font-size:clamp(17px,1.5vw,24px); font-weight:800; letter-spacing:.01em; }
+  .gcount { margin-right:auto; opacity:.85; font-size:14px; font-weight:600; }
+  .lockbtn { display:inline-flex; align-items:center; gap:6px; border-radius:999px; padding:5px 12px; font-size:14px; font-weight:600;
+    background:transparent; color:inherit; border:1.5px solid currentColor; opacity:.9; }
+  .lockbtn:hover { opacity:1; border-color:currentColor; background:rgba(255,255,255,.15); }
+  .lockbtn svg { width:16px; height:16px; }
+  .lockbtn[aria-pressed=true] { background:var(--on-c); color:var(--lock); border-color:var(--on-c); opacity:1; }
+  .group .members { flex:1; min-height:0; list-style:none; margin:0; padding:10px 12px; display:flex; flex-direction:column; justify-content:center; gap:min(1.2cqh, 10px); }
+  .group .members.two { display:grid; grid-template-columns:1fr 1fr; align-content:center; }
+  .chip { width:100%; min-height:0; line-height:1.2; display:flex; align-items:center; gap:12px; text-align:left; border-radius:10px; padding:.22em .45em;
+    font-size:clamp(16px, min(8.5cqw, 9cqh), 46px); font-weight:500; background:transparent; border:2px solid transparent; user-select:none; touch-action:manipulation; cursor:grab; }
+  .chip::before { content:""; width:10px; height:10px; border-radius:50%; background:var(--c); flex:none; }
+  .chip:hover { background:var(--c-soft); border-color:transparent; }
+  .chip.sel { background:var(--accent); color:var(--accent-ink); border-color:var(--accent); }
+  .chip.sel::before { background:var(--accent-ink); }
   .chip.gone { text-decoration:line-through; color:var(--mute); }
-  .chip.over { outline:2px dashed var(--accent); }
-  .lockbtn[aria-pressed=true] { background:var(--lock); color:var(--panel); border-color:var(--lock); }
+  .chip.over { border-style:dashed; border-color:var(--accent); background:var(--accent-soft); }
+  .group.locked { border-color:var(--lock-band); box-shadow:0 0 0 2px var(--lock-band); }
+  .group.locked header { background:var(--lock-band); }
+  .group.locked .lockbtn[aria-pressed=true] { color:var(--lock-band); }
+  .group.locked .members { background:var(--lock-tint); }
+  .group.locked .chip { cursor:not-allowed; }
+  .group.locked .chip::before { background:var(--lock-band); }
+  .group.flagged { border-color:var(--warn); box-shadow:0 0 0 2px var(--warn); }
+  .flag { display:flex; gap:6px; align-items:center; color:var(--warn); background:var(--warn-soft); padding:6px 14px; margin:0; font-size:14px; border-top:1px solid var(--warn-line); }
   .emptystate { flex:1; display:grid; place-items:center; color:var(--mute); font-size:22px; border:2px dashed var(--line); border-radius:14px; text-align:center; padding:40px; }
 
   /* drawers */
@@ -100,6 +120,17 @@
   .roll button { border-radius:10px; padding:10px 14px; font-size:16px; }
   .roll button[aria-pressed=true] { background:var(--ok-soft); border-color:var(--ok); }
   .roll button[aria-pressed=false] { color:var(--mute); text-decoration:line-through; background:var(--off); }
+  .seg { display:flex; margin-bottom:12px; }
+  .seg button { flex:1; border-radius:0; padding:8px; }
+  .seg button:first-child { border-radius:8px 0 0 8px; }
+  .seg button:last-child { border-radius:0 8px 8px 0; border-left:0; }
+  .seg button[aria-pressed=true] { background:var(--ink); color:var(--panel); border-color:var(--ink); }
+  .editlist { list-style:none; padding:0; margin:10px 0; }
+  .editlist li { display:flex; justify-content:space-between; align-items:center; padding:6px 4px; border-bottom:1px solid var(--line); }
+  .menu { display:flex; flex-direction:column; gap:8px; }
+  .menu button { text-align:left; padding:10px 12px; border-radius:10px; font-weight:600; }
+  .menu button small { display:block; font-weight:400; }
+  .menu .danger { color:var(--bad); border-color:var(--bad-line); }
   .form { display:flex; flex-wrap:wrap; gap:6px; align-items:center; }
   .pairform { display:grid; grid-template-columns:1fr auto 1fr; gap:6px; align-items:center; background:var(--bg); border-radius:10px; padding:10px; margin:6px 0 16px; }
   .pairform .btns { grid-column:1 / -1; display:flex; gap:6px; }
@@ -324,7 +355,47 @@ function tapChip(id) {
 
 // ---------------------------------------------------------------- render
 function rosterPicker() {
-  return `<select data-change="roster" aria-label="Roster">${S.rosters.map(r => `<option value="${r.id}" ${r.id === S.rosterId ? 'selected' : ''}>${esc(r.name)}</option>`).join('')}<option value="__new">＋ New Roster…</option></select>`;
+  return `<select data-change="roster" aria-label="Roster">${S.rosters.map(r => `<option value="${r.id}" ${r.id === S.rosterId ? 'selected' : ''}>${esc(r.name)}</option>`).join('')}</select>
+    <button data-action="drawer" data-d="roster" aria-label="Roster options">⋯</button>`;
+}
+function rosterDrawer() {
+  return `<p><small>Rosters are saved in this browser only. Export one to back it up or hand it to a colleague.</small></p>
+    <div class="menu">
+      <button data-action="export">⬇ Export “${esc(R().name)}”<small>Saves a .grouper.json file with the Students and pairs</small></button>
+      <button data-action="import">⬆ Import a Roster file<small>Adds it as a new Roster; nothing is overwritten</small></button>
+      <button data-action="new-roster">＋ New Roster</button>
+      <button data-action="rename-roster">✎ Rename “${esc(R().name)}”</button>
+      <button class="danger" data-action="delete-roster">🗑 Delete “${esc(R().name)}”…</button>
+    </div>
+    <input type="file" id="importFile" accept=".json,application/json" hidden data-change="import">`;
+}
+function exportRoster() {
+  const R0 = R();
+  const data = { grouper: 'roster', version: 1, name: R0.name, exported: new Date().toISOString().slice(0, 10),
+    students: R0.students.map(s => s.name),
+    pairs: R0.rules.map(r => ({ type: r.kind === 'good' ? 'good pair' : 'keep apart', students: [nm(r.a), nm(r.b)] })) };
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' }));
+  a.download = `${R0.name}.grouper.json`; a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  toast(`Exported “${R0.name}”.`);
+}
+function importRoster(text) {
+  let d; try { d = JSON.parse(text); } catch (e) { return toast("That file isn't a grouper Roster."); }
+  if (d?.grouper !== 'roster' || !Array.isArray(d.students)) return toast("That file isn't a grouper Roster.");
+  let name = String(d.name || 'Imported Roster');
+  if (S.rosters.some(r => r.name === name)) name += ' (imported)';
+  const r = mkRoster(name, d.students.map(String));
+  for (const p of d.pairs || []) {
+    const [a, b] = (p.students || []).map(n => r.students.find(s => s.name === n)?.id);
+    if (a && b) r.rules.push({ id: nid('u'), kind: p.type === 'good pair' ? 'good' : 'apart', a, b, created: ++ruleClock });
+  }
+  S.rosters.push(r); switchRoster(r.id); S.drawer = null;
+  toast(`Imported “${name}”: ${r.students.length} Students, ${r.rules.length} pairs.`);
+}
+function switchRoster(id) {
+  S.rosterId = id;
+  Object.assign(S, { groups: null, stale: false, conflict: null, selected: null, splitOverride: null, ruleError: null, undo: null });
 }
 function sizeControls() {
   const n = presentIds().length, sp = currentSplit(), warns = sizeWarnings();
@@ -335,7 +406,6 @@ function sizeControls() {
     <span class="split">${S.editingSplit
       ? `<input data-draft="splitText" value="${esc(S.drafts.splitText)}" aria-label="Group sizes, comma separated"> <button data-action="split-save">Save</button> <button data-action="split-cancel">Cancel</button>`
       : `<b>${splitText(sp)}</b> <small>(${n} Present${S.splitOverride ? ', edited' : ''})</small> <button class="link" data-action="split-edit">Edit</button>${S.splitOverride ? `<button class="link" data-action="split-reset">Automatic</button>` : ''}`}</span>
-    ${nLocked ? `<small>Locked Groups keep their size; the rest is re-split.</small>` : ''}
     ${S.splitError || warns.length ? `<div class="msgs">${S.splitError ? `<p class="err">${esc(S.splitError)}</p>` : ''}${warns.map(w => `<p class="warn">⚠ ${esc(w)}</p>`).join('')}</div>` : ''}
   </div>`;
 }
@@ -347,26 +417,33 @@ function notices() {
       ${rules.length ? `<details><summary>Show the pairs involved</summary><ul>${rules.map(r => `<li><a href="#" data-action="focus-rule" data-rid="${r.id}">${esc(ruleText(r))}</a></li>`).join('')}</ul></details>` : ''}</div>`;
   }
   if (S.stale) h += `<div class="notice stale">⚠ The Roster changed since these Groups were made, so they're out of date. <button data-action="shuffle">Reshuffle</button></div>`;
-  if (S.selected) h += `<div class="notice hint"><b>${esc(nm(S.selected))}</b> selected. Tap a Student in another Group to swap. <button data-action="deselect">Cancel</button></div>`;
+  if (S.selected) h += `<div class="notice hint"><span><b>${esc(nm(S.selected))}</b> selected. Tap a Student in another Group to swap.</span> <button data-action="deselect">Cancel</button></div>`;
   return h;
 }
 function chip(id) {
   const s = stu(id);
   return `<button class="chip ${S.selected === id ? 'sel' : ''} ${!s || !s.present ? 'gone' : ''}" draggable="true" data-action="chip" data-sid="${id}">${esc(nm(id))}</button>`;
 }
-function groupCard(g, i, flags) {
+const HUES = [212, 152, 28, 280, 350, 190, 48, 110, 250, 320];
+const ICON_LOCK = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>`;
+const ICON_UNLOCK = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 7.5-2"/></svg>`;
+const ICON_WARN = `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 3 2 20h20L12 3z"/><path d="M12 10v4M12 17.5v.5"/></svg>`;
+function groupCard(g, i, flags, aspect = 1) {
   const f = [...new Set(flags[g.id] || [])];
-  return `<section class="group ${g.locked ? 'locked' : ''} ${f.length ? 'flagged' : ''}" data-gid="${g.id}">
-    <header><h3>Group ${i + 1}</h3><span class="count">${g.members.length}</span>
-      <button class="lockbtn" data-action="lock" data-gid="${g.id}" aria-pressed="${g.locked}">${g.locked ? '🔒 Locked' : '🔓 Lock'}</button></header>
-    ${f.map(m => `<p class="flag">⚠ ${esc(m)}</p>`).join('')}
-    <div class="members">${g.members.map(chip).join('')}</div></section>`;
+  return `<section class="group ${g.locked ? 'locked' : ''} ${f.length ? 'flagged' : ''}" data-gid="${g.id}" style="--hue:${HUES[i % HUES.length]}" aria-label="Group ${i + 1}">
+    <header><h3>Group ${i + 1}</h3><span class="gcount">${g.members.length} students</span>
+      <button class="lockbtn" data-action="lock" data-gid="${g.id}" aria-pressed="${g.locked}" aria-label="${g.locked ? 'Unlock' : 'Lock'} Group ${i + 1}" title="${g.locked ? 'Locked: Reshuffle keeps this Group' : 'Lock: Reshuffle keeps this Group'}">${g.locked ? ICON_LOCK + 'Locked' : ICON_UNLOCK + 'Lock'}</button></header>
+    <ul class="members ${g.members.length > 6 && aspect > 0.95 ? "two" : ""}">${g.members.map(id => `<li>${chip(id)}</li>`).join('')}</ul>
+    ${f.map(m => `<p class="flag">${ICON_WARN}<span>${esc(m)}</span></p>`).join('')}</section>`;
 }
 function rollCall() {
   const R0 = R(), n = presentIds().length;
-  return `<p><small>Tap a name to mark them Absent or Present. ${n} of ${R0.students.length} Present.</small></p>
-    <div class="roll">${R0.students.map(s => `<button aria-pressed="${s.present}" data-action="toggle-present" data-sid="${s.id}">${esc(s.name)}</button>`).join('')}</div>
-    <div class="form"><input data-draft="newStudent" value="${esc(S.drafts.newStudent)}" placeholder="Add a Student" data-enter="add-student"><button data-action="add-student">Add</button></div>`;
+  const undo = S.undo ? `<div class="notice hint">Removed ${esc(S.undo.student.name)}${S.undo.rules.length ? ` and ${S.undo.rules.length} pair${S.undo.rules.length > 1 ? 's' : ''}` : ''}. <button data-action="undo-remove">Undo</button></div>` : '';
+  const add = `<div class="form"><input data-draft="newStudent" value="${esc(S.drafts.newStudent)}" placeholder="Add a Student" data-enter="add-student"><button data-action="add-student">Add</button></div>`;
+  const mode = `<div class="seg"><button data-action="roll-edit" data-v="" aria-pressed="${!S.rollEdit}">Attendance</button><button data-action="roll-edit" data-v="1" aria-pressed="${!!S.rollEdit}">Edit list</button></div>`;
+  if (S.rollEdit) return `${mode}${undo}${add}<ul class="editlist">${R0.students.map(s => `<li><span>${esc(s.name)}</span><button class="x" data-action="remove-student" data-sid="${s.id}" aria-label="Remove ${esc(s.name)} from the Roster">✕ Remove</button></li>`).join('')}</ul>`;
+  return `${mode}<p><small>Tap a name to mark them Absent or Present. ${n} of ${R0.students.length} Present.</small></p>
+    <div class="roll">${R0.students.map(s => `<button aria-pressed="${s.present}" data-action="toggle-present" data-sid="${s.id}">${esc(s.name)}</button>`).join('')}</div>`;
 }
 function pairsEditor() {
   const R0 = R();
@@ -384,7 +461,17 @@ function pairsEditor() {
 
 function render() {
   const flags = violations(), d = S.drawer, g = S.groups;
-  const cols = g ? Math.max(1, Math.min(g.length, Math.ceil(Math.sqrt(g.length * 1.6)))) : 1;
+  // choose the column count whose cards come closest to a comfortable portrait-ish shape, with few empty slots
+  let cols = 1, rows = 1, aspect = 1;
+  if (g) {
+    const W = innerWidth - 32, H = innerHeight - 90 - (S.conflict || S.stale || S.selected ? 56 : 0);
+    let best = Infinity;
+    for (let c = 1; c <= g.length; c++) {
+      const r = Math.ceil(g.length / c), w = (W - (c - 1) * 14) / c, h = (H - (r - 1) * 14) / r;
+      const score = Math.abs(Math.log((w / h) / 1.2)) + 0.35 * (r * c - g.length);
+      if (score < best) { best = score; cols = c; rows = r; aspect = w / h; }
+    }
+  }
   document.getElementById('app').innerHTML = `
     <div class="bar"><div class="brand">grouper</div>${rosterPicker()}
       <button data-action="drawer" data-d="students">✓ ${presentIds().length}/${R().students.length} Present</button>
@@ -393,8 +480,8 @@ function render() {
       <button class="theme" data-action="theme" title="Theme">${{ auto: '◐ Auto', light: '☀ Light', dark: '☾ Dark' }[theme]}</button>
       <button class="shuffle" data-action="shuffle">${g ? 'Reshuffle' : 'Shuffle'}${g?.some(x => x.locked) ? ` <small>keeps ${g.filter(x => x.locked).length} Locked</small>` : ''}</button></div>
     <div class="board">${notices()}
-      ${g ? `<div class="tiles" style="--cols:${cols}">${g.map((x, i) => groupCard(x, i, flags)).join('')}</div>` : (S.conflict ? '' : `<div class="emptystate">Take the roll (✓ Present), then Shuffle.</div>`)}</div>
-    ${d ? `<div class="overlay" data-action="drawer" data-d=""></div><aside class="drawer"><header><h3>${d === 'students' ? 'Roll call' : 'Pairs'}</h3><button data-action="drawer" data-d="">Done</button></header>${d === 'students' ? rollCall() : pairsEditor()}</aside>` : ''}`;
+      ${g ? `<div class="tiles" style="--cols:${cols};--rows:${rows}">${g.map((x, i) => groupCard(x, i, flags, aspect)).join("")}</div>` : (S.conflict ? '' : `<div class="emptystate">Take the roll (✓ Present), then Shuffle.</div>`)}</div>
+    ${d ? `<div class="overlay" data-action="drawer" data-d=""></div><aside class="drawer"><header><h3>${{ students: 'Students', rules: 'Pairs', roster: esc(R().name) }[d]}</h3><button data-action="drawer" data-d="">Done</button></header>${{ students: rollCall, rules: pairsEditor, roster: rosterDrawer }[d]()}</aside>` : ''}`;
   document.getElementById('statepre').textContent = JSON.stringify({
     roster: R().name, present: `${presentIds().length}/${R().students.length}`, studentsPerGroup: S.target,
     split: splitText(currentSplit()), splitEdited: !!S.splitOverride, stale: S.stale, selected: S.selected && nm(S.selected), lastMove: S.lastMove,
@@ -437,6 +524,23 @@ function act(a, el) {
       const name = S.drafts.newStudent.trim(); if (!name) return;
       R().students.push({ id: nid('s'), name, present: true }); S.drafts.newStudent = ''; markEdited(); break;
     }
+    case 'roll-edit': S.rollEdit = !!el.dataset.v; S.undo = null; break;
+    case 'remove-student': {
+      const R0 = R(), idx = R0.students.findIndex(s => s.id === sid);
+      const rules = R0.rules.filter(r => r.a === sid || r.b === sid);
+      S.undo = { student: R0.students[idx], idx, rules };
+      R0.students.splice(idx, 1); R0.rules = R0.rules.filter(r => !rules.includes(r)); markEdited(); break;
+    }
+    case 'undo-remove': { const R0 = R(), u = S.undo; R0.students.splice(u.idx, 0, u.student); R0.rules.push(...u.rules); S.undo = null; markEdited(); break; }
+    case 'export': exportRoster(); return;
+    case 'import': document.getElementById('importFile').click(); return;
+    case 'new-roster': { const name = prompt('Name for the new Roster?'); if (!name) return; const r = mkRoster(name, []); S.rosters.push(r); switchRoster(r.id); S.drawer = 'students'; S.rollEdit = true; break; }
+    case 'rename-roster': { const name = prompt('New name?', R().name); if (name) R().name = name; break; }
+    case 'delete-roster': {
+      if (S.rosters.length === 1) { toast("You can't delete your only Roster."); return; }
+      if (!confirm(`Delete “${R().name}” and all its Students and pairs? Export it first if you might want it back.`)) return;
+      S.rosters = S.rosters.filter(r => r.id !== S.rosterId); switchRoster(S.rosters[0].id); S.drawer = null; break;
+    }
     case 'add-pair': addPair(el.dataset.kind); break;
     case 'del-rule': R().rules = R().rules.filter(r => r.id !== el.dataset.rid); S.ruleError = null; markEdited(); break;
     case 'focus-rule': S.focusRule = el.dataset.rid; S.drawer = 'rules'; break;
@@ -453,14 +557,8 @@ document.addEventListener('input', e => { const k = e.target.dataset.draft; if (
 document.addEventListener('change', e => {
   const t = e.target;
   if (t.dataset.draft) { S.drafts[t.dataset.draft] = t.value; return; }
-  if (t.dataset.change === 'roster') {
-    if (t.value === '__new') {
-      const name = prompt('Name for the new Roster?');
-      if (name) { const r = mkRoster(name, []); S.rosters.push(r); S.rosterId = r.id; }
-    } else S.rosterId = t.value;
-    Object.assign(S, { groups: null, stale: false, conflict: null, selected: null, splitOverride: null, ruleError: null });
-    render();
-  }
+  if (t.dataset.change === 'roster') { switchRoster(t.value); render(); }
+  if (t.dataset.change === 'import' && t.files[0]) { t.files[0].text().then(txt => { importRoster(txt); render(); }); }
 });
 document.addEventListener('keydown', e => {
   if (e.key === 'Enter' && e.target.dataset?.enter) { act(e.target.dataset.enter, e.target); return; }
@@ -485,6 +583,22 @@ document.addEventListener('drop', e => {
   if (c) { swap(from, c.dataset.sid); render(); } else toast('Drop onto a Student to swap with them.');
 });
 
+// ?demo shows every card state at once (Locked, flagged, selected); ?theme=dark|light forces a theme
+const Q = new URLSearchParams(location.search);
+if (Q.get('theme')) { theme = Q.get('theme'); applyTheme(); }
+if (Q.has('size')) S.target = +Q.get('size');
+if (Q.has('demo')) {
+  doShuffle();
+  if (S.groups) {
+  S.groups[1].locked = true;
+  const ben = sidOf(P2, 'Ben'), cal = sidOf(P2, 'Cal');
+  const gc = groupOfId(cal);
+  if (!gc.locked && !groupOfId(ben).locked) swap(ben, gc.members.find(x => x !== cal));
+  S.selected = S.groups.find(g => !g.locked && !violations()[g.id])?.members[0] ?? null;
+  }
+  if (Q.has('drawer')) S.drawer = Q.get('drawer');
+}
+addEventListener("resize", () => render());
 render();
 </script>
 </body>
