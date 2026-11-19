@@ -14,3 +14,4 @@ export * from "./solver";
 export * from "./groups";
 export * from "./shuffle";
 export * from "./layout";
+export * from "./move";
