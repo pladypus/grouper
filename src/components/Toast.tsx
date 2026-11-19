@@ -10,7 +10,7 @@ export function Toast({ message, onDone }: { message: string | null; onDone: () 
     return () => clearTimeout(timer);
   }, [message, onDone]);
   return (
-    <div role="status" className="pointer-events-none fixed left-1/2 top-4 z-40 max-w-[90vw] -translate-x-1/2">
+    <div role="status" className="pointer-events-none fixed print:hidden left-1/2 top-4 z-40 max-w-[90vw] -translate-x-1/2">
       {message && <p className="rounded-lg bg-[#111] px-4 py-2.5 text-white shadow-lg">{message}</p>}
     </div>
   );

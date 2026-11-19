@@ -4,6 +4,7 @@ import Link2 from "lucide-react/icons/link-2";
 import Users from "lucide-react/icons/users";
 import { useRosters } from "../state";
 import { RosterMenu } from "./RosterMenu";
+import { ShareMenu } from "./ShareMenu";
 import { ShuffleButton } from "./ShuffleButton";
 import { SizeControls } from "./SizeControls";
 import { ThemeButton } from "./ThemeButton";
@@ -23,18 +24,20 @@ export interface TopBarProps {
   onImport: () => void;
   onDeleteRoster: () => void;
   onDeleteRefused: () => void;
+  /** Shows a toast (Share: "Copied 5 Groups as text."). */
+  onToast: (message: string) => void;
 }
 
 /** The "23/25 Present ›" and "5 Pairs ›" buttons. */
 const pillClass =
   "inline-flex items-center gap-[7px] whitespace-nowrap rounded-full border border-line bg-panel px-3 py-[7px] font-semibold hover:border-mute";
 
-/** One row, fixed height (SPEC §8). Item 5 (Share) comes later. */
+/** One row, fixed height (SPEC §8); not printed (SPEC §9). */
 export function TopBar(props: TopBarProps) {
   const { state, roster, selectRoster, storage } = useRosters();
   const zoneClass = props.phone ? "flex items-center gap-2" : "flex items-center gap-2 border-l border-line pl-5";
   return (
-    <header className="sticky top-0 z-10 flex flex-none flex-wrap items-center gap-x-5 gap-y-2.5 border-b border-line bg-panel px-4 py-2.5">
+    <header className="print:hidden sticky top-0 z-10 flex flex-none flex-wrap items-center gap-x-5 gap-y-2.5 border-b border-line bg-panel px-4 py-2.5">
       {roster && (
         <>
           <div className="flex items-center gap-2">
@@ -88,6 +91,7 @@ export function TopBar(props: TopBarProps) {
         </>
       )}
       <span className="flex-1" />
+      {roster && <ShareMenu onToast={props.onToast} />}
       <ThemeButton storage={storage} />
       {roster && <ShuffleButton roster={roster} phone={props.phone} onShuffle={props.onShuffle} />}
     </header>

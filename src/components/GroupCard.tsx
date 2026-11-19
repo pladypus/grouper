@@ -82,27 +82,31 @@ export function GroupCard({ group, index, members, size, phone, flags, move, onT
   const moving = move.selected !== null || move.dragging !== null;
   const flagged = flags.length > 0;
 
-  const listClass = phone
-    ? "flex flex-col gap-1 px-3 py-2.5"
-    : columns === 2
-      ? "grid min-h-0 flex-1 grid-cols-2 content-center gap-x-3 gap-y-1 overflow-hidden px-3 py-2.5"
-      : "flex min-h-0 flex-1 flex-col justify-center gap-1 overflow-hidden px-3 py-2.5";
+  // On paper, one column of names at 14pt whatever the screen measured (`!` beats the inline size).
+  const listClass = `${
+    phone
+      ? "flex flex-col gap-1 px-3 py-2.5"
+      : columns === 2
+        ? "grid min-h-0 flex-1 grid-cols-2 content-center gap-x-3 gap-y-1 overflow-hidden px-3 py-2.5"
+        : "flex min-h-0 flex-1 flex-col justify-center gap-1 overflow-hidden px-3 py-2.5"
+  } print:flex print:flex-col print:justify-start print:gap-0 print:py-1.5 print:text-[14pt]!`;
 
   return (
     <section
       aria-labelledby={headingId}
       style={style}
-      className={`flex flex-none flex-col overflow-hidden rounded-[14px] border bg-panel ${
+      // On paper the card sizes itself in a three-across grid and never splits across pages (SPEC §9).
+      className={`flex flex-none flex-col overflow-hidden rounded-[14px] border bg-panel print:h-auto! print:w-auto! print:break-inside-avoid print:rounded-lg print:opacity-100 print:shadow-none ${
         flagged
           ? "border-warn shadow-[0_0_0_2px_var(--color-warn)]"
           : group.locked
-            ? hueRing
+            ? `${hueRing} print:border-2`
             : "border-line shadow-[0_1px_3px_rgba(0,0,0,.08)]"
       }${phone ? " w-full" : ""}${moving && group.locked ? " opacity-55" : ""}`}
     >
       {/* A div, not <header>: jsdom and some screen readers would count it as another banner. */}
-      <div className={`flex items-center gap-2.5 py-2.5 pl-4 pr-3 text-on-c ${hueBg}`}>
-        <h2 id={headingId} className="mr-auto text-[clamp(17px,1.5vw,24px)] font-extrabold tracking-[.01em]">
+      <div className={`flex items-center gap-2.5 py-2.5 pl-4 pr-3 text-on-c print:flex-wrap print:gap-y-1 print:py-1.5 print:pl-2.5 ${hueBg}`}>
+        <h2 id={headingId} className="mr-auto text-[clamp(17px,1.5vw,24px)] font-extrabold tracking-[.01em] print:whitespace-nowrap print:text-[14pt]">
           {groupTitle(index)} <span className="text-sm font-semibold opacity-85">· {groupSizeLabel(group)}</span>
         </h2>
         <button
@@ -161,7 +165,7 @@ function StudentChip({ member: m, phone, move }: { member: MemberView; phone: bo
   const isDragged = move.dragging === m.id;
 
   let look = "";
-  if (selected) look = " bg-accent text-accent-ink";
+  if (selected) look = " bg-accent text-accent-ink print:bg-transparent print:text-ink"; // a pending swap isn't printed
   else {
     if (m.faded) look += " text-mute line-through";
     if (over) look += ` ${hueSoftBg}`;
@@ -204,7 +208,7 @@ function StudentChip({ member: m, phone, move }: { member: MemberView; phone: bo
           type="button"
           aria-label="Cancel swap"
           onClick={move.onCancel}
-          className="ml-auto flex-none rounded px-1 text-[.6em] opacity-80 hover:opacity-100 focus-visible:outline-2 focus-visible:outline-accent-ink"
+          className="ml-auto flex-none rounded print:hidden px-1 text-[.6em] opacity-80 hover:opacity-100 focus-visible:outline-2 focus-visible:outline-accent-ink"
         >
           ✕
         </button>

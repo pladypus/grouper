@@ -22,12 +22,12 @@ export function Drawer({ title, onClose, children }: DrawerProps) {
 
   return (
     <>
-      <div className="fixed inset-0 z-10 bg-black/40" aria-hidden="true" onClick={onClose} />
+      <div className="fixed inset-0 z-10 bg-black/40 print:hidden" aria-hidden="true" onClick={onClose} />
       <aside
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
-        className="fixed inset-y-0 right-0 z-[11] w-[min(440px,100%)] overflow-auto bg-panel p-4 shadow-[-8px_0_30px_rgba(0,0,0,.25)]"
+        className="fixed inset-y-0 right-0 print:hidden z-[11] w-[min(440px,100%)] overflow-auto bg-panel p-4 shadow-[-8px_0_30px_rgba(0,0,0,.25)]"
       >
         {/* A div, not <header>: jsdom and some screen readers would count it as another banner. */}
         <div className="mb-2.5 flex items-center justify-between">
