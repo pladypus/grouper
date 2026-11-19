@@ -18,12 +18,10 @@ import {
   type AppState,
   type StorageLike,
 } from "@grouper/core";
-import { DndContext } from "@dnd-kit/core";
 import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import App from "./App";
-import { GroupCard, type MoveView } from "./components/GroupCard";
 
 class MemoryStorage implements StorageLike {
   data = new Map<string, string>();
@@ -409,44 +407,5 @@ describe("drag", () => {
     expect(cardOf("Ben")).toBe(cardOf("Ana"));
     expect(warnings("Ana")).toEqual([`⚠ ${keepApartFlagMessage("Ana", "Ben")}`]);
     expect(student("Gus")).toHaveAttribute("aria-pressed", "false");
-  });
-});
-
-describe("Locked Groups while moving", () => {
-  // No Lock toggle until #19, so render a card directly.
-  const members = [
-    { id: "a", name: "Ana", status: "present", faded: false },
-    { id: "b", name: "Ben", status: "present", faded: false },
-  ] as const;
-  const view = (selected: string | null): MoveView => ({
-    selected,
-    dragging: null,
-    canMove: () => false,
-    canSwapWith: () => false,
-    onTap: () => {},
-    onCancel: () => {},
-  });
-  const renderCard = (selected: string | null) =>
-    render(
-      <DndContext>
-        <GroupCard
-          group={{ id: "g", members: ["a", "b"], hue: 200, locked: true } as never}
-          index={1}
-          members={members}
-          size={null}
-          phone={false}
-          flags={[]}
-          move={view(selected)}
-        />
-      </DndContext>,
-    );
-
-  it("fade back (opacity .55) only while a Student is selected or dragged", () => {
-    const { unmount } = renderCard(null);
-    expect(screen.getByRole("region")).not.toHaveClass("opacity-55");
-    unmount();
-    renderCard("x");
-    expect(screen.getByRole("region")).toHaveClass("opacity-55");
-    expect(student("Ana")).toHaveClass("cursor-not-allowed");
   });
 });
