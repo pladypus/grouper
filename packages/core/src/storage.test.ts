@@ -1,5 +1,16 @@
 import { describe, expect, it, vi } from "vitest";
-import { addStudent, createRoster, EMPTY_APP_STATE, togglePresent, updateRoster, type AppState } from "./roster";
+import {
+  addStudent,
+  createRoster,
+  EMPTY_APP_STATE,
+  togglePresent,
+  updateRoster,
+  type AppState,
+  type Roster,
+} from "./roster";
+import { addPair, deletePair } from "./rules";
+
+const currentRosterOf = (state: AppState): Roster => state.rosters.find((r) => r.id === "id1")!;
 import {
   loadAppState,
   loadTheme,
@@ -75,6 +86,7 @@ describe("storage", () => {
       ],
       pairs: [],
       target: 3,
+      pairClock: 0,
     });
   });
 
@@ -125,9 +137,49 @@ describe("storage", () => {
         ],
         pairs: [{ id: "p1", type: "good pair", a: "s1", b: "s3", created: 1 }],
         target: 4,
+        pairClock: 2,
       },
     ]);
     expect(state.currentId).toBe("b");
+  });
+
+  it("keeps the Pair clock, so a deleted newest Pair's number isn't reused after a reload", () => {
+    const storage = new FakeStorage();
+    let state = sampleState();
+    let n = 0;
+    const newId = () => `p${++n}`;
+    state = updateRoster(state, "id1", (r) => {
+      const added = addPair(r, "keep apart", "id3", "id4", newId);
+      if (!added.ok) throw new Error(added.message);
+      return deletePair(added.roster, added.pair.id);
+    });
+    expect(currentRosterOf(state).pairClock).toBe(1);
+    saveAppState(storage, state);
+    expect(JSON.parse(storage.data.get("grouper:roster:id1")!).pairClock).toBe(1);
+    const loaded = loadAppState(storage).state;
+    expect(loaded).toEqual(state);
+    const again = addPair(loaded.rosters[0]!, "good pair", "id3", "id4", newId);
+    expect(again.ok && again.pair.created).toBe(1);
+  });
+
+  it("loads saves from before the Pair clock, starting it one past the newest Pair", () => {
+    const storage = new FakeStorage();
+    storage.data.set("grouper:order", `["r"]`);
+    storage.data.set(
+      "grouper:roster:r",
+      JSON.stringify({
+        id: "r",
+        name: "Old",
+        students: [{ id: "a", name: "Ana", present: true }, { id: "b", name: "Ben", present: true }],
+        pairs: [{ id: "p1", type: "good pair", a: "a", b: "b", created: 7 }],
+        target: 4,
+      }),
+    );
+    expect(loadAppState(storage).state.rosters[0]!.pairClock).toBe(8);
+    storage.data.set("grouper:roster:r", JSON.stringify({ name: "Old", pairClock: 20, students: [], pairs: [] }));
+    expect(loadAppState(storage).state.rosters[0]!.pairClock).toBe(20);
+    storage.data.set("grouper:roster:r", JSON.stringify({ name: "Old", pairClock: "x", students: [], pairs: [] }));
+    expect(loadAppState(storage).state.rosters[0]!.pairClock).toBe(0);
   });
 
   it("reports unavailable storage on load without throwing", () => {

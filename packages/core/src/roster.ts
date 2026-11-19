@@ -43,6 +43,12 @@ export interface Roster {
   readonly pairs: readonly Pair[];
   /** Target size ("Number of students in group"), an integer ≥ 2. Saved per Roster in the browser. */
   readonly target: number;
+  /**
+   * The creation clock for Pairs: the `created` the next Pair gets (browser-only, SPEC §3). Never
+   * goes back, so deleting the newest Pair doesn't reuse its number. Missing (older saves, hand-built
+   * Rosters) means one more than the highest `created` on the Roster; read it with `nextPairCreated`.
+   */
+  readonly pairClock?: number;
 }
 
 /** Every Roster in this browser, in picker order, and the one that is open. */
@@ -100,7 +106,7 @@ export function checkRosterName(
 
 /** A new, empty Roster with the default Target size (not yet in any AppState). */
 export function newRoster(id: RosterId, name: string): Roster {
-  return { id, name: normaliseName(name), students: [], pairs: [], target: DEFAULT_TARGET_SIZE };
+  return { id, name: normaliseName(name), students: [], pairs: [], target: DEFAULT_TARGET_SIZE, pairClock: 0 };
 }
 
 /** New Roster: appended to the picker and made the open Roster. */
@@ -264,6 +270,13 @@ export function restoreStudent(roster: Roster, removed: RemovedStudent): Result<
   const back = removed.pairs.filter((p) => ids.has(p.a) && ids.has(p.b) && !pairIds.has(p.id));
   const pairs = [...roster.pairs, ...back].sort((x, y) => x.created - y.created);
   return { ok: true, roster: { ...roster, students, pairs } };
+}
+
+/** The `created` the next Pair on this Roster gets: the Pair clock, never below one past the newest Pair. */
+export function nextPairCreated(roster: Roster): number {
+  let next = roster.pairClock ?? 0;
+  for (const p of roster.pairs) next = Math.max(next, p.created + 1);
+  return next;
 }
 
 // ---------------------------------------------------------------------------------------------

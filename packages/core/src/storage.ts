@@ -5,6 +5,7 @@
 import { normaliseName } from "./names";
 import {
   DEFAULT_TARGET_SIZE,
+  nextPairCreated,
   type AppState,
   type Pair,
   type Roster,
@@ -169,7 +170,11 @@ function parseJson(text: string | null): unknown {
   }
 }
 
-/** SPEC §10 stored shape: `{id, name, students:[{id, name, present}], pairs:[{id, type, a, b, created}], target}`. */
+/**
+ * SPEC §10 stored shape: `{id, name, students:[{id, name, present}], pairs:[{id, type, a, b, created}], target,
+ * pairClock}`. `pairClock` (the creation clock for Pairs, browser-only) came with #16: saves without
+ * it still load, with the clock starting one past the newest Pair.
+ */
 function serialiseRoster(roster: Roster) {
   return {
     id: roster.id,
@@ -177,6 +182,7 @@ function serialiseRoster(roster: Roster) {
     students: roster.students.map(({ id, name, present }) => ({ id, name, present })),
     pairs: roster.pairs.map(({ id, type, a, b, created }) => ({ id, type, a, b, created })),
     target: roster.target,
+    pairClock: nextPairCreated(roster),
   };
 }
 
@@ -217,5 +223,10 @@ function readRoster(value: unknown, id: RosterId): Roster | null {
       ? value.target
       : DEFAULT_TARGET_SIZE;
 
-  return { id, name, students, pairs, target };
+  const pairClock = nextPairCreated({ id, name, students, pairs, target, pairClock: storedClock(value.pairClock) });
+  return { id, name, students, pairs, target, pairClock };
+}
+
+function storedClock(value: unknown): number | undefined {
+  return typeof value === "number" && Number.isInteger(value) && value >= 0 ? value : undefined;
 }

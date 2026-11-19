@@ -112,9 +112,18 @@ describe("solve", () => {
       expect(groups.flat()).toHaveLength(4);
     });
 
-    it("proves there is no grouping when 4 Students must be kept apart in 3 Groups", () => {
-      const clique = pairs([[0, 1], [0, 2], [0, 3], [1, 2], [1, 3], [2, 3]]);
+    it("reports 4 Students who must be kept apart in 3 Groups (pigeonhole)", () => {
+      const clique = pairs([[0, 1], [0, 2], [0, 3], [1, 2], [1, 3], [2, 3], [4, 5]]);
       expect(solve({ students: range(6), split: [2, 2, 2], keepApart: clique })).toEqual({
+        ok: false,
+        conflict: { kind: "apart-clique", blocks: [[0], [1], [2], [3]], groups: 3, pairIds: ["p0", "p1", "p2", "p3", "p4", "p5"] },
+      });
+    });
+
+    it("proves there is no grouping when search can't place everyone", () => {
+      // 0 must be kept apart from everyone, but every Group has 2 Students.
+      const keepApart = pairs(range(5).map((i) => [0, i + 1] as [number, number]));
+      expect(solve({ students: range(6), split: [2, 2, 2], keepApart })).toEqual({
         ok: false,
         conflict: { kind: "no-solution" },
       });
@@ -123,7 +132,7 @@ describe("solve", () => {
     it("reports a Keep apart pair inside a chain", () => {
       expect(
         solve({ students: range(4), split: [2, 2], goodPairs: pairs([[0, 1]]), keepApart: [{ id: "x", a: 1, b: 0, created: 9 }] }),
-      ).toEqual({ ok: false, conflict: { kind: "apart-inside-chain", pairId: "x" } });
+      ).toEqual({ ok: false, conflict: { kind: "apart-inside-chain", pairId: "x", pairIds: ["x", "p0"] } });
     });
 
     it("spreads uniformly over valid groupings with a chain and a Keep apart pair", () => {

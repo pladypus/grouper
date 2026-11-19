@@ -10,7 +10,7 @@ import { shuffleInPlace, type Rng } from "./rng";
 import { search } from "./search";
 import { spread, SPREAD_STEPS } from "./spread";
 
-export { prepare, type Prepared, type PrepareResult, type SolverConflict, type SolverPair } from "./prepare";
+export { maxClique, prepare, type Prepared, type PrepareResult, type SolverConflict, type SolverPair } from "./prepare";
 export { randomInt, seededRng, shuffleInPlace, type Rng } from "./rng";
 export { FIRST_NODE_BUDGET, NODE_BUDGET_GROWTH, search } from "./search";
 export { spread, SPREAD_STEPS } from "./spread";
@@ -20,8 +20,12 @@ export interface SolveInput {
   readonly students: readonly number[];
   /** Free Group sizes; must add up to `students.length`. */
   readonly split: readonly number[];
+  /** Good pairs may mention Students outside `students` (e.g. Absent ones): chains still run through them. */
   readonly goodPairs?: readonly SolverPair[];
+  /** Keep apart Pairs with a Student outside `students` are ignored. */
   readonly keepApart?: readonly SolverPair[];
+  /** The Target size, for the `chain-too-big` quick check. Defaults to the largest Group. */
+  readonly target?: number;
   /** Defaults to Math.random. */
   readonly rng?: Rng;
   /** Defaults to SPREAD_STEPS. */
@@ -34,14 +38,14 @@ export type SolveResult =
   | { readonly ok: false; readonly conflict: SolverConflict };
 
 export function solve(input: SolveInput): SolveResult {
-  const { students, split, goodPairs = [], keepApart = [], rng = Math.random, spreadSteps = SPREAD_STEPS } = input;
+  const { students, split, goodPairs = [], keepApart = [], target, rng = Math.random, spreadSteps = SPREAD_STEPS } = input;
   const total = split.reduce((sum, n) => sum + n, 0);
   if (total !== students.length) {
     // A caller bug, not something the Teacher did.
     throw new Error(`Split adds up to ${total} but there are ${students.length} students`);
   }
 
-  const prep = prepare(students, split, goodPairs, keepApart);
+  const prep = prepare(students, split, goodPairs, keepApart, target);
   if (!prep.ok) return prep;
   const { prepared } = prep;
 
