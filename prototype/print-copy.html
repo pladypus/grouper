@@ -7,6 +7,7 @@
 <!--
   PROTOTYPE, THROWAWAY. Lives on branch prototype/print-copy, never merged.
   Question (wayfinder ticket "What do the print and copy-as-text outputs look like?"):
+  VERDICT (owner): A, with C's Copy picture replacing A's table copy.
   Three variants of print / copy / projector, switchable via ?variant=A|B|C, on the
   main-screen prototype (prototype/main-screen.html, same branch history).
     A  Share menu   : a Share button in the top bar → Copy for slides (table), Copy as text, Print (cards), Full screen (bar stays).
@@ -598,7 +599,7 @@ function variantBarButtons() {
   const has = !!S.groups;
   if (V === 'A') return `<div class="sharewrap"><button class="pillbtn" data-action="popover" ${has ? '' : 'disabled'}>${ICON_SHARE}<span>Share</span></button>
     ${S.popover ? `<div class="menuback" data-action="popover"></div><div class="popover" role="menu">
-      <button data-action="copy" data-kind="table">${ICON_TABLE}<span>Copy for slides<small>A table, one column per Group</small></span></button>
+      <button data-action="copy" data-kind="picture">${ICON_IMAGE}<span>Copy picture<small>A 16:9 picture of the Groups, for a slide</small></span></button>
       <button data-action="copy" data-kind="text">${ICON_COPY}<span>Copy as text<small>“Group 1: Ana, Dee, Eli” lines</small></span></button>
       <hr><button data-action="print">${ICON_PRINT}<span>Print…</span></button>
       <button data-action="fullscreen">${ICON_FULL}<span>Full screen<small>For the projector; Esc to leave</small></span></button></div>` : ''}</div>`;
