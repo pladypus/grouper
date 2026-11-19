@@ -4,6 +4,7 @@
   import TopBar from "./components/TopBar.svelte";
   import Board from "./components/Board.svelte";
   import StudentsDrawer from "./components/StudentsDrawer.svelte";
+  import PairsDrawer from "./components/PairsDrawer.svelte";
   import RosterNameDialog from "./components/RosterNameDialog.svelte";
   import DeleteRosterDialog from "./components/DeleteRosterDialog.svelte";
   import Toast from "./components/Toast.svelte";
@@ -61,6 +62,8 @@
 
 {#if store.drawer === "students" && store.roster}
   <StudentsDrawer />
+{:else if store.drawer === "pairs" && store.roster}
+  <PairsDrawer />
 {/if}
 
 {#if store.dialog === "new-roster"}

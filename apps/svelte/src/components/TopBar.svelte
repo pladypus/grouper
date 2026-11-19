@@ -1,6 +1,7 @@
 <script lang="ts">
-  import { presentCount } from "@grouper/core";
+  import { pairsLabel, presentCount } from "@grouper/core";
   // Per-icon imports: the package barrel makes Vite and Vitest compile every icon.
+  import Link2 from "@lucide/svelte/icons/link-2";
   import ChevronRight from "@lucide/svelte/icons/chevron-right";
   import Users from "@lucide/svelte/icons/users";
   import { getStore } from "../state.svelte";
@@ -40,6 +41,16 @@
       >
         <Users aria-hidden="true" class="size-[18px] flex-none" />
         <span><b class="text-accent">{presentCount(roster)}</b>/{roster.students.length} Present</span>
+        <ChevronRight aria-hidden="true" class="-ml-0.5 size-3.5 flex-none text-mute" />
+      </button>
+      <button
+        type="button"
+        class="inline-flex items-center gap-[7px] whitespace-nowrap rounded-full border border-line bg-panel px-3 py-[7px] font-semibold hover:border-mute"
+        aria-haspopup="dialog"
+        onclick={() => store.openPairs()}
+      >
+        <Link2 aria-hidden="true" class="size-[18px] flex-none" />
+        <span>{pairsLabel(roster)}</span>
         <ChevronRight aria-hidden="true" class="-ml-0.5 size-3.5 flex-none text-mute" />
       </button>
     </div>

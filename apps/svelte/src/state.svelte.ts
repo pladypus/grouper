@@ -3,10 +3,12 @@
 
 import { getContext, setContext } from "svelte";
 import {
+  addPair,
   addStudent,
   boardAfterRosterChange,
   createRoster,
   currentRoster,
+  deletePair,
   deleteRoster,
   editSplit,
   EMPTY_BOARD,
@@ -31,19 +33,28 @@ import {
   type AppState,
   type Board,
   type IdGenerator,
+  type PairId,
+  type PairType,
   type RemovedStudent,
   type Rng,
   type Roster,
+  type ShuffleConflict,
   type StorageLike,
   type StudentId,
   type Theme,
 } from "@grouper/core";
 
 export type StudentsMode = "attendance" | "edit";
+export type Drawer = "students" | "pairs" | null;
 export type Dialog = "new-roster" | "rename-roster" | "delete-roster" | null;
 
 /** Id of the board notice showing a refused Split, for the Edit box's aria-describedby. */
 export const SPLIT_ERROR_ID = "split-error";
+
+/** A Shuffle's Conflict (SPEC §6): the sentence, plus the Pairs behind it for #17's expander. */
+export interface Conflict extends ShuffleConflict {
+  readonly message: string;
+}
 
 /** What a form shows after the Teacher submits: nothing, or the refusal sentence from core. */
 export type Outcome = { ok: true } | { ok: false; message: string };
@@ -68,7 +79,7 @@ export class GrouperStore {
   lastSaveOk = $state(true);
   theme = $state<Theme>("auto");
 
-  drawer = $state<"students" | null>(null);
+  drawer = $state<Drawer>(null);
   studentsMode = $state<StudentsMode>("attendance");
   dialog = $state<Dialog>(null);
   /** The last removed Student, while their Undo notice is showing. */
@@ -78,6 +89,11 @@ export class GrouperStore {
 
   /** The Split "Edit" box is open. */
   splitEditing = $state(false);
+  /**
+   * The last Shuffle's Conflict, shown in the board's red notice (the Groups stay as they were).
+   * Cleared by the next successful Shuffle and by any Roster change.
+   */
+  conflict = $state.raw<Conflict | null>(null);
   /** The refusal from the last Split "Edit" Save, shown on the board. */
   splitError = $state<string | null>(null);
   /** The viewport width, bound to the window by App: phones get one column and a pinned Reshuffle. */
@@ -111,6 +127,7 @@ export class GrouperStore {
     const before = currentRoster(this.#state);
     const after = currentRoster(next);
     this.board = boardAfterRosterChange(this.board, before, after);
+    if (before !== after) this.conflict = null;
     if (before?.id !== after?.id) {
       this.splitEditing = false;
       this.splitError = null;
@@ -215,6 +232,24 @@ export class GrouperStore {
     this.state = updateRoster(this.state, this.state.currentId, (r) => togglePresent(r, studentId));
   }
 
+  // --- Pairs ---------------------------------------------------------------------------------
+
+  /** ＋ Good pair / ＋ Keep apart: adds the Pair, or returns the refusal sentence. */
+  addPair(type: PairType, a: StudentId, b: StudentId): Outcome {
+    const roster = this.roster;
+    if (!roster) return { ok: true };
+    const result = addPair(roster, type, a, b, this.#newId);
+    if (!result.ok) return result;
+    this.#replace(result.roster);
+    return { ok: true };
+  }
+
+  deletePair(pairId: PairId): void {
+    const roster = this.roster;
+    if (!roster) return;
+    this.#replace(deletePair(roster, pairId));
+  }
+
   // --- Groups --------------------------------------------------------------------------------
 
   /** One column and a pinned Reshuffle at phone width (SPEC §8). */
@@ -259,16 +294,21 @@ export class GrouperStore {
     return { ok: true };
   }
 
-  /** Shuffle / Reshuffle: new Groups for the Present Students, or the refusal as a toast. */
+  /**
+   * Shuffle / Reshuffle: new Groups for the Present Students. A Conflict goes to the board's red
+   * notice and leaves the Groups as they were; any other refusal shows as a toast.
+   */
   shuffle(): Outcome {
     const roster = this.roster;
     if (!roster) return { ok: true };
     const result = shuffle(roster, this.board, { rng: this.#rng, newId: this.#newId });
     if (!result.ok) {
-      this.showToast(result.message);
+      if (result.conflict) this.conflict = { ...result.conflict, message: result.message };
+      else this.showToast(result.message);
       return result;
     }
     this.board = result.board;
+    this.conflict = null;
     return { ok: true };
   }
 
@@ -277,6 +317,10 @@ export class GrouperStore {
   openStudents(mode: StudentsMode): void {
     this.studentsMode = mode;
     this.drawer = "students";
+  }
+
+  openPairs(): void {
+    this.drawer = "pairs";
   }
 
   closeDrawer(): void {
