@@ -1,5 +1,6 @@
-import { canDeleteRoster, presentCount } from "@grouper/core";
+import { canDeleteRoster, pairsLabel, presentCount } from "@grouper/core";
 import ChevronRight from "lucide-react/icons/chevron-right";
+import Link2 from "lucide-react/icons/link-2";
 import Users from "lucide-react/icons/users";
 import { useRosters } from "../state";
 import { RosterMenu } from "./RosterMenu";
@@ -14,13 +15,18 @@ export interface TopBarProps {
   onSplitError: (message: string | null) => void;
   onShuffle: () => void;
   onOpenStudents: () => void;
+  onOpenPairs: () => void;
   onNewRoster: () => void;
   onRenameRoster: () => void;
   onDeleteRoster: () => void;
   onDeleteRefused: () => void;
 }
 
-/** One row, fixed height (SPEC §8). Items 3 and 5 (Pairs, Share) come later. */
+/** The "23/25 Present ›" and "5 Pairs ›" buttons. */
+const pillClass =
+  "inline-flex items-center gap-[7px] whitespace-nowrap rounded-full border border-line bg-panel px-3 py-[7px] font-semibold hover:border-mute";
+
+/** One row, fixed height (SPEC §8). Item 5 (Share) comes later. */
 export function TopBar(props: TopBarProps) {
   const { state, roster, selectRoster, storage } = useRosters();
   const zoneClass = props.phone ? "flex items-center gap-2" : "flex items-center gap-2 border-l border-line pl-5";
@@ -50,16 +56,16 @@ export function TopBar(props: TopBarProps) {
             />
           </div>
           <div className={zoneClass}>
-            <button
-              type="button"
-              aria-haspopup="dialog"
-              onClick={props.onOpenStudents}
-              className="inline-flex items-center gap-[7px] whitespace-nowrap rounded-full border border-line bg-panel px-3 py-[7px] font-semibold hover:border-mute"
-            >
+            <button type="button" aria-haspopup="dialog" onClick={props.onOpenStudents} className={pillClass}>
               <Users aria-hidden="true" className="size-[18px] flex-none" />
               <span>
                 <b className="text-accent">{presentCount(roster)}</b>/{roster.students.length} Present
               </span>
+              <ChevronRight aria-hidden="true" className="-ml-0.5 size-3.5 flex-none text-mute" />
+            </button>
+            <button type="button" aria-haspopup="dialog" onClick={props.onOpenPairs} className={pillClass}>
+              <Link2 aria-hidden="true" className="size-[18px] flex-none" />
+              <span>{pairsLabel(roster)}</span>
               <ChevronRight aria-hidden="true" className="-ml-0.5 size-3.5 flex-none text-mute" />
             </button>
           </div>

@@ -46,8 +46,7 @@ export function GroupCard({ group, index, members, size, phone }: GroupCardProps
       {/* A div, not <header>: jsdom and some screen readers would count it as another banner. */}
       <div className={`flex items-center gap-2.5 py-2.5 pl-4 pr-3 text-on-c ${hueBg}`}>
         <h2 id={headingId} className="text-[clamp(17px,1.5vw,24px)] font-extrabold tracking-[.01em]">
-          {groupTitle(index)}
-          <span className="text-sm font-semibold opacity-85"> · {groupSizeLabel(group)}</span>
+          {groupTitle(index)} <span className="text-sm font-semibold opacity-85">· {groupSizeLabel(group)}</span>
         </h2>
       </div>
       <ul className={listClass} style={{ fontSize }}>
