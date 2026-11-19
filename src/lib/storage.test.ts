@@ -13,9 +13,11 @@ import { addPair, deletePair } from "./rules";
 const currentRosterOf = (state: AppState): Roster => state.rosters.find((r) => r.id === "id1")!;
 import {
   loadAppState,
+  loadIosTipDismissed,
   loadTheme,
   requestPersistentStorage,
   saveAppState,
+  saveIosTipDismissed,
   saveTheme,
   STORAGE_UNAVAILABLE_MESSAGE,
   type StorageLike,
@@ -222,6 +224,26 @@ describe("theme storage", () => {
     expect(loadTheme(storage)).toBe("auto");
     expect(saveTheme(storage, "light")).toBe(false);
     expect(loadTheme(null)).toBe("auto");
+  });
+});
+
+describe("iOS tip dismissal", () => {
+  it("is remembered under grouper:ios-tip-dismissed", () => {
+    const storage = new FakeStorage();
+    expect(loadIosTipDismissed(storage)).toBe(false);
+    expect(saveIosTipDismissed(storage)).toBe(true);
+    expect(storage.data.get("grouper:ios-tip-dismissed")).toBe("1");
+    expect(loadIosTipDismissed(storage)).toBe(true);
+  });
+
+  it("survives unavailable storage", () => {
+    const storage = new FakeStorage();
+    storage.failReads = true;
+    storage.failWrites = true;
+    expect(loadIosTipDismissed(storage)).toBe(false);
+    expect(saveIosTipDismissed(storage)).toBe(false);
+    expect(loadIosTipDismissed(null)).toBe(false);
+    expect(saveIosTipDismissed(null)).toBe(false);
   });
 });
 
