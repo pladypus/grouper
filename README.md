@@ -29,7 +29,8 @@ npm run preview   # serve the built app, service worker included
 
 ```
 src/
-  lib/          framework-free domain logic: solver, Split, Rules, Lock, Manual move,
+  lib/          framework-free domain logic (never imports the UI; the UI imports it as ./lib):
+                solver, Split, Rules, Lock, Manual move,
                 names, files (Export/Import), share, storage. Pure and unit-tested.
   components/   React components
   state.tsx     app state: useReducer + context, commands that call lib

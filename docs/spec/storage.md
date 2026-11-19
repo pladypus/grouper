@@ -2,7 +2,7 @@
 
 | Key | Value |
 |---|---|
-| `grouper:roster:<id>` | One Roster: `{id, name, students:[{id, name, present}], pairs:[{id, type, a, b, created}], target, split?, pairClock}`. `pairClock` is the Roster's creation clock for Pairs (the next Pair's `created`), so deleting the newest Pair never reuses its number; a save without it loads with the clock one past the highest `created`. |
+| `grouper:roster:<id>` | One Roster: `{id, name, students:[{id, name, present}], pairs:[{id, type, a, b, created}], target, pairClock}`. `pairClock` is the Roster's creation clock for Pairs (the next Pair's `created`), so deleting the newest Pair never reuses its number; a save without it loads with the clock one past the highest `created`. |
 | `grouper:order` | Array of Roster ids in picker order |
 | `grouper:current` | Id of the Roster last open |
 | `grouper:theme` | `auto` \| `light` \| `dark` |
