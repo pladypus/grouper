@@ -4,6 +4,8 @@ import {
   ONLY_ROSTER_MESSAGE,
   randomId,
   type IdGenerator,
+  type Rng,
+  type RosterId,
   type StorageLike,
 } from "@grouper/core";
 import { useCallback, useState } from "react";
@@ -13,18 +15,21 @@ import { StudentsDrawer, type StudentsMode } from "./components/StudentsDrawer";
 import { Toast } from "./components/Toast";
 import { TopBar } from "./components/TopBar";
 import { RostersProvider, useRosters } from "./state";
+import { usePhone } from "./usePhone";
 
 export interface AppProps {
   /** Where Rosters are saved; defaults to the browser's localStorage (null if unavailable). */
   storage?: StorageLike | null;
   /** Id generator for new Rosters and Students; tests can pass a deterministic one. */
   newId?: IdGenerator;
+  /** Randomness for Shuffle; tests pass a seeded one. Defaults to Math.random. */
+  rng?: Rng;
 }
 
-export default function App({ storage, newId = randomId }: AppProps) {
+export default function App({ storage, newId = randomId, rng }: AppProps) {
   const [store] = useState(() => (storage === undefined ? browserStorage() : storage));
   return (
-    <RostersProvider storage={store} newId={newId}>
+    <RostersProvider storage={store} newId={newId} rng={rng}>
       <Main />
     </RostersProvider>
   );
@@ -32,11 +37,25 @@ export default function App({ storage, newId = randomId }: AppProps) {
 
 type Dialog = "new" | "rename" | "delete" | null;
 
+const SPLIT_ERROR_ID = "split-error";
+
 function Main() {
-  const { roster, createRoster, renameRoster, deleteRoster, dismissUndo } = useRosters();
+  const { roster, createRoster, renameRoster, deleteRoster, dismissUndo, shuffle } = useRosters();
+  const phone = usePhone();
   const [dialog, setDialog] = useState<Dialog>(null);
   const [drawer, setDrawer] = useState<StudentsMode | null>(null);
   const [toast, setToast] = useState<string | null>(null);
+  // The Split "Edit" refusal, shown on the board; tagged with its Roster so switching Roster drops it.
+  const [splitRefusal, setSplitRefusal] = useState<{ rosterId: RosterId; message: string } | null>(null);
+  const splitError = roster && splitRefusal?.rosterId === roster.id ? splitRefusal.message : null;
+  const onSplitError = useCallback(
+    (message: string | null) => setSplitRefusal(message && roster ? { rosterId: roster.id, message } : null),
+    [roster],
+  );
+  const runShuffle = () => {
+    const refusal = shuffle();
+    if (refusal) setToast(refusal);
+  };
 
   const closeDialog = useCallback(() => setDialog(null), []);
   const clearToast = useCallback(() => setToast(null), []);
@@ -48,13 +67,25 @@ function Main() {
   return (
     <div className="flex h-dvh flex-col">
       <TopBar
+        phone={phone}
+        splitErrorId={SPLIT_ERROR_ID}
+        splitError={splitError}
+        onSplitError={onSplitError}
+        onShuffle={runShuffle}
         onOpenStudents={() => setDrawer("attendance")}
         onNewRoster={() => setDialog("new")}
         onRenameRoster={() => setDialog("rename")}
         onDeleteRoster={() => setDialog("delete")}
         onDeleteRefused={() => setToast(ONLY_ROSTER_MESSAGE)}
       />
-      <Board onNewRoster={() => setDialog("new")} onAddStudents={() => setDrawer("edit")} />
+      <Board
+        phone={phone}
+        splitErrorId={SPLIT_ERROR_ID}
+        splitError={splitError}
+        onShuffle={runShuffle}
+        onNewRoster={() => setDialog("new")}
+        onAddStudents={() => setDrawer("edit")}
+      />
       {roster && drawer && <StudentsDrawer mode={drawer} onModeChange={setDrawer} onClose={closeDrawer} />}
       {dialog === "new" && (
         <NameDialog
