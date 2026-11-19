@@ -4,6 +4,7 @@ import {
   groupMembers,
   hasGroups,
   OUT_OF_DATE_MESSAGE,
+  oversizeChains,
   STORAGE_UNAVAILABLE_MESSAGE,
   type Board as BoardState,
   type Roster,
@@ -13,6 +14,7 @@ import TriangleAlert from "lucide-react/icons/triangle-alert";
 import UserPlus from "lucide-react/icons/user-plus";
 import { useLayoutEffect, useRef, useState } from "react";
 import { useRosters } from "../state";
+import { ConflictNotice } from "./ConflictNotice";
 import { GroupCard } from "./GroupCard";
 
 export interface BoardProps {
@@ -32,7 +34,7 @@ const actionClass =
 /** The area below the top bar: notices, then the Groups or an empty state. */
 export function Board({ phone, splitErrorId, splitError, onShuffle, onNewRoster, onAddStudents }: BoardProps) {
   const { roster, saving, state } = useRosters();
-  const { board } = state;
+  const { board, conflict } = state;
   const showGroups = !!roster && hasGroups(board);
   return (
     // On phones the pinned Reshuffle covers the bottom 84 px, so leave room for it.
@@ -51,6 +53,18 @@ export function Board({ phone, splitErrorId, splitError, onShuffle, onNewRoster,
           {splitError}
         </p>
       )}
+      {roster &&
+        oversizeChains(roster).map((chain) => (
+          <p
+            key={chain.students.join(" ")}
+            role="status"
+            className="mb-2.5 flex items-center gap-2.5 rounded-lg border border-warn-line bg-warn-soft px-3.5 py-2.5 text-warn"
+          >
+            <TriangleAlert aria-hidden="true" className="size-4 flex-none" />
+            {chain.message}
+          </p>
+        ))}
+      {roster && conflict && <ConflictNotice conflict={conflict} />}
       {showGroups && board.outOfDate && (
         <div
           role="status"
@@ -91,7 +105,7 @@ export function Board({ phone, splitErrorId, splitError, onShuffle, onNewRoster,
             </button>
           </div>
         </div>
-      ) : (
+      ) : conflict ? null : (
         <div className={emptyClass}>{EMPTY_BOARD_MESSAGE}</div>
       )}
     </main>

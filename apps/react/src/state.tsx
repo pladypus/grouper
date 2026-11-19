@@ -5,7 +5,9 @@
 // AppState change the reducer runs boardAfterRosterChange so it goes out of date or clears.
 
 import {
+  addPair,
   addStudent,
+  deletePair,
   boardAfterRosterChange,
   editSplit,
   EMPTY_BOARD,
@@ -29,6 +31,9 @@ import {
   type Board,
   type Rng,
   type IdGenerator,
+  type PairId,
+  type PairType,
+  type ShuffleConflict,
   type RemovedStudent,
   type Roster,
   type RosterId,
@@ -43,6 +48,16 @@ export interface State {
   readonly removed: RemovedStudent | null;
   /** The Groups on screen; in memory only (SPEC §3 Group). */
   readonly board: Board;
+  /**
+   * The last Shuffle's Conflict (SPEC §6), shown in the red notice on the board; the Groups stayed
+   * as they were. Cleared by the next successful Shuffle and by any Roster change.
+   */
+  readonly conflict: ConflictNotice | null;
+}
+
+export interface ConflictNotice extends ShuffleConflict {
+  /** The plain sentence. */
+  readonly message: string;
 }
 
 export type Action =
@@ -54,22 +69,26 @@ export type Action =
   | { type: "renameStudent"; studentId: StudentId; name: string }
   | { type: "removeStudent"; studentId: StudentId }
   | { type: "togglePresent"; studentId: StudentId }
+  | { type: "addPair"; pairType: PairType; a: StudentId; b: StudentId; id: string }
+  | { type: "deletePair"; pairId: PairId }
   | { type: "undoRemove" }
   | { type: "dismissUndo" }
   | { type: "stepTarget"; delta: 1 | -1 }
   /** A Board the command already worked out (Shuffle needs randomness, so it can't run in here). */
   | { type: "setBoard"; board: Board }
+  /** A Shuffle that hit a Conflict: the Board stays, the notice shows. */
+  | { type: "setConflict"; conflict: ConflictNotice }
   | { type: "resetSplit" };
 
 /**
  * Applies one action, then keeps the Board in step with the open Roster (out of date after
- * attendance or Student edits, cleared when another Roster opens).
+ * attendance, Student or Pair edits, cleared when another Roster opens) and drops a stale Conflict.
  */
 export function reducer(state: State, action: Action): State {
   const next = applyAction(state, action);
   if (next.app === state.app) return next;
   const board = boardAfterRosterChange(next.board, currentRoster(state.app), currentRoster(next.app));
-  return board === next.board ? next : { ...next, board };
+  return board === next.board && next.conflict === null ? next : { ...next, board, conflict: null };
 }
 
 /** Refused operations leave the state unchanged (commands report them). */
@@ -109,6 +128,14 @@ function applyAction(state: State, action: Action): State {
     case "togglePresent":
       if (!roster) return state;
       return { ...state, app: updateRoster(app, roster.id, (x) => togglePresent(x, action.studentId)) };
+    case "addPair": {
+      if (!roster) return state;
+      const r = addPair(roster, action.pairType, action.a, action.b, () => action.id);
+      return r.ok ? { ...state, app: updateRoster(app, roster.id, () => r.roster) } : state;
+    }
+    case "deletePair":
+      if (!roster) return state;
+      return { ...state, app: updateRoster(app, roster.id, (x) => deletePair(x, action.pairId)) };
     case "undoRemove": {
       const { removed } = state;
       const target = removed && app.rosters.find((x) => x.id === removed.rosterId);
@@ -126,7 +153,9 @@ function applyAction(state: State, action: Action): State {
       return { ...state, app: updateRoster(app, roster.id, () => updated), board: resetSplit(state.board) };
     }
     case "setBoard":
-      return { ...state, board: action.board };
+      return { ...state, board: action.board, conflict: null };
+    case "setConflict":
+      return { ...state, conflict: action.conflict };
     case "resetSplit":
       return { ...state, board: resetSplit(state.board) };
   }
@@ -149,6 +178,9 @@ export interface Rosters {
   renameStudent(studentId: StudentId, name: string): Refusal;
   removeStudent(studentId: StudentId): void;
   togglePresent(studentId: StudentId): void;
+  /** ＋ Good pair / ＋ Keep apart in the Pairs drawer; returns the refusal sentence or null. */
+  addPair(type: PairType, a: StudentId, b: StudentId): Refusal;
+  deletePair(pairId: PairId): void;
   undoRemove(): Refusal;
   dismissUndo(): void;
   /** The "Number of students in group" stepper's − and +. */
@@ -157,7 +189,10 @@ export interface Rosters {
   editSplit(text: string): Refusal;
   /** Back to the derived Split ("Automatic"). */
   resetSplit(): void;
-  /** Shuffle / Reshuffle; returns the refusal or null when new Groups are on the Board. */
+  /**
+   * Shuffle / Reshuffle. A Conflict goes to `state.conflict` (the board's notice) and returns null,
+   * as do new Groups; any other refusal (fewer than 2 Present) is returned.
+   */
   shuffle(): Refusal;
 }
 
@@ -181,7 +216,12 @@ export interface RostersProviderProps {
 /** Loads the saved Rosters once, saves after every change, and provides the commands. */
 export function RostersProvider({ storage, newId, rng = Math.random, children }: RostersProviderProps) {
   const [loaded] = useState(() => loadAppState(storage));
-  const [state, dispatch] = useReducer(reducer, { app: loaded.state, removed: null, board: EMPTY_BOARD });
+  const [state, dispatch] = useReducer(reducer, {
+    app: loaded.state,
+    removed: null,
+    board: EMPTY_BOARD,
+    conflict: null,
+  });
   const [saveOk, setSaveOk] = useState(true);
   const askedToPersist = useRef(false);
 
@@ -248,6 +288,17 @@ export function RostersProvider({ storage, newId, rng = Math.random, children }:
     togglePresent(studentId) {
       dispatch({ type: "togglePresent", studentId });
     },
+    addPair(type, a, b) {
+      if (!roster) return null;
+      const id = newId();
+      const r = addPair(roster, type, a, b, () => id);
+      if (!r.ok) return r.message;
+      dispatch({ type: "addPair", pairType: type, a, b, id });
+      return null;
+    },
+    deletePair(pairId) {
+      dispatch({ type: "deletePair", pairId });
+    },
     undoRemove() {
       const { removed } = state;
       const target = removed && app.rosters.find((x) => x.id === removed.rosterId);
@@ -277,7 +328,11 @@ export function RostersProvider({ storage, newId, rng = Math.random, children }:
     shuffle() {
       if (!roster) return null;
       const r = shuffle(roster, state.board, { rng, newId });
-      if (!r.ok) return r.message;
+      if (!r.ok) {
+        if (!r.conflict) return r.message;
+        dispatch({ type: "setConflict", conflict: { message: r.message, ...r.conflict } });
+        return null;
+      }
       dispatch({ type: "setBoard", board: r.board });
       return null;
     },

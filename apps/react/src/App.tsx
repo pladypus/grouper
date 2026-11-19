@@ -11,6 +11,7 @@ import {
 import { useCallback, useState } from "react";
 import { Board } from "./components/Board";
 import { ConfirmDialog, NameDialog } from "./components/Dialog";
+import { PairsDrawer } from "./components/PairsDrawer";
 import { StudentsDrawer, type StudentsMode } from "./components/StudentsDrawer";
 import { Toast } from "./components/Toast";
 import { TopBar } from "./components/TopBar";
@@ -43,7 +44,7 @@ function Main() {
   const { roster, createRoster, renameRoster, deleteRoster, dismissUndo, shuffle } = useRosters();
   const phone = usePhone();
   const [dialog, setDialog] = useState<Dialog>(null);
-  const [drawer, setDrawer] = useState<StudentsMode | null>(null);
+  const [drawer, setDrawer] = useState<StudentsMode | "pairs" | null>(null);
   const [toast, setToast] = useState<string | null>(null);
   // The Split "Edit" refusal, shown on the board; tagged with its Roster so switching Roster drops it.
   const [splitRefusal, setSplitRefusal] = useState<{ rosterId: RosterId; message: string } | null>(null);
@@ -73,6 +74,7 @@ function Main() {
         onSplitError={onSplitError}
         onShuffle={runShuffle}
         onOpenStudents={() => setDrawer("attendance")}
+        onOpenPairs={() => setDrawer("pairs")}
         onNewRoster={() => setDialog("new")}
         onRenameRoster={() => setDialog("rename")}
         onDeleteRoster={() => setDialog("delete")}
@@ -86,7 +88,10 @@ function Main() {
         onNewRoster={() => setDialog("new")}
         onAddStudents={() => setDrawer("edit")}
       />
-      {roster && drawer && <StudentsDrawer mode={drawer} onModeChange={setDrawer} onClose={closeDrawer} />}
+      {roster && drawer === "pairs" && <PairsDrawer onClose={closeDrawer} />}
+      {roster && (drawer === "attendance" || drawer === "edit") && (
+        <StudentsDrawer mode={drawer} onModeChange={setDrawer} onClose={closeDrawer} />
+      )}
       {dialog === "new" && (
         <NameDialog
           title="New Roster"
