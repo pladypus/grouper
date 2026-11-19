@@ -10,8 +10,10 @@ import {
   deletePair,
   boardAfterRosterChange,
   cancelSelection,
+  canMove,
   dropStudent,
   tapStudent,
+  toggleLock,
   editSplit,
   EMPTY_BOARD,
   resetSplit,
@@ -36,6 +38,7 @@ import {
   type IdGenerator,
   type MoveOutcome,
   type Selection,
+  type GroupId,
   type PairId,
   type PairType,
   type ShuffleConflict,
@@ -92,7 +95,9 @@ export type Action =
   | { type: "setConflict"; conflict: ConflictNotice }
   | { type: "resetSplit" }
   /** A Manual move outcome (tap, drop, cancel) the command already worked out. */
-  | { type: "move"; outcome: MoveOutcome };
+  | { type: "move"; outcome: MoveOutcome }
+  /** The Lock toggle in a Group header (SPEC §7 Lock). */
+  | { type: "toggleLock"; groupId: GroupId };
 
 /**
  * Applies one action, then keeps the Board in step with the open Roster (out of date after
@@ -183,6 +188,12 @@ function applyAction(state: State, action: Action): State {
       };
     case "resetSplit":
       return { ...state, board: resetSplit(state.board) };
+    case "toggleLock": {
+      const board = toggleLock(state.board, action.groupId);
+      // Locking the selected Student's Group drops the selection: a Locked Group is frozen.
+      if (state.selected === null || canMove(board, state.selected)) return { ...state, board };
+      return { ...state, board, selected: null, announcement: "" };
+    }
   }
 }
 
@@ -215,10 +226,13 @@ export interface Rosters {
   /** Back to the derived Split ("Automatic"). */
   resetSplit(): void;
   /**
-   * Shuffle / Reshuffle. A Conflict goes to `state.conflict` (the board's notice) and returns null,
-   * as do new Groups; any other refusal (fewer than 2 Present) is returned.
+   * Shuffle / Reshuffle. A Conflict goes to `state.conflict` (the board's notice) and returns null.
+   * Otherwise returns the toast to show, or null: any other refusal (fewer than 2 Present), or with
+   * new Groups the "Lock released: …" toast when a Reshuffle released a Lock.
    */
   shuffle(): Refusal;
+  /** The Lock toggle in a Group header (never marks the Groups out of date). */
+  toggleLock(groupId: GroupId): void;
   /** Tap, Enter or Space on a Student: select, swap or cancel. Returns the refusal toast or null. */
   tapStudent(studentId: StudentId): Refusal;
   /** ✕ or Esc while a Student is selected. */
@@ -370,7 +384,10 @@ export function RostersProvider({ storage, newId, rng = Math.random, children }:
         return null;
       }
       dispatch({ type: "setBoard", board: r.board });
-      return null;
+      return r.toast ?? null;
+    },
+    toggleLock(groupId) {
+      dispatch({ type: "toggleLock", groupId });
     },
     tapStudent(studentId) {
       if (!roster) return null;

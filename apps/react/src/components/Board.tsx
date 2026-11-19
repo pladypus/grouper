@@ -152,7 +152,7 @@ function Groups({
   phone: boolean;
   onToast: (message: string) => void;
 }) {
-  const { state, tapStudent, cancelSelection, dropStudent } = useRosters();
+  const { state, tapStudent, cancelSelection, dropStudent, toggleLock } = useRosters();
   const { selected } = state;
   const ref = useRef<HTMLDivElement>(null);
   const [space, setSpace] = useState({ width: 0, height: 0 });
@@ -251,6 +251,7 @@ function Groups({
             phone={phone}
             flags={flags[g.id] ?? []}
             move={move}
+            onToggleLock={() => toggleLock(g.id)}
           />
         ))}
       </div>

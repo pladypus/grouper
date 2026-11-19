@@ -1,6 +1,8 @@
 import {
   groupSizeLabel,
   groupTitle,
+  lockPillText,
+  lockToggleLabel,
   nameColumns,
   nameFontSize,
   PHONE_NAME_FONT_SIZE,
@@ -10,6 +12,8 @@ import {
   type StudentId,
 } from "@grouper/core";
 import { useDraggable, useDroppable } from "@dnd-kit/core";
+import Lock from "lucide-react/icons/lock";
+import LockOpen from "lucide-react/icons/lock-open";
 import { useCallback, useId, type CSSProperties } from "react";
 
 /** What the Group cards need to draw and drive a Manual move (SPEC §7). */
@@ -36,6 +40,8 @@ export interface GroupCardProps {
   /** The Rules this Group breaks after a Manual move (groupFlags); one warning line each. */
   flags: readonly GroupFlag[];
   move: MoveView;
+  /** The header's Lock toggle (SPEC §7 Lock). */
+  onToggleLock: () => void;
 }
 
 /** The Group's own colour, from --hue and the theme's --hue-s / --hue-l (styles.css). */
@@ -43,12 +49,23 @@ const hueBg = "bg-[hsl(var(--hue)_var(--hue-s)_var(--hue-l))]";
 /** The Group's soft tint (swap targets on hover / under a drag). */
 const hueSoftBg = "bg-[hsl(var(--hue)_var(--hue-s)_var(--hue-soft-l))]";
 const hueSoftHover = "hover:bg-[hsl(var(--hue)_var(--hue-s)_var(--hue-soft-l))]";
+/** A Locked card's ring in the Group's own colour (an amber flag ring wins). */
+const hueRing =
+  "border-[hsl(var(--hue)_var(--hue-s)_var(--hue-l))] shadow-[0_0_0_3px_hsl(var(--hue)_var(--hue-s)_var(--hue-l))]";
+
+const pillBase =
+  "inline-flex flex-none items-center gap-1.5 rounded-full border-[1.5px] px-3 py-[5px] text-sm font-semibold focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-on-c";
+/** Unlocked: an outlined "Lock" pill; hidden in print (SPEC §9). */
+const pillOff = `${pillBase} border-current bg-transparent opacity-90 hover:bg-white/15 hover:opacity-100 print:hidden`;
+/** Locked: a solid "Locked" pill in the Group's colour. */
+const pillOn = `${pillBase} border-on-c bg-on-c text-[hsl(var(--hue)_var(--hue-s)_var(--hue-l))]`;
 
 /**
- * SPEC §8 Group card: coloured header "Group 1 · 4 students", names sized to fit the card, and
- * (SPEC §7) an amber outline with one "⚠ …" line per broken Rule.
+ * SPEC §8 Group card: coloured header "Group 1 · 4 students" with the Lock pill, names sized to fit
+ * the card, and (SPEC §7) an amber outline with one "⚠ …" line per broken Rule. Locked: a ring in
+ * the Group's colour, a tinted body and a solid "Locked" pill; faded back while a Student is moving.
  */
-export function GroupCard({ group, index, members, size, phone, flags, move }: GroupCardProps) {
+export function GroupCard({ group, index, members, size, phone, flags, move, onToggleLock }: GroupCardProps) {
   const headingId = useId();
   const n = members.length;
   const columns = phone || !size ? 1 : nameColumns(n, size.width, size.height);
@@ -76,16 +93,35 @@ export function GroupCard({ group, index, members, size, phone, flags, move }: G
       aria-labelledby={headingId}
       style={style}
       className={`flex flex-none flex-col overflow-hidden rounded-[14px] border bg-panel ${
-        flagged ? "border-warn shadow-[0_0_0_2px_var(--color-warn)]" : "border-line shadow-[0_1px_3px_rgba(0,0,0,.08)]"
+        flagged
+          ? "border-warn shadow-[0_0_0_2px_var(--color-warn)]"
+          : group.locked
+            ? hueRing
+            : "border-line shadow-[0_1px_3px_rgba(0,0,0,.08)]"
       }${phone ? " w-full" : ""}${moving && group.locked ? " opacity-55" : ""}`}
     >
       {/* A div, not <header>: jsdom and some screen readers would count it as another banner. */}
       <div className={`flex items-center gap-2.5 py-2.5 pl-4 pr-3 text-on-c ${hueBg}`}>
-        <h2 id={headingId} className="text-[clamp(17px,1.5vw,24px)] font-extrabold tracking-[.01em]">
+        <h2 id={headingId} className="mr-auto text-[clamp(17px,1.5vw,24px)] font-extrabold tracking-[.01em]">
           {groupTitle(index)} <span className="text-sm font-semibold opacity-85">· {groupSizeLabel(group)}</span>
         </h2>
+        <button
+          type="button"
+          aria-pressed={group.locked}
+          aria-label={lockToggleLabel(group, index)}
+          title={group.locked ? "Locked: Reshuffle keeps this Group" : "Lock: Reshuffle keeps this Group"}
+          onClick={onToggleLock}
+          className={group.locked ? pillOn : pillOff}
+        >
+          {group.locked ? (
+            <Lock aria-hidden="true" className="size-4" />
+          ) : (
+            <LockOpen aria-hidden="true" className="size-4" />
+          )}
+          {lockPillText(group)}
+        </button>
       </div>
-      <ul className={listClass} style={{ fontSize }}>
+      <ul className={`${listClass}${group.locked ? ` ${hueSoftBg}` : ""}`} style={{ fontSize }}>
         {members.map((m) => (
           <StudentChip key={m.id} member={m} phone={phone} move={move} />
         ))}
