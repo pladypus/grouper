@@ -58,6 +58,7 @@ export type IdGenerator = () => string;
 export type Result<T extends object> = ({ readonly ok: true } & T) | { readonly ok: false; readonly message: string };
 
 export const DEFAULT_TARGET_SIZE = 4;
+export const MIN_TARGET_SIZE = 2;
 
 export const ONLY_ROSTER_MESSAGE = "You can't delete your only Roster.";
 export const UNKNOWN_ROSTER_MESSAGE = "That Roster no longer exists.";
@@ -292,4 +293,18 @@ export function presentCount(roster: Roster): number {
 /** The top-bar label, e.g. "23/25 Present" (the UI adds the "›"). */
 export function attendanceLabel(roster: Roster): string {
   return `${presentCount(roster)}/${roster.students.length} Present`;
+}
+
+// ---------------------------------------------------------------------------------------------
+// Target size
+
+/**
+ * The "Number of students in group" stepper. Rounds to a whole number and never goes below 2 (the
+ * stepper's − is disabled at MIN_TARGET_SIZE). Returns the same Roster when nothing changes or `n`
+ * isn't a number. Groups on screen don't go out of date (SPEC §7).
+ */
+export function setTargetSize(roster: Roster, n: number): Roster {
+  if (!Number.isFinite(n)) return roster;
+  const target = Math.max(MIN_TARGET_SIZE, Math.round(n));
+  return target === roster.target ? roster : { ...roster, target };
 }
