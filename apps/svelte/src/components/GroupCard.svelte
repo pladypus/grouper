@@ -1,8 +1,11 @@
 <script lang="ts">
   import {
+    canMove,
     canSwap,
     groupSizeLabel,
     groupTitle,
+    lockPillText,
+    lockToggleLabel,
     nameColumns,
     nameFontSize,
     PHONE_NAME_FONT_SIZE,
@@ -18,6 +21,8 @@
     TRIGGERS,
     type DndEvent,
   } from "svelte-dnd-action";
+  import Lock from "@lucide/svelte/icons/lock";
+  import LockOpen from "@lucide/svelte/icons/lock-open";
   import {
     finishPointer,
     refocusStudent,
@@ -52,6 +57,15 @@
   /** Its light tint: under the name being dragged over, or on hover while choosing a swap. */
   const hueSoftBg = "bg-[hsl(var(--hue)_var(--hue-s)_var(--hue-soft-l))]";
   const hueSoftHover = "hover:bg-[hsl(var(--hue)_var(--hue-s)_var(--hue-soft-l))]";
+
+  // SPEC §8 Locked: a ring in the Group's own colour, a tinted body and a solid "Locked" pill (a
+  // flagged Group keeps its amber ring). Unlocked Groups get an outlined "Lock" pill, hidden in print.
+  const lockedRing =
+    "border-[hsl(var(--hue)_var(--hue-s)_var(--hue-l))] shadow-[0_0_0_3px_hsl(var(--hue)_var(--hue-s)_var(--hue-l))]";
+  const pillBase =
+    "inline-flex flex-none items-center gap-1.5 rounded-full border-[1.5px] px-3 py-[5px] text-sm font-semibold focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-on-c";
+  const pillLocked = `${pillBase} border-on-c bg-on-c text-[hsl(var(--hue)_var(--hue-s)_var(--hue-l))]`;
+  const pillUnlocked = `${pillBase} border-current bg-transparent opacity-90 hover:bg-white/15 hover:opacity-100 print:hidden`;
 
   const columns = $derived(phone || !size ? 1 : nameColumns(members.length, size.width, size.height));
   const fontSize = $derived(
@@ -104,7 +118,13 @@
 
   function onconsider(e: CustomEvent<DndEvent<Row>>) {
     const { trigger, id, source } = e.detail.info;
-    if (trigger === TRIGGERS.DRAG_STARTED && source === SOURCES.POINTER && store.dragging === null) {
+    // dragDisabled already stops a drag from a Locked Group; this is the backstop (canMove).
+    if (
+      trigger === TRIGGERS.DRAG_STARTED &&
+      source === SOURCES.POINTER &&
+      store.dragging === null &&
+      canMove(store.board, id)
+    ) {
       store.startDrag(id);
       trackPointer((over) => (store.dragOver = over));
     }
@@ -127,19 +147,36 @@
   {style}
   class="flex flex-none flex-col overflow-hidden rounded-[14px] border bg-panel {flags.length > 0
     ? 'border-warn shadow-[0_0_0_2px_var(--color-warn)]'
-    : 'border-line shadow-[0_1px_3px_rgba(0,0,0,.08)]'}{phone ? ' w-full' : ''}{moving !== null && group.locked
+    : group.locked
+      ? lockedRing
+      : 'border-line shadow-[0_1px_3px_rgba(0,0,0,.08)]'}{phone ? ' w-full' : ''}{moving !== null && group.locked
     ? ' opacity-55'
     : ''}"
 >
   <!-- A div, not <header>: jsdom and some screen readers would count it as another banner. -->
   <div class="flex items-center gap-2.5 py-2.5 pl-4 pr-3 text-on-c {hueBg}">
     <!-- The space sits outside the span so the card's accessible name is "Group 1 · 4 students". -->
-    <h2 id={headingId} class="text-[clamp(17px,1.5vw,24px)] font-extrabold tracking-[.01em]">
+    <h2 id={headingId} class="mr-auto text-[clamp(17px,1.5vw,24px)] font-extrabold tracking-[.01em]">
       {groupTitle(index)}{" "}<span class="text-sm font-semibold opacity-85">{`· ${groupSizeLabel(group)}`}</span>
     </h2>
+    <button
+      type="button"
+      aria-pressed={group.locked}
+      aria-label={lockToggleLabel(group, index)}
+      title={group.locked ? "Locked: Reshuffle keeps this Group" : "Lock: Reshuffle keeps this Group"}
+      class={group.locked ? pillLocked : pillUnlocked}
+      onclick={() => store.toggleLock(group.id)}
+    >
+      {#if group.locked}
+        <Lock aria-hidden="true" class="size-4" />
+      {:else}
+        <LockOpen aria-hidden="true" class="size-4" />
+      {/if}
+      {lockPillText(group)}
+    </button>
   </div>
   <ul
-    class={listClass}
+    class="{listClass}{group.locked ? ` ${hueSoftBg}` : ''}"
     style="font-size: {fontSize}px"
     use:dndzone={{
       items: rows,

@@ -7,6 +7,7 @@ import {
   addStudent,
   boardAfterRosterChange,
   cancelSelection,
+  canMove,
   createRoster,
   currentRoster,
   deletePair,
@@ -31,10 +32,12 @@ import {
   setTargetSize,
   shuffle,
   tapStudent,
+  toggleLock,
   togglePresent,
   updateRoster,
   type AppState,
   type Board,
+  type GroupId,
   type IdGenerator,
   type MoveOutcome,
   type PairId,
@@ -325,7 +328,19 @@ export class GrouperStore {
     }
     this.board = result.board;
     this.conflict = null;
+    // "Lock released: Ana would have been alone in a Locked Group." (SPEC §4 step 1)
+    if (result.toast) this.showToast(result.toast);
     return { ok: true };
+  }
+
+  /** The Lock pill in a Group header (SPEC §7 Lock). Locking never marks the Groups out of date. */
+  toggleLock(groupId: GroupId): void {
+    this.board = toggleLock(this.board, groupId);
+    // Locking the selected Student's Group drops the selection: a Locked Group is frozen.
+    if (this.selected !== null && !canMove(this.board, this.selected)) {
+      this.selected = null;
+      this.announcement = "";
+    }
   }
 
   // --- Manual move (swap) ---------------------------------------------------------------------
