@@ -196,7 +196,7 @@ describe("Roster menu", () => {
     await fireEvent.click(del);
     expect(screen.queryByRole("menu")).not.toBeInTheDocument();
     expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument();
-    expect(screen.getByRole("status")).toHaveTextContent("You can't delete your only Roster.");
+    expect(screen.getByText("You can't delete your only Roster.").closest("[role=status]")).toBeInTheDocument();
 
     // Roster names are unique, compared like Student names.
     menu = await openMenu();
