@@ -3,9 +3,16 @@ import ChevronRight from "lucide-react/icons/chevron-right";
 import Users from "lucide-react/icons/users";
 import { useRosters } from "../state";
 import { RosterMenu } from "./RosterMenu";
+import { ShuffleButton } from "./ShuffleButton";
+import { SizeControls } from "./SizeControls";
 import { ThemeButton } from "./ThemeButton";
 
 export interface TopBarProps {
+  phone: boolean;
+  splitErrorId: string;
+  splitError: string | null;
+  onSplitError: (message: string | null) => void;
+  onShuffle: () => void;
   onOpenStudents: () => void;
   onNewRoster: () => void;
   onRenameRoster: () => void;
@@ -13,9 +20,10 @@ export interface TopBarProps {
   onDeleteRefused: () => void;
 }
 
-/** One row, fixed height (SPEC §8). Items 3–5 and 7 (Pairs, group size, Share, Shuffle) come later. */
+/** One row, fixed height (SPEC §8). Items 3 and 5 (Pairs, Share) come later. */
 export function TopBar(props: TopBarProps) {
   const { state, roster, selectRoster, storage } = useRosters();
+  const zoneClass = props.phone ? "flex items-center gap-2" : "flex items-center gap-2 border-l border-line pl-5";
   return (
     <header className="sticky top-0 z-10 flex flex-none flex-wrap items-center gap-x-5 gap-y-2.5 border-b border-line bg-panel px-4 py-2.5">
       {roster && (
@@ -41,7 +49,7 @@ export function TopBar(props: TopBarProps) {
               onDeleteRefused={props.onDeleteRefused}
             />
           </div>
-          <div className="flex items-center gap-2 border-l border-line pl-5">
+          <div className={zoneClass}>
             <button
               type="button"
               aria-haspopup="dialog"
@@ -55,10 +63,21 @@ export function TopBar(props: TopBarProps) {
               <ChevronRight aria-hidden="true" className="-ml-0.5 size-3.5 flex-none text-mute" />
             </button>
           </div>
+          <div className={zoneClass}>
+            {/* Keyed so switching Roster closes an open "Edit". */}
+            <SizeControls
+              key={roster.id}
+              roster={roster}
+              splitErrorId={props.splitErrorId}
+              splitError={props.splitError}
+              onSplitError={props.onSplitError}
+            />
+          </div>
         </>
       )}
       <span className="flex-1" />
       <ThemeButton storage={storage} />
+      {roster && <ShuffleButton roster={roster} phone={props.phone} onShuffle={props.onShuffle} />}
     </header>
   );
 }
