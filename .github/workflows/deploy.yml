@@ -15,9 +15,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  # Vite's documented Pages workflow. During the framework bake-off it deploys the
-  # static placeholder in site/ rather than an app build; the apps are still tested
-  # and built so a broken main can't deploy. Switch the upload to ./dist at #26.
+  # Vite's documented Pages workflow. Tests run first so a broken main can't deploy.
   deploy:
     runs-on: ubuntu-latest
     environment:
@@ -35,6 +33,6 @@ jobs:
       - uses: actions/configure-pages@v6
       - uses: actions/upload-pages-artifact@v5
         with:
-          path: site
+          path: ./dist
       - id: deployment
         uses: actions/deploy-pages@v5

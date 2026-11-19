@@ -1,5 +1,7 @@
 # Bake-off report: React vs Svelte
 
+> The owner picked React ([ADR 0001](adr/0001-react.md)) and the repo was flattened to one app, so the `apps/` and `packages/core` paths below describe the layout at the time of measuring. `packages/core` is now `src/lib/`, `apps/react/src` is now `src/`, and `apps/svelte` is deleted.
+
 A side-by-side comparison of `apps/react` and `apps/svelte` for [#26](https://github.com/pladypus/grouper/issues/26) ([SPEC §2 Framework bake-off](../SPEC.md#framework-bake-off)). Both apps implement the same slice (#12 scaffold, #14 Rosters, #15 Shuffle, #16 Pairs, #18 Manual move, #19 Lock) over the same `packages/core`, with the same Tailwind v4 styles, Lucide icons and test approach. Only the framework, the state approach and the drag library differ:
 
 | | React | Svelte |
