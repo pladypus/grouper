@@ -1,0 +1,605 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>PROTOTYPE · grouper main screen</title>
+<!--
+  PROTOTYPE, THROWAWAY. Lives on branch prototype/main-screen, never merged.
+  Question (wayfinder ticket "What does the main screen look like?"):
+  how should grouper's main screen be laid out and behave?
+  Three structurally different variants, switchable via ?variant=A|B|C or the
+  floating bar at the bottom (← / → keys). Fake data, in-memory only, toy solver.
+-->
+<style>
+  :root { --bg:#f6f5f2; --panel:#fff; --ink:#1e1f24; --mute:#6b6f7a; --line:#dcdbd6;
+          --accent:#3a5bd9; --accent-soft:#e6ebfd; --warn:#a15c00; --warn-soft:#fff3df;
+          --bad:#b42318; --bad-soft:#fde8e6; --ok:#1d7a46; --lock:#5b3fb5; --lock-soft:#efeafd; }
+  * { box-sizing:border-box; }
+  body { margin:0; font:15px/1.4 system-ui, sans-serif; background:var(--bg); color:var(--ink); }
+  button, select, input { font:inherit; }
+  button { cursor:pointer; border:1px solid var(--line); background:var(--panel); border-radius:6px; padding:4px 10px; }
+  button:hover { border-color:var(--mute); }
+  button.link { border:0; background:none; color:var(--accent); padding:0 4px; text-decoration:underline; }
+  select, input[type=text], input:not([type]) { border:1px solid var(--line); border-radius:6px; padding:4px 8px; background:#fff; }
+  h3,h4 { margin:0; }
+  small { color:var(--mute); }
+  .err { color:var(--bad); margin:6px 0; }
+  .refuse { background:var(--bad-soft); border-radius:6px; padding:6px 10px; }
+  .warn { color:var(--warn); margin:4px 0; font-size:14px; }
+
+  /* shared bits */
+  .stepper { display:inline-flex; align-items:center; gap:0; }
+  .stepper button { width:32px; padding:4px 0; }
+  .stepper output { min-width:34px; text-align:center; font-weight:700; font-size:18px; }
+  .sizes { display:flex; flex-wrap:wrap; align-items:center; gap:8px 14px; }
+  .sizes .warnings { flex-basis:100%; }
+  .split input { width:140px; }
+  .shuffle { background:var(--accent); color:#fff; border:0; font-weight:700; padding:8px 18px; border-radius:8px; }
+  .shuffle small { color:#dfe5ff; font-weight:400; }
+  .shuffle.big { font-size:20px; padding:12px 28px; }
+  .notice { border-radius:8px; padding:10px 14px; margin:10px 0; display:flex; flex-wrap:wrap; gap:6px 10px; align-items:center; }
+  .notice.stale { background:var(--warn-soft); border:1px solid #f0cf9a; }
+  .notice.conflict { background:var(--bad-soft); border:1px solid #f3b7b0; display:block; }
+  .notice.conflict details { margin-top:6px; }
+  .notice.hint { background:var(--accent-soft); }
+  .chip { border-radius:999px; padding:4px 12px; background:#fff; border:1px solid var(--line); user-select:none; touch-action:manipulation; }
+  .chip.sel { outline:3px solid var(--accent); background:var(--accent-soft); }
+  .chip.gone { text-decoration:line-through; color:var(--mute); }
+  .chip.over { outline:2px dashed var(--accent); }
+  .group { background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:10px; }
+  .group header { display:flex; align-items:center; gap:8px; margin-bottom:8px; }
+  .group header h3 { font-size:15px; }
+  .group .count { color:var(--mute); font-size:13px; margin-right:auto; }
+  .group .members { display:flex; flex-wrap:wrap; gap:6px; }
+  .group.locked { background:var(--lock-soft); border-color:var(--lock); }
+  .group.flagged { border-color:var(--warn); box-shadow:0 0 0 2px var(--warn-soft); }
+  .flag { color:var(--warn); background:var(--warn-soft); border-radius:6px; padding:2px 8px; margin:0 0 6px; font-size:13px; }
+  .lockbtn[aria-pressed=true] { background:var(--lock); color:#fff; border-color:var(--lock); }
+  .empty { color:var(--mute); }
+  .emptystate { color:var(--mute); text-align:center; padding:60px 20px; border:2px dashed var(--line); border-radius:12px; margin-top:12px; }
+  .rules ul, .students ul { list-style:none; padding:0; margin:6px 0 10px; }
+  .rules li { display:flex; justify-content:space-between; gap:6px; padding:4px 6px; border-radius:6px; }
+  .rules li:hover { background:var(--bg); }
+  .x { border:0; background:none; color:var(--mute); padding:0 4px; }
+  .x:hover { color:var(--bad); }
+  .form { display:flex; flex-wrap:wrap; gap:6px; align-items:center; }
+  .form.col { flex-direction:column; align-items:stretch; }
+  .pick { max-height:150px; overflow:auto; border:1px solid var(--line); border-radius:6px; padding:4px 8px; display:grid; grid-template-columns:repeat(auto-fill,minmax(90px,1fr)); background:#fff; }
+  .pick label { font-size:14px; white-space:nowrap; }
+  .rulecol + .rulecol { margin-top:14px; }
+  .flash { animation:flash 1.6s ease-out; }
+  @keyframes flash { 0%,40% { background:#ffe58f; } 100% { background:transparent; } }
+  .switch { position:relative; width:42px; height:24px; border-radius:999px; border:0; padding:0; background:#c9c8c2; }
+  .switch::after { content:""; position:absolute; top:3px; left:3px; width:18px; height:18px; border-radius:50%; background:#fff; transition:left .15s; }
+  .switch[aria-checked=true] { background:var(--ok); }
+  .switch[aria-checked=true]::after { left:21px; }
+
+  /* ---------- Variant A: workbench with sidebar ---------- */
+  .a-wrap { display:grid; grid-template-columns:330px 1fr; min-height:100vh; }
+  .a-side { background:var(--panel); border-right:1px solid var(--line); padding:14px; overflow:auto; max-height:100vh; position:sticky; top:0; }
+  .a-brand { font-weight:800; font-size:20px; margin-bottom:10px; }
+  .a-tabs { display:flex; gap:4px; margin:12px 0; }
+  .a-tabs button { flex:1; border-radius:6px 6px 0 0; border-bottom:2px solid transparent; }
+  .a-tabs button.on { border-bottom-color:var(--accent); font-weight:700; }
+  .a-main { padding:16px 22px 90px; }
+  .a-toolbar { display:flex; justify-content:space-between; align-items:center; gap:12px; background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:10px 14px; }
+  .a-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:12px; margin-top:12px; }
+  .students.list li { display:flex; align-items:center; gap:8px; padding:3px 0; }
+  .students.list li .nm { flex:1; }
+  .students.list li.absent .nm { color:var(--mute); text-decoration:line-through; }
+
+  /* ---------- Variant B: three steps ---------- */
+  .b-head { display:flex; align-items:center; gap:16px; padding:12px 24px; background:var(--panel); border-bottom:1px solid var(--line); }
+  .b-head .a-brand { margin:0; }
+  .b-steps { display:flex; gap:0; margin:0 auto; }
+  .b-steps button { border-radius:0; padding:10px 22px; font-size:16px; border-right-width:0; }
+  .b-steps button:first-child { border-radius:8px 0 0 8px; }
+  .b-steps button:last-child { border-radius:0 8px 8px 0; border-right-width:1px; }
+  .b-steps button.on { background:var(--ink); color:#fff; border-color:var(--ink); }
+  .b-steps button.on small { color:#c9cbd3; }
+  .b-body { max-width:980px; margin:20px auto; padding:0 20px 100px; }
+  .b-next { margin-top:16px; text-align:right; }
+  .b-controls { display:flex; justify-content:space-between; align-items:center; gap:16px; background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:14px 18px; }
+  .b-rows { list-style:none; padding:0; margin:12px 0 0; display:flex; flex-direction:column; gap:8px; }
+  .b-row { display:grid; grid-template-columns:110px 1fr; align-items:start; gap:12px; background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:10px 12px; }
+  .b-row.locked { background:var(--lock-soft); border-color:var(--lock); }
+  .b-row.flagged { border-color:var(--warn); }
+  .b-num { font-size:22px; font-weight:800; display:block; }
+  .b-row .members { display:flex; flex-wrap:wrap; gap:6px; }
+  .b-row .flag { grid-column:2; }
+  table.students { width:100%; border-collapse:collapse; background:var(--panel); border:1px solid var(--line); border-radius:10px; overflow:hidden; }
+  table.students th, table.students td { text-align:left; padding:7px 12px; border-bottom:1px solid var(--line); }
+  table.students tr.absent td.nm { color:var(--mute); text-decoration:line-through; }
+  .rules.columns { display:grid; grid-template-columns:1fr 1fr; gap:20px; }
+  .rules.columns .rulecol { background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:14px; margin:0; }
+  .rules.columns .refuse { grid-column:1 / -1; }
+
+  /* ---------- Variant C: board first, drawers ---------- */
+  .c-bar { position:sticky; top:0; z-index:5; display:flex; flex-wrap:wrap; align-items:center; gap:10px 16px; padding:10px 18px; background:var(--ink); color:#fff; }
+  .c-bar .a-brand { margin:0; color:#fff; }
+  .c-bar select { background:#2d2f37; color:#fff; border-color:#444; }
+  .c-bar button:not(.shuffle) { background:#2d2f37; color:#fff; border-color:#444; }
+  .c-bar .sizes small, .c-bar .sizes label { color:#c9cbd3; }
+  .c-bar .warn { color:#ffc56b; }
+  .c-bar .spacer { flex:1; }
+  .c-board { padding:16px 18px 100px; }
+  .c-tiles { display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:14px; }
+  .c-tiles .group { padding:14px; }
+  .c-tiles .group header h3 { font-size:20px; }
+  .c-tiles .chip { font-size:19px; padding:8px 16px; }
+  .c-overlay { position:fixed; inset:0; background:rgba(20,20,30,.35); z-index:10; }
+  .c-drawer { position:fixed; top:0; right:0; bottom:0; width:min(440px,100%); background:var(--panel); z-index:11; padding:16px; overflow:auto; box-shadow:-8px 0 30px rgba(0,0,0,.15); }
+  .c-drawer > header { display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; }
+  .roll { display:flex; flex-wrap:wrap; gap:8px; margin:10px 0; }
+  .roll button { border-radius:10px; padding:10px 14px; font-size:16px; }
+  .roll button[aria-pressed=true] { background:#e3f3e9; border-color:var(--ok); }
+  .roll button[aria-pressed=false] { color:var(--mute); text-decoration:line-through; background:#eee; }
+
+  /* ---------- prototype chrome ---------- */
+  #switcher { position:fixed; bottom:16px; left:50%; transform:translateX(-50%); z-index:50; display:flex; align-items:center; gap:10px; background:#111; color:#fff; border-radius:999px; padding:6px 10px; box-shadow:0 6px 20px rgba(0,0,0,.35); font-size:14px; }
+  #switcher button { background:#333; color:#fff; border:0; border-radius:999px; width:30px; height:30px; padding:0; }
+  #statepanel { position:fixed; bottom:16px; left:16px; z-index:50; background:#111; color:#cfe; border-radius:8px; font:12px/1.35 ui-monospace,monospace; max-width:360px; }
+  #statepanel summary { cursor:pointer; padding:6px 10px; color:#fff; }
+  #statepanel pre { margin:0; padding:0 10px 10px; max-height:50vh; overflow:auto; white-space:pre-wrap; }
+  #toast { position:fixed; top:16px; left:50%; transform:translateX(-50%); z-index:60; background:#111; color:#fff; padding:10px 16px; border-radius:8px; display:none; max-width:90vw; }
+  #toast.show { display:block; }
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div id="switcher"></div>
+<details id="statepanel"><summary>Prototype state</summary><pre id="statepre"></pre></details>
+<div id="toast" role="status"></div>
+<script>
+// ---------------------------------------------------------------- fake data
+const NAMES_P2 = ['Ana','Ben','Cal','Dee','Eli','Fay','Gus','Hana','Ivo','Jade','Kai','Lena','Milo','Nia','Omar','Pia','Quinn','Ravi','Sami','Tess','Uma','Vic','Wren','Xavi','Yara'];
+const NAMES_P5 = ['Abby','Bo','Chen','Dara','Ezra','Finn','Gia','Hugo','Iris','Jon','Kira','Leo','Maya','Ned','Ola','Pax','Rhea','Sol'];
+let seq = 0; const nid = p => p + (++seq);
+let ruleClock = 0;
+function mkRoster(name, names) { return { id: nid('r'), name, students: names.map(n => ({ id: nid('s'), name: n, present: true })), rules: [] }; }
+const sidOf = (R, n) => R.students.find(s => s.name === n).id;
+const P2 = mkRoster('Period 2', NAMES_P2), P5 = mkRoster('Period 5', NAMES_P5);
+['Hana', 'Tess'].forEach(n => P2.students.find(s => s.name === n).present = false);
+P2.rules.push({ id: nid('u'), kind: 'apart', a: sidOf(P2, 'Ben'), b: sidOf(P2, 'Cal'), created: ++ruleClock });
+P2.rules.push({ id: nid('u'), kind: 'apart', a: sidOf(P2, 'Gus'), b: sidOf(P2, 'Ivo'), created: ++ruleClock });
+P2.rules.push({ id: nid('u'), kind: 'cluster', name: 'Lab trio', members: ['Ana', 'Dee', 'Eli'].map(n => sidOf(P2, n)), created: ++ruleClock });
+P2.rules.push({ id: nid('u'), kind: 'cluster', name: 'Reading pair', members: ['Jade', 'Kai'].map(n => sidOf(P2, n)), created: ++ruleClock });
+P5.rules.push({ id: nid('u'), kind: 'apart', a: sidOf(P5, 'Bo'), b: sidOf(P5, 'Chen'), created: ++ruleClock });
+
+const S = {
+  rosters: [P2, P5], rosterId: P2.id, target: 4, splitOverride: null, editingSplit: false, splitError: null,
+  groups: null, stale: false, conflict: null, selected: null, lastMove: null, ruleError: null, focusRule: null,
+  ui: { tabA: 'students', tabB: 'students', drawer: null },
+  drafts: { apartA: '', apartB: '', clusterName: '', clusterMembers: [], newStudent: '', splitText: '' },
+};
+
+// ---------------------------------------------------------------- helpers
+const R = () => S.rosters.find(r => r.id === S.rosterId);
+const stu = id => R().students.find(s => s.id === id);
+const nm = id => stu(id)?.name ?? '(deleted)';
+const presentIds = () => R().students.filter(s => s.present).map(s => s.id);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const sum = a => a.reduce((x, y) => x + y, 0);
+const shuffleArr = a => { a = [...a]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+function listNames(ids) { const n = ids.map(nm); return n.length <= 1 ? n.join('') : n.slice(0, -1).join(', ') + ' and ' + n.at(-1); }
+function ruleText(r) { return r.kind === 'apart' ? `${nm(r.a)} and ${nm(r.b)} apart` : `Cluster “${r.name}”: ${listNames(r.members)}`; }
+const ruleById = id => R().rules.find(r => r.id === id);
+const newestFirst = ids => [...new Set(ids)].sort((a, b) => (ruleById(b)?.created ?? 0) - (ruleById(a)?.created ?? 0));
+
+function clusterBlocks(rules) { // overlapping Clusters merge into one block
+  let blocks = [];
+  for (const c of rules.filter(r => r.kind === 'cluster')) {
+    const hit = blocks.filter(b => c.members.some(m => b.members.has(m)));
+    const merged = { members: new Set(c.members), clusters: [c] };
+    for (const b of hit) { b.members.forEach(m => merged.members.add(m)); merged.clusters.push(...b.clusters); }
+    blocks = blocks.filter(b => !hit.includes(b)).concat([merged]);
+  }
+  return blocks;
+}
+
+function deriveSplit(n, t) {
+  if (n === 0) return [];
+  const k = Math.floor(n / t);
+  if (k === 0) return [n];
+  const sizes = Array(k).fill(t);
+  let rem = n - k * t, i = k - 1;
+  while (rem > 0) { sizes[i]++; rem--; i = (i - 1 + k) % k; }
+  return sizes;
+}
+function splitText(sizes) {
+  if (!sizes.length) return '—';
+  const c = {}; sizes.forEach(s => c[s] = (c[s] || 0) + 1);
+  return Object.keys(c).map(Number).sort((a, b) => a - b).map(s => `${c[s]}×${s}`).join(' + ');
+}
+function currentSplit() {
+  const n = presentIds().length;
+  if (S.splitOverride && sum(S.splitOverride) === n) return S.splitOverride;
+  return deriveSplit(n, S.target);
+}
+function clusterWarnings() {
+  const present = new Set(presentIds());
+  return clusterBlocks(R().rules).map(b => [...b.members].filter(id => present.has(id)))
+    .filter(pm => pm.length > S.target)
+    .map(pm => `${listNames(pm)}'s Cluster has ${pm.length}; the Target size is ${S.target}.`);
+}
+function markEdited() { if (S.groups) S.stale = true; }
+
+let toastTimer;
+function toast(msg) { const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('show'), 2800); }
+
+// ---------------------------------------------------------------- rules entry (refuse contradictions)
+function contradiction(newRule) {
+  const rules = [...R().rules, newRule];
+  for (const b of clusterBlocks(rules)) {
+    for (const ap of rules.filter(r => r.kind === 'apart')) {
+      if (b.members.has(ap.a) && b.members.has(ap.b)) {
+        if (newRule.kind === 'apart') return `${nm(ap.a)} and ${nm(ap.b)} are in Cluster “${b.clusters.map(c => c.name).join('” / “')}”, so they can't also be kept apart.`;
+        return `${nm(ap.a)} and ${nm(ap.b)} have an Apart rule, so they can't share a Cluster.`;
+      }
+    }
+  }
+  return null;
+}
+function addApart() {
+  const { apartA: a, apartB: b } = S.drafts;
+  if (!a || !b || a === b) { S.ruleError = 'Pick two different Students.'; return; }
+  if (R().rules.some(r => r.kind === 'apart' && ((r.a === a && r.b === b) || (r.a === b && r.b === a)))) { S.ruleError = 'That Apart rule already exists.'; return; }
+  const rule = { id: nid('u'), kind: 'apart', a, b, created: ++ruleClock };
+  const why = contradiction(rule); if (why) { S.ruleError = why; return; }
+  R().rules.push(rule); S.ruleError = null; S.drafts.apartA = S.drafts.apartB = ''; markEdited();
+}
+function addCluster() {
+  const name = S.drafts.clusterName.trim(), members = S.drafts.clusterMembers;
+  if (!name) { S.ruleError = 'Give the Cluster a name.'; return; }
+  if (members.length < 2) { S.ruleError = 'A Cluster needs at least two Students.'; return; }
+  const rule = { id: nid('u'), kind: 'cluster', name, members: [...members], created: ++ruleClock };
+  const why = contradiction(rule); if (why) { S.ruleError = why; return; }
+  R().rules.push(rule); S.ruleError = null; S.drafts.clusterName = ''; S.drafts.clusterMembers = []; markEdited();
+}
+
+// ---------------------------------------------------------------- toy solver
+function doShuffle() {
+  const t = S.target, R0 = R(), present = new Set(presentIds());
+  let locked = (S.groups || []).filter(g => g.locked).map(g => ({ ...g, members: g.members.filter(id => present.has(id)) }));
+  const released = [];
+  locked = locked.filter(g => { if (g.members.length < 2) { released.push(...g.members); return false; } return true; });
+  const lockedOf = {}; locked.forEach(g => g.members.forEach(id => lockedOf[id] = g));
+  const pool = [...present].filter(id => !lockedOf[id]);
+  const blocks = clusterBlocks(R0.rules);
+  const fail = (sentence, rules) => { S.conflict = { sentence, rules: newestFirst(rules) }; S.selected = null; };
+
+  for (const b of blocks) {
+    const pm = [...b.members].filter(id => present.has(id));
+    if (pm.length > t) return fail(`${listNames(pm)}'s Cluster has ${pm.length}; the Target size is ${t}.`, b.clusters.map(c => c.id));
+    const lockedGroups = new Set(pm.filter(id => lockedOf[id]).map(id => lockedOf[id].id));
+    const free = pm.filter(id => !lockedOf[id]);
+    if (lockedGroups.size > 1 || (lockedGroups.size === 1 && free.length)) {
+      const gi = S.groups.findIndex(g => lockedGroups.has(g.id)) + 1;
+      return fail(`${listNames(pm)} must share a Group, but Locked Group ${gi} splits them. Unlock it or edit the Cluster.`, b.clusters.map(c => c.id));
+    }
+  }
+  if (pool.length === 1) return fail(`${nm(pool[0])} would be in a Group of 1, and Locked Groups can't grow. Unlock a Group to make room.`, []);
+  if (pool.length + sum(locked.map(g => g.members.length)) < 2) return fail('Fewer than two Students are Present.', []);
+
+  const sizes = (!locked.length && S.splitOverride && sum(S.splitOverride) === present.size) ? [...S.splitOverride] : deriveSplit(pool.length, t);
+  const poolSet = new Set(pool), used = new Set(), units = [];
+  for (const b of blocks) { const m = [...b.members].filter(id => poolSet.has(id)); if (m.length > 1) { units.push(m); m.forEach(id => used.add(id)); } }
+  pool.forEach(id => { if (!used.has(id)) units.push([id]); });
+  const aparts = R0.rules.filter(r => r.kind === 'apart');
+  const clash = (grp, u) => aparts.some(r => (grp.includes(r.a) && u.includes(r.b)) || (grp.includes(r.b) && u.includes(r.a)));
+  let result = null;
+  for (let attempt = 0; attempt < 3000 && !result; attempt++) {
+    const groups = sizes.map(() => []);
+    let ok = true;
+    for (const u of shuffleArr(units).sort((x, y) => y.length - x.length)) {
+      const cands = shuffleArr(groups.map((_, i) => i)).filter(i => groups[i].length + u.length <= sizes[i] && !clash(groups[i], u));
+      if (!cands.length) { ok = false; break; }
+      groups[cands[0]].push(...u);
+    }
+    if (ok) result = groups;
+  }
+  if (!result) return fail(`No way to make Groups of ${splitText(sizes)} keeps every Rule. (Prototype: the real app names the smallest set of clashing Rules.)`,
+    R0.rules.filter(r => r.kind === 'apart' ? poolSet.has(r.a) && poolSet.has(r.b) : true).map(r => r.id));
+
+  const fresh = result.map(m => ({ id: nid('g'), members: shuffleArr(m), locked: false }));
+  const keep = Object.fromEntries(locked.map(g => [g.id, g]));
+  const out = [];
+  for (const g of S.groups || []) { if (keep[g.id]) out.push(keep[g.id]); else if (fresh.length) out.push(fresh.shift()); }
+  out.push(...fresh);
+  S.groups = out; S.stale = false; S.conflict = null; S.selected = null; S.lastMove = null;
+  if (released.length) toast(`Lock released: ${listNames(released)} would have been alone in a Locked Group.`);
+}
+
+function violations() { // flags after Manual moves (or Rules edited since)
+  const out = {}; if (!S.groups) return out;
+  const groupOf = {}; S.groups.forEach(g => g.members.forEach(id => groupOf[id] = g));
+  const push = (g, m) => (out[g.id] ||= []).push(m);
+  for (const r of R().rules) {
+    if (r.kind === 'apart' && groupOf[r.a] && groupOf[r.a] === groupOf[r.b]) push(groupOf[r.a], `${nm(r.a)} and ${nm(r.b)} should be apart`);
+    if (r.kind === 'cluster') {
+      const gs = new Set(r.members.map(id => groupOf[id]).filter(Boolean));
+      if (gs.size > 1) gs.forEach(g => push(g, `Cluster “${r.name}” is split across Groups`));
+    }
+  }
+  return out;
+}
+
+// ---------------------------------------------------------------- Manual move (swap)
+function groupOfId(id) { return S.groups?.find(g => g.members.includes(id)); }
+function swap(a, b) {
+  if (!S.groups || a === b) return;
+  const ga = groupOfId(a), gb = groupOfId(b);
+  if (!ga || !gb) return;
+  if (ga === gb) { S.selected = b; return; }
+  const lk = [ga, gb].find(g => g.locked);
+  if (lk) { toast(`Group ${S.groups.indexOf(lk) + 1} is Locked. Unlock it to move Students.`); S.selected = null; return; }
+  ga.members[ga.members.indexOf(a)] = b; gb.members[gb.members.indexOf(b)] = a;
+  S.selected = null; S.lastMove = `${nm(a)} ⇄ ${nm(b)}`;
+}
+function tapChip(id) {
+  if (S.selected === id) { S.selected = null; return; }
+  if (!S.selected) {
+    const g = groupOfId(id);
+    if (g?.locked) { toast(`Group ${S.groups.indexOf(g) + 1} is Locked. Unlock it to move Students.`); return; }
+    S.selected = id; return;
+  }
+  swap(S.selected, id);
+}
+
+// ---------------------------------------------------------------- shared render pieces
+function rosterPicker() {
+  return `<select data-change="roster" aria-label="Roster">${S.rosters.map(r => `<option value="${r.id}" ${r.id === S.rosterId ? 'selected' : ''}>${esc(r.name)}</option>`).join('')}<option value="__new">＋ New Roster…</option></select>`;
+}
+function sizeControls() {
+  const n = presentIds().length, sp = currentSplit(), warns = clusterWarnings();
+  const nLocked = S.groups?.filter(g => g.locked).length || 0;
+  return `<div class="sizes">
+    <label>Target size</label>
+    <span class="stepper"><button data-action="target-dec" aria-label="Smaller">−</button><output>${S.target}</output><button data-action="target-inc" aria-label="Bigger">+</button></span>
+    <span class="split">${S.editingSplit
+      ? `<input data-draft="splitText" value="${esc(S.drafts.splitText)}" aria-label="Group sizes, comma separated"> <button data-action="split-save">Save</button> <button data-action="split-cancel">Cancel</button>`
+      : `Split <b>${splitText(sp)}</b> <small>(${n} Present${S.splitOverride ? ', edited' : ''})</small> <button class="link" data-action="split-edit">Edit</button>${S.splitOverride ? `<button class="link" data-action="split-reset">Automatic</button>` : ''}`}</span>
+    ${nLocked ? `<small>Locked Groups keep their size; the rest is re-split.</small>` : ''}
+    ${S.splitError || warns.length ? `<div class="warnings">${S.splitError ? `<p class="err">${esc(S.splitError)}</p>` : ''}${warns.map(w => `<p class="warn">⚠ ${esc(w)}</p>`).join('')}</div>` : ''}
+  </div>`;
+}
+function shuffleBtn(cls = '') {
+  const nLocked = S.groups?.filter(g => g.locked).length || 0;
+  return `<button class="shuffle ${cls}" data-action="shuffle">${S.groups ? 'Reshuffle' : 'Shuffle'}${nLocked ? ` <small>keeps ${nLocked} Locked</small>` : ''}</button>`;
+}
+function notices() {
+  let h = '';
+  if (S.conflict) {
+    const rules = S.conflict.rules.map(ruleById).filter(Boolean);
+    h += `<div class="notice conflict" role="alert"><strong>Can't make Groups.</strong> ${esc(S.conflict.sentence)}
+      ${rules.length ? `<details><summary>Show the Rules involved</summary><ul>${rules.map(r => `<li><a href="#" data-action="focus-rule" data-rid="${r.id}">${esc(ruleText(r))}</a></li>`).join('')}</ul></details>` : ''}</div>`;
+  }
+  if (S.stale) h += `<div class="notice stale">⚠ The Roster changed since these Groups were made, so they're out of date. <button data-action="shuffle">Reshuffle</button></div>`;
+  if (S.selected) h += `<div class="notice hint"><b>${esc(nm(S.selected))}</b> selected. Tap a Student in another Group to swap. <button data-action="deselect">Cancel</button></div>`;
+  return h;
+}
+function chip(id) {
+  const s = stu(id);
+  return `<button class="chip ${S.selected === id ? 'sel' : ''} ${!s || !s.present ? 'gone' : ''}" draggable="true" data-action="chip" data-sid="${id}">${esc(nm(id))}</button>`;
+}
+function lockBtn(g) { return `<button class="lockbtn" data-action="lock" data-gid="${g.id}" aria-pressed="${g.locked}">${g.locked ? '🔒 Locked' : '🔓 Lock'}</button>`; }
+function groupCard(g, i, flags) {
+  const f = flags[g.id] || [];
+  return `<section class="group ${g.locked ? 'locked' : ''} ${f.length ? 'flagged' : ''}" data-gid="${g.id}">
+    <header><h3>Group ${i + 1}</h3><span class="count">${g.members.length}</span>${lockBtn(g)}</header>
+    ${f.map(m => `<p class="flag">⚠ ${esc(m)}</p>`).join('')}
+    <div class="members">${g.members.map(chip).join('')}</div></section>`;
+}
+function emptyState(text = 'No Groups yet. Choose a Target size and press Shuffle.') { return S.conflict ? '' : `<div class="emptystate">${text}</div>`; }
+
+function addStudentForm() {
+  return `<div class="form"><input data-draft="newStudent" value="${esc(S.drafts.newStudent)}" placeholder="Add a Student" data-enter="add-student"><button data-action="add-student">Add</button></div>`;
+}
+function studentsEditor(style) {
+  const R0 = R(), n = presentIds().length;
+  if (style === 'list') return `<div class="students list">${addStudentForm()}<p><small>${n} of ${R0.students.length} Present</small></p><ul>${R0.students.map(s => `
+    <li class="${s.present ? '' : 'absent'}"><button class="switch" role="switch" aria-checked="${s.present}" data-action="toggle-present" data-sid="${s.id}" aria-label="${esc(s.name)} present"></button><span class="nm">${esc(s.name)}</span><button class="x" data-action="del-student" data-sid="${s.id}" title="Remove from Roster">✕</button></li>`).join('')}</ul></div>`;
+  if (style === 'table') {
+    const rc = id => R0.rules.filter(r => r.kind === 'apart' ? r.a === id || r.b === id : r.members.includes(id)).length;
+    return `<div class="form" style="justify-content:space-between;margin-bottom:10px">${addStudentForm()}<span><small>${n} of ${R0.students.length} Present</small> <button data-action="all-present">Everyone Present</button></span></div>
+      <table class="students"><thead><tr><th>Student</th><th>Present</th><th>Rules</th><th></th></tr></thead><tbody>${R0.students.map(s => `
+      <tr class="${s.present ? '' : 'absent'}"><td class="nm">${esc(s.name)}</td><td><button class="switch" role="switch" aria-checked="${s.present}" data-action="toggle-present" data-sid="${s.id}" aria-label="${esc(s.name)} present"></button></td><td>${rc(s.id) || ''}</td><td><button class="x" data-action="del-student" data-sid="${s.id}" title="Remove from Roster">✕</button></td></tr>`).join('')}</tbody></table>`;
+  }
+  return `<div class="students rollcall"><p><small>Tap a name to mark them Absent or Present. ${n} of ${R0.students.length} Present.</small></p>
+    <div class="roll">${R0.students.map(s => `<button aria-pressed="${s.present}" data-action="toggle-present" data-sid="${s.id}">${esc(s.name)}</button>`).join('')}</div>${addStudentForm()}</div>`;
+}
+function rulesEditor(style) {
+  const R0 = R();
+  const opts = sel => `<option value="">Student…</option>` + R0.students.map(s => `<option value="${s.id}" ${sel === s.id ? 'selected' : ''}>${esc(s.name)}</option>`).join('');
+  const apart = R0.rules.filter(r => r.kind === 'apart'), clus = R0.rules.filter(r => r.kind === 'cluster');
+  const li = r => `<li data-rule="${r.id}"><span>${esc(ruleText(r))}</span><button class="x" data-action="del-rule" data-rid="${r.id}" title="Delete Rule">✕</button></li>`;
+  return `<div class="rules ${style}">
+    ${S.ruleError ? `<p class="err refuse">⛔ ${esc(S.ruleError)}</p>` : ''}
+    <div class="rulecol"><h4>Apart rules <small>never share a Group</small></h4>
+      <ul>${apart.map(li).join('') || '<li class="empty">None yet</li>'}</ul>
+      <div class="form"><select data-draft="apartA">${opts(S.drafts.apartA)}</select><span>and</span><select data-draft="apartB">${opts(S.drafts.apartB)}</select><button data-action="add-apart">Keep apart</button></div></div>
+    <div class="rulecol"><h4>Clusters <small>always share a Group</small></h4>
+      <ul>${clus.map(li).join('') || '<li class="empty">None yet</li>'}</ul>
+      <div class="form col"><input data-draft="clusterName" value="${esc(S.drafts.clusterName)}" placeholder="Cluster name, e.g. Lab trio">
+        <div class="pick">${R0.students.map(s => `<label><input type="checkbox" data-member="${s.id}" ${S.drafts.clusterMembers.includes(s.id) ? 'checked' : ''}> ${esc(s.name)}</label>`).join('')}</div>
+        <button data-action="add-cluster">Add Cluster</button></div></div>
+  </div>`;
+}
+
+// ---------------------------------------------------------------- Variant A: workbench
+function renderA() {
+  const tab = S.ui.tabA, flags = violations();
+  return `<div class="a-wrap">
+    <aside class="a-side"><div class="a-brand">grouper</div>${rosterPicker()}
+      <nav class="a-tabs"><button data-action="tab" data-scope="tabA" data-tab="students" class="${tab === 'students' ? 'on' : ''}">Students <small>${presentIds().length}/${R().students.length}</small></button>
+        <button data-action="tab" data-scope="tabA" data-tab="rules" class="${tab === 'rules' ? 'on' : ''}">Rules <small>${R().rules.length}</small></button></nav>
+      ${tab === 'students' ? studentsEditor('list') : rulesEditor('stack')}</aside>
+    <main class="a-main"><div class="a-toolbar">${sizeControls()}${shuffleBtn()}</div>${notices()}
+      ${S.groups ? `<div class="a-grid">${S.groups.map((g, i) => groupCard(g, i, flags)).join('')}</div>` : emptyState()}</main></div>`;
+}
+
+// ---------------------------------------------------------------- Variant B: three steps
+function renderB() {
+  const tab = S.ui.tabB, flags = violations();
+  const step = (k, label, sub) => `<button data-action="tab" data-scope="tabB" data-tab="${k}" class="${tab === k ? 'on' : ''}">${label} <small>${sub}</small></button>`;
+  let body;
+  if (tab === 'students') body = studentsEditor('table') + `<div class="b-next"><button data-action="tab" data-scope="tabB" data-tab="rules">Next: Rules →</button></div>`;
+  else if (tab === 'rules') body = rulesEditor('columns') + `<div class="b-next"><button data-action="tab" data-scope="tabB" data-tab="groups">Next: Groups →</button></div>`;
+  else body = `<div class="b-controls">${sizeControls()}${shuffleBtn('big')}</div>${notices()}
+    ${S.groups ? `<ol class="b-rows">${S.groups.map((g, i) => {
+      const f = flags[g.id] || [];
+      return `<li class="b-row ${g.locked ? 'locked' : ''} ${f.length ? 'flagged' : ''}" data-gid="${g.id}">
+        <div><span class="b-num">${i + 1}</span>${lockBtn(g)}</div>
+        <div class="members">${g.members.map(chip).join('')}</div>${f.map(m => `<p class="flag">⚠ ${esc(m)}</p>`).join('')}</li>`;
+    }).join('')}</ol>` : emptyState()}`;
+  return `<header class="b-head"><div class="a-brand">grouper</div>${rosterPicker()}
+      <nav class="b-steps">${step('students', '1 · Students', `${presentIds().length}/${R().students.length} Present`)}${step('rules', '2 · Rules', R().rules.length)}${step('groups', '3 · Groups', S.groups ? (S.stale ? 'out of date' : S.groups.length) : '')}</nav></header>
+    <div class="b-body">${body}</div>`;
+}
+
+// ---------------------------------------------------------------- Variant C: board first
+function renderC() {
+  const flags = violations(), d = S.ui.drawer;
+  return `<div class="c-bar"><div class="a-brand">grouper</div>${rosterPicker()}
+      <button data-action="drawer" data-d="students">✓ ${presentIds().length}/${R().students.length} Present</button>
+      <button data-action="drawer" data-d="rules">Rules (${R().rules.length})</button>
+      ${sizeControls()}<span class="spacer"></span>${shuffleBtn('big')}</div>
+    <div class="c-board">${notices()}${S.groups ? `<div class="c-tiles">${S.groups.map((g, i) => groupCard(g, i, flags)).join('')}</div>` : emptyState('Take the roll (✓ Present), then Shuffle.')}</div>
+    ${d ? `<div class="c-overlay" data-action="drawer" data-d=""></div><aside class="c-drawer"><header><h3>${d === 'students' ? 'Roll call' : 'Rules'}</h3><button data-action="drawer" data-d="">Done</button></header>${d === 'students' ? studentsEditor('rollcall') : rulesEditor('stack')}</aside>` : ''}`;
+}
+
+// ---------------------------------------------------------------- variant switching + render
+const VARIANTS = { A: 'Workbench (sidebar)', B: 'Three steps (tabs)', C: 'Board first (drawers)' };
+let current = (() => { const v = new URLSearchParams(location.search).get('variant'); return VARIANTS[v] ? v : 'A'; })();
+function setVariant(v) {
+  current = v; S.selected = null;
+  try { const u = new URL(location.href); u.searchParams.set('variant', v); history.replaceState(null, '', u); } catch (e) { /* file:// in some browsers */ }
+  render();
+}
+function cycle(dir) { const ks = Object.keys(VARIANTS); setVariant(ks[(ks.indexOf(current) + dir + ks.length) % ks.length]); }
+
+function render() {
+  const app = document.getElementById('app');
+  app.innerHTML = { A: renderA, B: renderB, C: renderC }[current]();
+  document.getElementById('switcher').innerHTML = `<button data-action="prev" aria-label="Previous variant">←</button><span>${current} · ${VARIANTS[current]}</span><button data-action="next" aria-label="Next variant">→</button>`;
+  const g = S.groups;
+  document.getElementById('statepre').textContent = JSON.stringify({
+    roster: R().name, present: `${presentIds().length}/${R().students.length}`, target: S.target,
+    split: splitText(currentSplit()), splitEdited: !!S.splitOverride, stale: S.stale, selected: S.selected && nm(S.selected), lastMove: S.lastMove,
+    conflict: S.conflict?.sentence ?? null,
+    groups: g ? g.map((x, i) => `${i + 1}${x.locked ? '🔒' : ''}: ${x.members.map(nm).join(', ')}`) : null,
+    flags: violations(), rules: R().rules.map(ruleText),
+  }, null, 1);
+  if (S.focusRule) {
+    const el = document.querySelector(`[data-rule="${S.focusRule}"]`);
+    if (el) { el.scrollIntoView({ block: 'center', behavior: 'smooth' }); el.classList.add('flash'); }
+    S.focusRule = null;
+  }
+}
+
+// ---------------------------------------------------------------- events
+function act(a, el) {
+  const sid = el.dataset.sid;
+  switch (a) {
+    case 'prev': return cycle(-1);
+    case 'next': return cycle(1);
+    case 'chip': tapChip(sid); break;
+    case 'deselect': S.selected = null; break;
+    case 'lock': { const g = S.groups.find(x => x.id === el.dataset.gid); g.locked = !g.locked; if (g.locked && S.selected && g.members.includes(S.selected)) S.selected = null; break; }
+    case 'shuffle': doShuffle(); if (current === 'B' && !S.conflict) S.ui.tabB = 'groups'; if (current === 'B' && S.conflict) S.ui.tabB = 'groups'; break;
+    case 'target-dec': if (S.target > 2) { S.target--; S.splitOverride = null; markEdited(); } break;
+    case 'target-inc': if (S.target < presentIds().length) { S.target++; S.splitOverride = null; markEdited(); } break;
+    case 'split-edit': S.editingSplit = true; S.splitError = null; S.drafts.splitText = currentSplit().join(', '); break;
+    case 'split-cancel': S.editingSplit = false; S.splitError = null; break;
+    case 'split-reset': S.splitOverride = null; markEdited(); break;
+    case 'split-save': {
+      const sizes = S.drafts.splitText.split(/[,\s+]+/).filter(Boolean).map(Number);
+      const n = presentIds().length;
+      if (sizes.some(x => !Number.isInteger(x) || x < 1)) S.splitError = 'Use whole numbers, e.g. 4, 4, 5.';
+      else if (sizes.some(x => x === 1)) S.splitError = "A Group of 1 isn't allowed.";
+      else if (sum(sizes) !== n) S.splitError = `Those sizes add up to ${sum(sizes)}, but ${n} Students are Present.`;
+      else { S.splitOverride = sizes; S.editingSplit = false; S.splitError = null; markEdited(); }
+      break;
+    }
+    case 'toggle-present': { const s = stu(sid); s.present = !s.present; markEdited(); break; }
+    case 'all-present': R().students.forEach(s => s.present = true); markEdited(); break;
+    case 'add-student': {
+      const name = S.drafts.newStudent.trim(); if (!name) return;
+      R().students.push({ id: nid('s'), name, present: true }); S.drafts.newStudent = ''; markEdited(); break;
+    }
+    case 'del-student': {
+      const R0 = R();
+      R0.students = R0.students.filter(s => s.id !== sid);
+      R0.rules = R0.rules.filter(r => r.kind !== 'apart' || (r.a !== sid && r.b !== sid));
+      R0.rules.forEach(r => { if (r.kind === 'cluster') r.members = r.members.filter(m => m !== sid); });
+      R0.rules = R0.rules.filter(r => r.kind !== 'cluster' || r.members.length >= 2);
+      markEdited(); break;
+    }
+    case 'add-apart': addApart(); break;
+    case 'add-cluster': addCluster(); break;
+    case 'del-rule': R().rules = R().rules.filter(r => r.id !== el.dataset.rid); S.ruleError = null; markEdited(); break;
+    case 'focus-rule':
+      S.focusRule = el.dataset.rid;
+      if (current === 'A') S.ui.tabA = 'rules'; else if (current === 'B') S.ui.tabB = 'rules'; else S.ui.drawer = 'rules';
+      break;
+    case 'tab': S.ui[el.dataset.scope] = el.dataset.tab; break;
+    case 'drawer': S.ui.drawer = el.dataset.d || null; break;
+  }
+  render();
+}
+document.addEventListener('click', e => {
+  const el = e.target.closest('[data-action]'); if (!el) return;
+  if (el.tagName === 'A') e.preventDefault();
+  act(el.dataset.action, el);
+});
+document.addEventListener('input', e => {
+  const k = e.target.dataset.draft; if (k) S.drafts[k] = e.target.value;
+});
+document.addEventListener('change', e => {
+  const t = e.target;
+  if (t.dataset.draft) { S.drafts[t.dataset.draft] = t.value; return; }
+  if (t.dataset.member) {
+    const m = S.drafts.clusterMembers, id = t.dataset.member;
+    S.drafts.clusterMembers = t.checked ? [...m, id] : m.filter(x => x !== id); return;
+  }
+  if (t.dataset.change === 'roster') {
+    if (t.value === '__new') {
+      const name = prompt('Name for the new Roster?');
+      if (name) { const r = mkRoster(name, []); S.rosters.push(r); S.rosterId = r.id; }
+    } else S.rosterId = t.value;
+    Object.assign(S, { groups: null, stale: false, conflict: null, selected: null, splitOverride: null, ruleError: null });
+    render();
+  }
+});
+document.addEventListener('keydown', e => {
+  const tag = e.target.tagName;
+  if (e.key === 'Enter' && e.target.dataset.enter) { act(e.target.dataset.enter, e.target); return; }
+  if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || e.target.isContentEditable) return;
+  if (e.key === 'ArrowLeft') cycle(-1);
+  if (e.key === 'ArrowRight') cycle(1);
+  if (e.key === 'Escape' && S.selected) { S.selected = null; render(); }
+});
+// drag-to-swap (mouse; touch uses tap-to-swap)
+document.addEventListener('dragstart', e => {
+  const c = e.target.closest?.('.chip'); if (!c) return;
+  e.dataTransfer.setData('text/plain', c.dataset.sid); e.dataTransfer.effectAllowed = 'move';
+});
+document.addEventListener('dragover', e => {
+  const c = e.target.closest?.('.chip, .group, .b-row'); if (!c) return;
+  e.preventDefault();
+  document.querySelectorAll('.chip.over').forEach(x => x.classList.remove('over'));
+  if (c.classList.contains('chip')) c.classList.add('over');
+});
+document.addEventListener('drop', e => {
+  e.preventDefault();
+  document.querySelectorAll('.chip.over').forEach(x => x.classList.remove('over'));
+  const from = e.dataTransfer.getData('text/plain'), c = e.target.closest?.('.chip');
+  if (!from) return;
+  if (c) { swap(from, c.dataset.sid); render(); } else toast('Drop onto a Student to swap with them.');
+});
+
+render();
+</script>
+</body>
+</html>
