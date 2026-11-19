@@ -348,7 +348,7 @@ describe("solver with Rules: spread", () => {
     const expected = draws / outcomes.length;
     const chi2 = outcomes.reduce((sum, k) => sum + ((counts.get(k) ?? 0) - expected) ** 2 / expected, 0);
     expect(chi2 / (outcomes.length - 1)).toBeLessThan(2);
-  });
+  }, 30_000); // thousands of solves: about 6.5 s on CI, over Vitest's default 5 s
 });
 
 describe("solver with Rules: speed", () => {

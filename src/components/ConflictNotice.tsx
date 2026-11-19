@@ -16,7 +16,7 @@ export interface ConflictNoticeProps {
 export function ConflictNotice({ roster, conflict, onShowPair }: ConflictNoticeProps) {
   const pairs = conflictPairs(roster, conflict.pairIds);
   return (
-    <div role="alert" className="mb-2.5 rounded-lg border border-bad-line bg-bad-soft px-3.5 py-2.5 text-bad">
+    <div role="alert" className="mb-2.5 rounded-lg border border-bad-line bg-bad-soft px-3.5 py-2.5 text-bad print:hidden">
       <p>{conflict.message}</p>
       {pairs.length > 0 && (
         <details className="mt-1.5">

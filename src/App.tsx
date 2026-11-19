@@ -1,5 +1,9 @@
 import {
+  backupFileName,
   browserStorage,
+  exportBackup,
+  exportRoster,
+  rosterFileName,
   deleteRosterConfirmMessage,
   ONLY_ROSTER_MESSAGE,
   randomId,
@@ -12,10 +16,13 @@ import {
 import { useCallback, useState } from "react";
 import { Board } from "./components/Board";
 import { ConfirmDialog, NameDialog } from "./components/Dialog";
+import { useImport } from "./components/Import";
+import { NewRosterDialog } from "./components/NewRosterDialog";
 import { PairsDrawer } from "./components/PairsDrawer";
 import { StudentsDrawer, type StudentsMode } from "./components/StudentsDrawer";
 import { Toast } from "./components/Toast";
 import { TopBar } from "./components/TopBar";
+import { downloadText } from "./download";
 import { RostersProvider, useRosters } from "./state";
 import { usePhone } from "./usePhone";
 
@@ -42,7 +49,7 @@ type Dialog = "new" | "rename" | "delete" | null;
 const SPLIT_ERROR_ID = "split-error";
 
 function Main() {
-  const { roster, createRoster, renameRoster, deleteRoster, dismissUndo, shuffle } = useRosters();
+  const { state, roster, createRoster, renameRoster, deleteRoster, dismissUndo, shuffle } = useRosters();
   const phone = usePhone();
   const [dialog, setDialog] = useState<Dialog>(null);
   const [drawer, setDrawer] = useState<StudentsMode | "pairs" | null>(null);
@@ -61,6 +68,15 @@ function Main() {
     if (refusal) setToast(refusal);
   };
 
+  const importFlow = useImport(setToast);
+  const exportRosterFile = () => {
+    if (roster) downloadText(rosterFileName(roster), exportRoster(roster, new Date()));
+  };
+  const exportAll = () => {
+    const now = new Date();
+    downloadText(backupFileName(now), exportBackup(state.app.rosters, now));
+  };
+
   const closeDialog = useCallback(() => setDialog(null), []);
   const clearToast = useCallback(() => setToast(null), []);
   const closeDrawer = useCallback(() => {
@@ -70,7 +86,7 @@ function Main() {
   }, [dismissUndo]);
 
   return (
-    <div className="flex h-dvh flex-col">
+    <div className="flex h-dvh flex-col print:block print:h-auto">
       <TopBar
         phone={phone}
         splitErrorId={SPLIT_ERROR_ID}
@@ -84,8 +100,12 @@ function Main() {
         }}
         onNewRoster={() => setDialog("new")}
         onRenameRoster={() => setDialog("rename")}
+        onExportRoster={exportRosterFile}
+        onExportAll={exportAll}
+        onImport={importFlow.pick}
         onDeleteRoster={() => setDialog("delete")}
         onDeleteRefused={() => setToast(ONLY_ROSTER_MESSAGE)}
+        onToast={setToast}
       />
       <Board
         phone={phone}
@@ -93,6 +113,7 @@ function Main() {
         splitError={splitError}
         onShuffle={runShuffle}
         onNewRoster={() => setDialog("new")}
+        onImport={importFlow.pick}
         onAddStudents={() => setDrawer("edit")}
         onToast={setToast}
         onShowPair={(pairId) => {
@@ -105,14 +126,11 @@ function Main() {
         <StudentsDrawer mode={drawer} onModeChange={setDrawer} onClose={closeDrawer} />
       )}
       {dialog === "new" && (
-        <NameDialog
-          title="New Roster"
-          label="Roster name"
-          submitLabel="Create"
-          onSubmit={(name) => {
-            const refusal = createRoster(name);
-            // A new Roster is empty, so go straight to adding its Students.
-            if (!refusal) setDrawer("edit");
+        <NewRosterDialog
+          onCreate={(name, names) => {
+            const refusal = createRoster(name, names);
+            // An empty new Roster goes straight to adding its Students.
+            if (!refusal && names.length === 0) setDrawer("edit");
             return refusal;
           }}
           onClose={closeDialog}
@@ -140,6 +158,7 @@ function Main() {
           onClose={closeDialog}
         />
       )}
+      {importFlow.element}
       <Toast message={toast} onDone={clearToast} />
     </div>
   );

@@ -5,6 +5,7 @@
 // AppState change the reducer runs boardAfterRosterChange so it goes out of date or clears.
 
 import {
+  addNames,
   addPair,
   addStudent,
   deletePair,
@@ -32,7 +33,11 @@ import {
   selectRoster,
   togglePresent,
   updateRoster,
+  importRosters,
   type AppState,
+  type ClashChoice,
+  type ImportedResult,
+  type ImportedRoster,
   type Board,
   type Rng,
   type IdGenerator,
@@ -81,6 +86,8 @@ export type Action =
   | { type: "deleteRoster"; rosterId: RosterId }
   | { type: "selectRoster"; rosterId: RosterId }
   | { type: "addStudent"; name: string; id: string }
+  /** Add names (SPEC §11): `ids` holds one fresh id per name, used in order for the names added. */
+  | { type: "addNames"; names: readonly string[]; ids: readonly string[] }
   | { type: "renameStudent"; studentId: StudentId; name: string }
   | { type: "removeStudent"; studentId: StudentId }
   | { type: "togglePresent"; studentId: StudentId }
@@ -97,7 +104,9 @@ export type Action =
   /** A Manual move outcome (tap, drop, cancel) the command already worked out. */
   | { type: "move"; outcome: MoveOutcome }
   /** The Lock toggle in a Group header (SPEC §7 Lock). */
-  | { type: "toggleLock"; groupId: GroupId };
+  | { type: "toggleLock"; groupId: GroupId }
+  /** Import (SPEC §12): the AppState with the imported Rosters added, worked out by the command. */
+  | { type: "imported"; app: AppState };
 
 /**
  * Applies one action, then keeps the Board in step with the open Roster (out of date after
@@ -137,6 +146,12 @@ function applyAction(state: State, action: Action): State {
       if (!roster) return state;
       const r = addStudent(roster, action.name, () => action.id);
       return r.ok ? { ...state, app: updateRoster(app, roster.id, () => r.roster) } : state;
+    }
+    case "addNames": {
+      if (!roster) return state;
+      let i = 0;
+      const r = addNames(roster, action.names, () => action.ids[i++]!);
+      return r.roster === roster ? state : { ...state, app: updateRoster(app, roster.id, () => r.roster) };
     }
     case "renameStudent": {
       if (!roster) return state;
@@ -188,6 +203,8 @@ function applyAction(state: State, action: Action): State {
       };
     case "resetSplit":
       return { ...state, board: resetSplit(state.board) };
+    case "imported":
+      return { ...state, app: action.app, removed: null };
     case "toggleLock": {
       const board = toggleLock(state.board, action.groupId);
       // Locking the selected Student's Group drops the selection: a Locked Group is frozen.
@@ -206,11 +223,14 @@ export interface Rosters {
   /** False while the browser isn't saving: show STORAGE_UNAVAILABLE_MESSAGE. */
   readonly saving: boolean;
   readonly storage: StorageLike | null;
-  createRoster(name: string): Refusal;
+  /** New Roster, opened; with `names` (the New Roster dialog's class list) they are added to it. */
+  createRoster(name: string, names?: readonly string[]): Refusal;
   renameRoster(name: string): Refusal;
   deleteRoster(): Refusal;
   selectRoster(rosterId: RosterId): void;
   addStudent(name: string): Refusal;
+  /** Add names to the open Roster, skipping names already on it; returns how many were added. */
+  addNames(names: readonly string[]): number;
   renameStudent(studentId: StudentId, name: string): Refusal;
   removeStudent(studentId: StudentId): void;
   togglePresent(studentId: StudentId): void;
@@ -242,6 +262,11 @@ export interface Rosters {
    * Returns the toast ("Drop onto a Student to swap with them.", a Locked refusal) or null.
    */
   dropStudent(dragged: StudentId, target: StudentId | null): Refusal;
+  /**
+   * Import (SPEC §12): adds the Rosters read from a file (Replace or Keep both on a name clash) and
+   * opens the first. Returns what was added and skipped, for the toast and the skipped message.
+   */
+  importRosters(rosters: readonly ImportedRoster[], choice: ClashChoice): ImportedResult[];
 }
 
 const RostersContext = createContext<Rosters | null>(null);
@@ -293,11 +318,13 @@ export function RostersProvider({ storage, newId, rng = Math.random, children }:
     roster,
     saving: loaded.available && saveOk,
     storage,
-    createRoster(name) {
+    createRoster(name, names = []) {
       const id = newId();
       const r = createRoster(app, name, () => id);
       if (!r.ok) return r.message;
       dispatch({ type: "createRoster", name, id });
+      // The new Roster is open by now, so the names go onto it.
+      if (names.length > 0) dispatch({ type: "addNames", names, ids: names.map(() => newId()) });
       return null;
     },
     renameRoster(name) {
@@ -324,6 +351,14 @@ export function RostersProvider({ storage, newId, rng = Math.random, children }:
       if (!r.ok) return r.message;
       dispatch({ type: "addStudent", name, id });
       return null;
+    },
+    addNames(names) {
+      if (!roster) return 0;
+      const ids = names.map(() => newId());
+      let i = 0;
+      const { added } = addNames(roster, names, () => ids[i++]!);
+      if (added.length > 0) dispatch({ type: "addNames", names, ids });
+      return added.length;
     },
     renameStudent(studentId, name) {
       if (!roster) return null;
@@ -403,6 +438,11 @@ export function RostersProvider({ storage, newId, rng = Math.random, children }:
       const outcome = dropStudent(state.board, roster, dragged, target);
       dispatch({ type: "move", outcome });
       return outcome.toast ?? null;
+    },
+    importRosters(imported, choice) {
+      const r = importRosters(app, imported, choice, newId);
+      dispatch({ type: "imported", app: r.state });
+      return r.imported;
     },
   };
 

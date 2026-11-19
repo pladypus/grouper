@@ -15,3 +15,6 @@ export * from "./shuffle";
 export * from "./layout";
 export * from "./move";
 export * from "./lock";
+export * from "./share";
+export * from "./files";
+export * from "./install";

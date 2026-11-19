@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  addNames,
   addStudent,
   attendanceLabel,
   canDeleteRoster,
@@ -205,5 +206,28 @@ describe("setTargetSize", () => {
     expect(setTargetSize(roster, 3.4).target).toBe(3);
     expect(setTargetSize(roster, DEFAULT_TARGET_SIZE)).toBe(roster);
     expect(setTargetSize(roster, Number.NaN)).toBe(roster);
+  });
+});
+
+describe("addNames", () => {
+  it("adds new names in order as Present Students, skipping ones on the Roster and repeats", () => {
+    const before = rosterWith(["Ana", "Ben"], [[0, 1, "good pair"]]);
+    const withAbsent = setPresent(before, before.students[0]!.id, false);
+    const { roster, added, skipped } = addNames(withAbsent, ["Cal", " ana ", "Dee", "cal", "", "Ben"], ids("n"));
+    expect(added).toEqual([
+      { id: "n1", name: "Cal", present: true },
+      { id: "n2", name: "Dee", present: true },
+    ]);
+    expect(skipped).toEqual(["ana", "cal", "Ben"]);
+    expect(roster.students.map((s) => s.name)).toEqual(["Ana", "Ben", "Cal", "Dee"]);
+    // Existing Students keep their attendance and Pairs.
+    expect(roster.students[0]).toBe(withAbsent.students[0]);
+    expect(roster.students[0]!.present).toBe(false);
+    expect(roster.pairs).toBe(withAbsent.pairs);
+  });
+
+  it("returns the same Roster when nothing is new", () => {
+    const roster = rosterWith(["Ana"]);
+    expect(addNames(roster, ["ANA", "  "], ids()).roster).toBe(roster);
   });
 });
