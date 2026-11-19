@@ -19,6 +19,9 @@ export interface TopBarProps {
   onOpenPairs: () => void;
   onNewRoster: () => void;
   onRenameRoster: () => void;
+  onExportRoster: () => void;
+  onExportAll: () => void;
+  onImport: () => void;
   onDeleteRoster: () => void;
   onDeleteRefused: () => void;
   /** Shows a toast (Share: "Copied 5 Groups as text."). */
@@ -54,6 +57,9 @@ export function TopBar(props: TopBarProps) {
               canDelete={canDeleteRoster(state.app)}
               onNew={props.onNewRoster}
               onRename={props.onRenameRoster}
+              onExport={props.onExportRoster}
+              onExportAll={props.onExportAll}
+              onImport={props.onImport}
               onDelete={props.onDeleteRoster}
               onDeleteRefused={props.onDeleteRefused}
             />
