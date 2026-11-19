@@ -1,16 +1,18 @@
 import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 
-interface ModalProps {
+export interface ModalProps {
   title: string;
   role?: "dialog" | "alertdialog";
   onClose: () => void;
   children: ReactNode;
   /** Id of the element that describes the dialog (alertdialog's message). */
   describedBy?: string;
+  /** A wider dialog, for tables and lists (New Roster with a class list). */
+  wide?: boolean;
 }
 
-/** A centred modal with a dimmed backdrop. Escape or a backdrop click closes it. */
-function Modal({ title, role = "dialog", onClose, children, describedBy }: ModalProps) {
+/** A centred modal with a dimmed backdrop. Escape or a backdrop click closes it. Scrolls when tall. */
+export function Modal({ title, role = "dialog", onClose, children, describedBy, wide }: ModalProps) {
   const titleId = useId();
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
@@ -25,7 +27,9 @@ function Modal({ title, role = "dialog", onClose, children, describedBy }: Modal
         aria-modal="true"
         aria-labelledby={titleId}
         aria-describedby={describedBy}
-        className="relative w-full max-w-md rounded-xl bg-panel p-5 shadow-2xl"
+        className={`relative max-h-[calc(100dvh-2rem)] w-full overflow-auto rounded-xl bg-panel p-5 shadow-2xl ${
+          wide ? "max-w-xl" : "max-w-md"
+        }`}
       >
         <h2 id={titleId} className="mb-3 text-lg font-bold">
           {title}
@@ -36,8 +40,9 @@ function Modal({ title, role = "dialog", onClose, children, describedBy }: Modal
   );
 }
 
-const buttonClass = "rounded-md border border-line bg-panel px-3 py-1.5 hover:border-mute";
-const primaryClass = "rounded-md border border-accent bg-accent px-3 py-1.5 font-semibold text-accent-ink";
+export const buttonClass = "rounded-md border border-line bg-panel px-3 py-1.5 hover:border-mute";
+export const primaryClass =
+  "rounded-md border border-accent bg-accent px-3 py-1.5 font-semibold text-accent-ink disabled:cursor-not-allowed disabled:opacity-50";
 const dangerClass = "rounded-md border border-bad bg-bad px-3 py-1.5 font-semibold text-panel";
 
 interface NameDialogProps {

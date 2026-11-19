@@ -1,9 +1,19 @@
-import { presentCount, removedStudentMessage, type Student } from "../lib";
+import {
+  addedNamesMessage,
+  addNamesButtonLabel,
+  PASTE_NAMES_LABEL,
+  presentCount,
+  removedStudentMessage,
+  type Student,
+} from "../lib";
+import ListPlus from "lucide-react/icons/list-plus";
 import Pencil from "lucide-react/icons/pencil";
 import X from "lucide-react/icons/x";
 import { useEffect, useId, useRef, useState } from "react";
 import { useRosters } from "../state";
+import { AddNamesFields } from "./AddNamesFields";
 import { Drawer, drawerButtonClass as buttonClass, drawerErrorClass as errorClass } from "./Drawer";
+import { useNameList } from "./useNameList";
 
 export type StudentsMode = "attendance" | "edit";
 
@@ -81,12 +91,30 @@ function EditList() {
   const [error, setError] = useState<string | null>(null);
   const [undoError, setUndoError] = useState<string | null>(null);
   const [editing, setEditing] = useState<string | null>(null);
+  const [addingNames, setAddingNames] = useState(false);
+  const [added, setAdded] = useState<string | null>(null);
   const errorId = useId();
   if (!roster) return null;
   const { removed } = state;
 
+  if (addingNames) {
+    return (
+      <AddNamesPanel
+        onDone={(count) => {
+          setAddingNames(false);
+          setAdded(count === null ? null : addedNamesMessage(count));
+        }}
+      />
+    );
+  }
+
   return (
     <>
+      {added && (
+        <p role="status" className="mb-2.5 rounded-lg bg-ok-soft px-3.5 py-2.5">
+          {added}
+        </p>
+      )}
       {removed && (
         <div role="status" className="mb-2.5 flex flex-wrap items-center gap-x-2.5 gap-y-1.5 rounded-lg bg-accent-soft px-3.5 py-2.5">
           {removedStudentMessage(removed)}
@@ -128,6 +156,17 @@ function EditList() {
           {error}
         </p>
       )}
+      <button
+        type="button"
+        className={`${buttonClass} mt-2 inline-flex items-center gap-1.5`}
+        onClick={() => {
+          setAdded(null);
+          setAddingNames(true);
+        }}
+      >
+        <ListPlus aria-hidden="true" className="size-4" />
+        Add names
+      </button>
       <ul className="my-2.5" aria-label="Students">
         {roster.students.map((s) =>
           editing === s.id ? (
@@ -141,7 +180,40 @@ function EditList() {
   );
 }
 
-const rowClass = "flex items-center gap-1.5 border-b border-line px-1 py-1.5";
+/**
+ * SPEC §11 Add names in the Students drawer: paste box (or a dropped/chosen file), column picker,
+ * preview, then "Add N students". `onDone` gets how many were added, or null for Cancel.
+ */
+function AddNamesPanel({ onDone }: { onDone: (added: number | null) => void }) {
+  const { roster, addNames } = useRosters();
+  const list = useNameList(roster?.students ?? []);
+  const count = list.chosen.length;
+  return (
+    <form
+      aria-label="Add names"
+      onSubmit={(e) => {
+        e.preventDefault();
+        if (count > 0) onDone(addNames(list.chosen));
+      }}
+    >
+      <h3 className="mb-2 font-semibold">Add names</h3>
+      <AddNamesFields list={list} label={PASTE_NAMES_LABEL} autoFocus />
+      <div className="mt-3 flex justify-end gap-2">
+        <button type="button" className={buttonClass} onClick={() => onDone(null)}>
+          Cancel
+        </button>
+        <button type="submit" disabled={count === 0} className={primaryButtonClass}>
+          {addNamesButtonLabel(count)}
+        </button>
+      </div>
+    </form>
+  );
+}
+
+const primaryButtonClass =
+  "rounded-md border border-accent bg-accent px-2.5 py-1 font-semibold text-accent-ink disabled:cursor-not-allowed disabled:opacity-50";
+
+const rowClass ="flex items-center gap-1.5 border-b border-line px-1 py-1.5";
 const iconButtonClass = "inline-flex items-center gap-1 rounded px-1 text-mute";
 
 function StudentRow({ student, onRename }: { student: Student; onRename: () => void }) {
