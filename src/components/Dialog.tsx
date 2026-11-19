@@ -20,7 +20,7 @@ export function Modal({ title, role = "dialog", onClose, children, describedBy, 
     return () => document.removeEventListener("keydown", onKey);
   }, [onClose]);
   return (
-    <div className="fixed inset-0 z-30 grid place-items-center p-4">
+    <div className="fixed inset-0 z-30 grid place-items-center p-4 print:hidden">
       <div className="absolute inset-0 bg-black/40" aria-hidden="true" onClick={onClose} />
       <div
         role={role}
