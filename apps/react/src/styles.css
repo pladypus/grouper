@@ -1,5 +1,86 @@
 @import "tailwindcss";
 
+/* The theme is chosen in the app (auto / light / dark) and applied as data-theme on <html>,
+   so `dark:` follows that attribute rather than the media query. */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+/* Theme tokens from the main-screen prototype's :root block (SPEC §8). Light values here; the dark
+   values override the same variables below, so every `bg-panel`, `text-ink`… utility switches. */
 @theme {
   --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+
+  --color-bg: #f6f5f2;
+  --color-panel: #ffffff;
+  --color-ink: #1e1f24;
+  --color-mute: #6b6f7a;
+  --color-line: #dcdbd6;
+  --color-field: #ffffff;
+  --color-bar: #1e1f24;
+  --color-bar-ink: #ffffff;
+  --color-bar-mute: #c9cbd3;
+  --color-bar-btn: #2d2f37;
+  --color-bar-line: #444444;
+  --color-accent: #3a5bd9;
+  --color-accent-ink: #ffffff;
+  --color-accent-soft: #e6ebfd;
+  --color-warn: #a15c00;
+  --color-warn-soft: #fff3df;
+  --color-warn-line: #f0cf9a;
+  --color-bad: #b42318;
+  --color-bad-soft: #fde8e6;
+  --color-bad-line: #f3b7b0;
+  --color-ok: #1d7a46;
+  --color-ok-soft: #e3f3e9;
+  --color-lock: #5b3fb5;
+  --color-lock-soft: #efeafd;
+  --color-flash: #ffe58f;
+  --color-off: #eeeeee;
+  --color-on-c: #ffffff;
+  --color-lock-band: #3d4250;
+  --color-lock-tint: #eef0f3;
+}
+
+/* Group hues (used from #15): header hsl(hue var(--hue-s) var(--hue-l)), tint var(--hue-soft-l). */
+:root {
+  color-scheme: light;
+  --hue-s: 58%;
+  --hue-l: 40%;
+  --hue-soft-l: 94%;
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --hue-s: 38%;
+  --hue-l: 36%;
+  --hue-soft-l: 21%;
+
+  --color-bg: #15161a;
+  --color-panel: #1f2127;
+  --color-ink: #e8e9ee;
+  --color-mute: #9a9fac;
+  --color-line: #343741;
+  --color-field: #272a31;
+  --color-bar: #0c0d10;
+  --color-bar-ink: #e8e9ee;
+  --color-bar-mute: #9a9fac;
+  --color-bar-btn: #23252c;
+  --color-bar-line: #3a3d46;
+  --color-accent: #7d97ff;
+  --color-accent-ink: #0c0d10;
+  --color-accent-soft: #25305a;
+  --color-warn: #ffb950;
+  --color-warn-soft: #3a2a12;
+  --color-warn-line: #6b4b1c;
+  --color-bad: #ff8a80;
+  --color-bad-soft: #3d1c1a;
+  --color-bad-line: #6e2f2a;
+  --color-ok: #5fd394;
+  --color-ok-soft: #173726;
+  --color-lock: #b39dff;
+  --color-lock-soft: #2a2342;
+  --color-flash: #5a4a10;
+  --color-off: #2a2c33;
+  --color-on-c: #f2f3f7;
+  --color-lock-band: #4a4f5c;
+  --color-lock-tint: #262930;
 }
