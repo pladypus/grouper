@@ -15,7 +15,7 @@
 **Leftovers**: The Present Students who don't divide evenly by the Target size. They join existing Groups, making some Groups bigger than the Target size, never smaller. A Group never has just one Student.
 _Avoid_: "group count" (the number of Groups follows from the Target size, not the other way round)
 
-**Split**: The list of Group sizes derived from the Target size and the Present count (e.g. 25 Present at Target size 2 → 12×2 + 1×3). The Teacher may edit it.
+**Split**: The list of Group sizes derived from the Target size and the Present count (e.g. 25 Present at Target size 2 → 11×2 + 1×3). The Teacher may edit it.
 
 **Rule**: A strict constraint on a Roster, always about exactly two Students (a pair). Rules are never broken by a Shuffle. Shown to Teachers as "Pairs". There are two kinds:
 - **Good pair**: two Students who must always share a Group. Good pairs that share a Student chain together: Ana & Dee plus Dee & Eli means Ana, Dee and Eli all share one Group. When some of a chain are Absent, the Present ones still share one Group. A chain bigger than the Target size is a Conflict.

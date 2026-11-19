@@ -8,3 +8,8 @@ export * from "./names";
 export * from "./roster";
 export * from "./theme";
 export * from "./storage";
+export * from "./split";
+export * from "./solver";
+export * from "./groups";
+export * from "./shuffle";
+export * from "./layout";
