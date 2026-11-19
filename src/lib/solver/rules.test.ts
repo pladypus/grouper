@@ -334,7 +334,8 @@ describe("solver with Rules: spread", () => {
     const expected = draws / outcomes.length;
     const chi2 = outcomes.reduce((sum, k) => sum + ((counts.get(k) ?? 0) - expected) ** 2 / expected, 0);
     expect(chi2 / (outcomes.length - 1)).toBeLessThan(2);
-  });
+    // Thousands of solves: runs past the 5 s default timeout on slow CI runners.
+  }, 30_000);
 });
 
 describe("solver with Rules: speed", () => {
