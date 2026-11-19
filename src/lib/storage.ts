@@ -30,6 +30,7 @@ export const STORAGE_KEYS = {
   current: `${STORAGE_PREFIX}current`,
   theme: `${STORAGE_PREFIX}theme`,
   schema: `${STORAGE_PREFIX}schema`,
+  iosTipDismissed: `${STORAGE_PREFIX}ios-tip-dismissed`,
 } as const;
 
 /** SPEC §10: the notice shown while Rosters aren't being saved. */
@@ -141,6 +142,26 @@ export function saveTheme(storage: StorageLike | null, theme: Theme): boolean {
   if (!storage) return false;
   try {
     storage.setItem(STORAGE_KEYS.theme, theme);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/** True once the iOS Home Screen tip has been dismissed in this browser (false if unreadable). */
+export function loadIosTipDismissed(storage: StorageLike | null): boolean {
+  try {
+    return storage?.getItem(STORAGE_KEYS.iosTipDismissed) === "1";
+  } catch {
+    return false;
+  }
+}
+
+/** Remembers for good that the iOS tip was dismissed. Returns false if it couldn't be saved. */
+export function saveIosTipDismissed(storage: StorageLike | null): boolean {
+  if (!storage) return false;
+  try {
+    storage.setItem(STORAGE_KEYS.iosTipDismissed, "1");
     return true;
   } catch {
     return false;
