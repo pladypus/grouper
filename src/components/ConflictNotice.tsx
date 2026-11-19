@@ -9,7 +9,7 @@ export interface ConflictNoticeProps {
 }
 
 /**
- * SPEC §6: the red notice after a Shuffle that hit a Conflict (the Groups on screen didn't change).
+ * spec: conflicts.md: the red notice after a Shuffle that hit a Conflict (the Groups on screen didn't change).
  * The plain sentence first, then "Show the Rules involved": the clashing Pairs, newest first, each a
  * link into the Pairs drawer. No "ignore" button and no Rule on/off switch.
  */

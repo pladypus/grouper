@@ -1,4 +1,4 @@
-// Theme preference (SPEC §8 top bar item 6): auto / light / dark, remembered per browser.
+// Theme preference (spec: screens.md#top-bar-one-row-fixed-height item 6): auto / light / dark, remembered per browser.
 
 export type Theme = "auto" | "light" | "dark";
 

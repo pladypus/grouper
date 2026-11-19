@@ -14,7 +14,7 @@ import {
 describe("deriveSplit", () => {
   it.each([
     [25, 4, [4, 4, 4, 4, 4, 5]],
-    // SPEC §3 and GLOSSARY write "12×2 + 1×3", which adds up to 27; 25 is 11×2 + 1×3.
+    // spec: domain-model.md and GLOSSARY write "12×2 + 1×3", which adds up to 27; 25 is 11×2 + 1×3.
     [25, 2, [...new Array<number>(11).fill(2), 3]],
     [27, 4, [4, 4, 4, 5, 5, 5]],
     [7, 5, [7]],

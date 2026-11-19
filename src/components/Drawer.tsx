@@ -1,7 +1,7 @@
 import { useEffect, useId, type ReactNode } from "react";
 
 export const drawerButtonClass = "rounded-md border border-line bg-panel px-2.5 py-1 hover:border-mute";
-/** A refusal under a form (red line, SPEC §8). */
+/** A refusal under a form (red line, spec: screens.md#pairs-drawer). */
 export const drawerErrorClass = "my-1.5 rounded-md border border-bad-line bg-bad-soft px-2.5 py-1.5 text-bad";
 
 export interface DrawerProps {

@@ -10,7 +10,7 @@ export default defineConfig({
   plugins: [
     react(),
     tailwindcss(),
-    // SPEC §2 Offline: a service worker precaches the built app so the Home Screen app opens without
+    // spec: stack-and-hosting.md (Offline): a service worker precaches the built app so the Home Screen app opens without
     // Wi-Fi. autoUpdate with the injected register script: a new version installs in the background
     // and takes effect on the next launch, with no update prompt (the page is never reloaded under
     // the Teacher).

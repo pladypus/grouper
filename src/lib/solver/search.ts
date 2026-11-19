@@ -1,4 +1,4 @@
-// Solver stage 2 (SPEC §5): find one grouping by complete randomized backtracking with restarts.
+// Solver stage 2 (spec: solver.md): find one grouping by complete randomized backtracking with restarts.
 //
 // Blocks are placed one at a time into Groups (here "bins", indexed like the Split):
 // - next block: fewest Groups it still fits (MRV), ties by most Keep apart edges (DSatur), then the

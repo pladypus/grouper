@@ -1,4 +1,4 @@
-// Share (SPEC §9): the words for Copy as text, its toast, and the print header. Pure; the UI
+// Share (spec: share.md): the words for Copy as text, its toast, and the print header. Pure; the UI
 // writes the text to the clipboard and passes in today's date.
 
 import { groupMembers, groupTitle, type Board } from "../groups";

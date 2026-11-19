@@ -1,4 +1,4 @@
-// Solver stage 1 (SPEC §5): turn Students and Rules into blocks and Keep apart edges, then run the
+// Solver stage 1 (spec: solver.md): turn Students and Rules into blocks and Keep apart edges, then run the
 // quick checks.
 //
 // A block is a set of Students that must share a Group: a Good pair chain narrowed to the free pool,

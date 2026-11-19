@@ -1,4 +1,4 @@
-// Domain types (SPEC §3) and the pure Roster operations the UI calls.
+// Domain types (spec: domain-model.md) and the pure Roster operations the UI calls.
 // Nothing here throws for something the Teacher did: refusals come back as `{ ok: false, message }`
 // with the sentence to show. Every operation returns new objects and never mutates its input.
 
@@ -44,7 +44,7 @@ export interface Roster {
   /** Target size ("Number of students in group"), an integer ≥ 2. Saved per Roster in the browser. */
   readonly target: number;
   /**
-   * The creation clock for Pairs: the `created` the next Pair gets (browser-only, SPEC §3). Never
+   * The creation clock for Pairs: the `created` the next Pair gets (browser-only, spec: domain-model.md). Never
    * goes back, so deleting the newest Pair doesn't reuse its number. Missing (older saves, hand-built
    * Rosters) means one more than the highest `created` on the Roster; read it with `nextPairCreated`.
    */
@@ -129,7 +129,7 @@ export function renameRoster(state: AppState, rosterId: RosterId, rawName: strin
   return { ok: true, state: replaceRoster(state, { ...roster, name: check.name }) };
 }
 
-/** SPEC §8: the confirmation shown before Delete Roster. */
+/** spec: screens.md#top-bar-one-row-fixed-height: the confirmation shown before Delete Roster. */
 export function deleteRosterConfirmMessage(roster: Roster): string {
   return `Delete "${roster.name}" and all its Students and pairs? Export it first if you might want it back.`;
 }
@@ -205,7 +205,7 @@ export function addStudent(
 }
 
 /**
- * Add names (SPEC §11): adds each name at the end of the list, in order, skipping any that are
+ * Add names (spec: add-names.md): adds each name at the end of the list, in order, skipping any that are
  * empty or already on the Roster (including earlier names in this list). Existing Students, their
  * attendance and Pairs are untouched; new Students start Present. Never refused.
  */
@@ -337,7 +337,7 @@ export function attendanceLabel(roster: Roster): string {
 /**
  * The "Number of students in group" stepper. Rounds to a whole number and never goes below 2 (the
  * stepper's − is disabled at MIN_TARGET_SIZE). Returns the same Roster when nothing changes or `n`
- * isn't a number. Groups on screen don't go out of date (SPEC §7).
+ * isn't a number. Groups on screen don't go out of date (spec: lock-and-manual-move.md#lifecycle).
  */
 export function setTargetSize(roster: Roster, n: number): Roster {
   if (!Number.isFinite(n)) return roster;

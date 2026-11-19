@@ -1,4 +1,4 @@
-// Solver stage 4 (SPEC §5): explain a Conflict that the search proved, by finding a small set of
+// Solver stage 4 (spec: solver.md): explain a Conflict that the search proved, by finding a small set of
 // clashing Pairs with QuickXplain (Junker, AAAI 2004) over the Pairs, with the Split as fixed
 // background (Locked Groups are already out of the pool).
 //

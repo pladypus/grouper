@@ -1,6 +1,6 @@
 // User-facing sentences about names, kept here so the UI shows the same words everywhere.
 
-/** SPEC §3: refusal when a Student's name is already on the Roster. */
+/** spec: domain-model.md: refusal when a Student's name is already on the Roster. */
 export function duplicateStudentMessage(name: string): string {
   return `There's already a ${name} on this Roster. Tell them apart with something like "${name} B.".`;
 }
@@ -17,12 +17,12 @@ export const EMPTY_STUDENT_NAME_MESSAGE = "Type the Student's name.";
 export const EMPTY_ROSTER_NAME_MESSAGE = "Type a name for the Roster.";
 
 // ---------------------------------------------------------------------------------------------
-// Add names (SPEC §11) and the column picker (SPEC §12)
+// Add names (spec: add-names.md) and the column picker (spec: export-import.md)
 
 /** The flag beside a line over 40 characters. */
 export const LOOKS_LIKE_SENTENCE_MESSAGE = "looks like a sentence?";
 
-/** The New Roster dialog's optional box (SPEC §8). */
+/** The New Roster dialog's optional box (spec: screens.md#new-roster-dialog-10). */
 export const PASTE_CLASS_LIST_LABEL = "Paste your class list";
 
 /** The Students drawer's box. */
@@ -48,7 +48,7 @@ function students(n: number): string {
   return `${n} ${n === 1 ? "student" : "students"}`;
 }
 
-/** The preview button: "Add 25 students" (SPEC §11). */
+/** The preview button: "Add 25 students" (spec: add-names.md). */
 export function addNamesButtonLabel(n: number): string {
   return `Add ${students(n)}`;
 }

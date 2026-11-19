@@ -1,4 +1,4 @@
-// Pairs (Rules, SPEC §3): Good pair chains, adding and deleting Pairs with the entry-time
+// Pairs (Rules, spec: domain-model.md#pair-rule-4-6): Good pair chains, adding and deleting Pairs with the entry-time
 // refusals, the Pairs drawer's lists, and the board's oversize-chain warning.
 //
 // Wiring (UI):
@@ -160,7 +160,7 @@ export function goodPairChains(roster: Roster): Chain[] {
 }
 
 /**
- * The chains narrowed to Present Students (SPEC §3): Absent members never break a chain, so the
+ * The chains narrowed to Present Students (spec: domain-model.md): Absent members never break a chain, so the
  * Present ones still share a Group. Only chains with at least 2 Present Students; `pairs` keeps the
  * whole chain's Good pairs.
  */
@@ -233,7 +233,7 @@ export function findPair(roster: Roster, a: StudentId, b: StudentId): Pair | und
 }
 
 /**
- * Checks a new Pair without adding it (SPEC §3). Refused when the two Students are the same or not
+ * Checks a new Pair without adding it (spec: domain-model.md). Refused when the two Students are the same or not
  * on the Roster, already have a Pair (of either kind), or when the Pair would put a Keep apart pair
  * inside one Good pair chain.
  */
@@ -322,7 +322,7 @@ export function pairsByType(roster: Roster): PairsByType {
   };
 }
 
-/** The Conflict notice's expander (SPEC §6), listing the clashing Pairs. */
+/** The Conflict notice's expander (spec: conflicts.md), listing the clashing Pairs. */
 export const SHOW_RULES_INVOLVED = "Show the Rules involved";
 
 /**
@@ -342,7 +342,7 @@ export interface OversizeChain extends Chain {
 }
 
 /**
- * Present chains bigger than the Target size (SPEC §3): show each `message` on the board as soon as
+ * Present chains bigger than the Target size (spec: domain-model.md): show each `message` on the board as soon as
  * it applies. Shuffle stays enabled (and reports the Conflict).
  */
 export function oversizeChains(roster: Roster): OversizeChain[] {

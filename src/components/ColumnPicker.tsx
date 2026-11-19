@@ -15,7 +15,7 @@ export interface ColumnPickerProps {
 }
 
 /**
- * SPEC §12 column picker, for tabbed text or a .csv: a sample of the table with a checkbox above each
+ * spec: export-import.md#import column picker, for tabbed text or a .csv: a sample of the table with a checkbox above each
  * column, and "Row 1 is a header". Controlled; `useNameList` makes the first guess.
  */
 export function ColumnPicker({ rows, columns, header, onColumnsChange, onHeaderChange, sampleRows = 5 }: ColumnPickerProps) {

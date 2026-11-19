@@ -39,9 +39,9 @@ public/         icons for the web app manifest
 
 ## Docs
 
-- [SPEC.md](SPEC.md): how Grouper behaves, including the exact wording the Teacher sees. Code comments cite its sections.
+- [docs/spec/](docs/spec/README.md): how Grouper behaves, including the exact wording the Teacher sees, one file per area. Code comments cite it as `spec: screens.md#board`.
 - [GLOSSARY.md](GLOSSARY.md): the domain terms (Roster, Present, Split, Good pair, Conflict…). Capitalised terms in code and docs mean exactly this.
-- [docs/adr/](docs/adr/): decisions, e.g. [0001 React](docs/adr/0001-react.md); [docs/bake-off.md](docs/bake-off.md) is the React vs Svelte comparison behind it.
+- [docs/adr/](docs/adr/): decisions, e.g. [0001 React](docs/adr/0001-react.md).
 - Planning: the [Wayfinder map](https://github.com/pladypus/grouper/issues/1) and its tickets; research and prototypes are kept as `archive/*` tags.
 
 ## Deploy and upkeep

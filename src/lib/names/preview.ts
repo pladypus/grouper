@@ -1,4 +1,4 @@
-// The Add names preview (SPEC §11): the names that would be added, and what was skipped.
+// The Add names preview (spec: add-names.md): the names that would be added, and what was skipped.
 
 import { nameKey } from "./key";
 import { cleanNameLine, looksLikeSentence } from "./parse";

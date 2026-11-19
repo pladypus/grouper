@@ -16,7 +16,7 @@ export interface NewRosterDialogProps {
 const NO_STUDENTS: readonly { name: string }[] = [];
 
 /**
- * SPEC §8 New Roster dialog: the Roster name and an optional "Paste your class list" box (or a
+ * spec: screens.md#new-roster-dialog-10: the Roster name and an optional "Paste your class list" box (or a
  * dropped/chosen .txt/.csv). Empty box → an empty Roster; filled → the Add names preview, then Create.
  */
 export function NewRosterDialog({ onCreate, onClose }: NewRosterDialogProps) {

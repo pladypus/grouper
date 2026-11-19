@@ -2,7 +2,7 @@ import { useEffect } from "react";
 
 export const TOAST_MS = 3000;
 
-/** SPEC §8 Toasts: top-centre, role="status", about 3 s. The live region is always rendered. */
+/** spec: screens.md#toasts: top-centre, role="status", about 3 s. The live region is always rendered. */
 export function Toast({ message, onDone }: { message: string | null; onDone: () => void }) {
   useEffect(() => {
     if (!message) return;

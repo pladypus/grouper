@@ -1,8 +1,8 @@
-// Home Screen app (SPEC §8 First visit, #8): on iOS/iPadOS Safari, before any Roster exists, tip the
+// Home Screen app (spec: screens.md#first-visit, #8): on iOS/iPadOS Safari, before any Roster exists, tip the
 // Teacher to add Grouper to the Home Screen, since a Home Screen app keeps its own storage that
 // Safari can't clear. These checks are pure; the UI passes in what the browser reports.
 
-/** SPEC §8 First visit: the iOS tip. */
+/** spec: screens.md#first-visit: the iOS tip. */
 export const IOS_TIP_MESSAGE =
   "Add Grouper to your Home Screen and use it from there, so Safari can't clear your Rosters.";
 

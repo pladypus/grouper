@@ -30,7 +30,7 @@ export interface ImportFlow {
 }
 
 /**
- * Import (SPEC §12): file picker → `readImportFile` (the one file-type dispatch, in lib) → the
+ * Import (spec: export-import.md): file picker → `readImportFile` (the one file-type dispatch, in lib) → the
  * Replace / Keep both question if any names clash → add → success toast, then the skipped list.
  *
  * A .txt / .csv name list first shows its confirm step (Roster name, column picker, Add names

@@ -15,7 +15,7 @@ export interface NameListInputProps {
 }
 
 /**
- * The Add names paste box (SPEC §11): a textarea that also takes a dropped .txt/.csv, and a
+ * The Add names paste box (spec: add-names.md): a textarea that also takes a dropped .txt/.csv, and a
  * "Choose a file" button. A file's text replaces the box's text.
  */
 export function NameListInput({ label, value, onChange, fileName, autoFocus, rows = 6 }: NameListInputProps) {

@@ -35,7 +35,7 @@ export interface IosTipProps {
 }
 
 /**
- * SPEC §8 First visit (#8): in iOS/iPadOS Safari, outside the Home Screen app, a dismissible tip to
+ * spec: screens.md#first-visit (#8): in iOS/iPadOS Safari, outside the Home Screen app, a dismissible tip to
  * add Grouper to the Home Screen. Render it only while no Roster exists. Dismissed means gone for
  * good (and at least for this session if storage can't be written).
  */

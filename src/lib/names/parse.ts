@@ -1,4 +1,4 @@
-// The list parser shared by Add names (SPEC §11) and list Import (SPEC §12): turns pasted text or a
+// The list parser shared by Add names (spec: add-names.md) and list Import (spec: export-import.md): turns pasted text or a
 // .txt/.csv file into either plain lines (one name per line) or a table for the column picker.
 
 import { normaliseName } from "./key";

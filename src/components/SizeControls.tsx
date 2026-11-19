@@ -7,14 +7,14 @@ export interface SizeControlsProps {
   /** Id of the board notice that shows `splitError`, for aria-describedby. */
   splitErrorId: string;
   splitError: string | null;
-  /** The Split refusal goes on the board so the bar never changes height (SPEC §8). */
+  /** The Split refusal goes on the board so the bar never changes height (spec: screens.md#top-bar-one-row-fixed-height). */
   onSplitError: (message: string | null) => void;
 }
 
 const linkClass = "px-1 text-accent underline";
 const smallButtonClass = "rounded-md border border-line bg-panel px-2.5 py-1 text-ink hover:border-mute";
 
-/** SPEC §8 top bar item 4: the "Number of students in group" stepper, the Split in words, and "Edit". */
+/** spec: screens.md#top-bar-one-row-fixed-height item 4: the "Number of students in group" stepper, the Split in words, and "Edit". */
 export function SizeControls({ roster, splitErrorId, splitError, onSplitError }: SizeControlsProps) {
   const { state, stepTarget, editSplit, resetSplit } = useRosters();
   const labelId = useId();

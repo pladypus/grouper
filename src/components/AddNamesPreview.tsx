@@ -10,7 +10,7 @@ export interface AddNamesPreviewProps {
 }
 
 /**
- * SPEC §11 preview: a checkbox per new name (ticked by default, long lines flagged "looks like a
+ * spec: add-names.md preview: a checkbox per new name (ticked by default, long lines flagged "looks like a
  * sentence?"), then the Skipped list. The submit button ("Add N students" / "Create") is the parent's.
  */
 export function AddNamesPreview({ preview, unticked, onToggle }: AddNamesPreviewProps) {

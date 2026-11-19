@@ -39,7 +39,7 @@ function useFullScreen(): boolean {
 }
 
 /**
- * SPEC §9 / top bar item 5: Share, disabled until there are Groups. Each action is one row in
+ * spec: share.md and screens.md#top-bar-one-row-fixed-height item 5: Share, disabled until there are Groups. Each action is one row in
  * `items`.
  */
 export function ShareMenu({ onToast }: { onToast: (message: string) => void }) {
@@ -98,7 +98,7 @@ export function ShareMenu({ onToast }: { onToast: (message: string) => void }) {
           hint: "For the projector; Esc to leave",
           icon: Maximize,
           onSelect() {
-            // The whole page, top bar included (SPEC §9).
+            // The whole page, top bar included (spec: share.md).
             const request = document.documentElement.requestFullscreen?.();
             if (!request) onToast(FULL_SCREEN_FAILED_MESSAGE);
             else request.catch(() => onToast(FULL_SCREEN_FAILED_MESSAGE));

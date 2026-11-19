@@ -62,7 +62,7 @@ function data(students: string[], pairs: ImportedRoster["pairs"] = [], name = "P
 }
 
 describe("Export", () => {
-  it("writes the SPEC §12 Roster file: names and Pairs only, pretty-printed", () => {
+  it("writes the spec's Roster file (spec: export-import.md#files): names and Pairs only, pretty-printed", () => {
     const text = exportRoster(period2(), NOW);
     expect(JSON.parse(text)).toEqual({
       grouper: "roster",

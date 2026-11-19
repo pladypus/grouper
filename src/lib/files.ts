@@ -1,4 +1,4 @@
-// Export, Backup and Import of Grouper files (SPEC §12). Pure: the UI reads the chosen file's text
+// Export, Backup and Import of Grouper files (spec: export-import.md). Pure: the UI reads the chosen file's text
 // and downloads what the writers return.
 //
 // Import runs in three steps, each usable on its own:
@@ -29,12 +29,12 @@ import { addPair, checkPair, findPair, pairText } from "./rules";
 /** The file format version these writers produce and the newest the reader understands. */
 export const FILE_VERSION = 1;
 
-/** SPEC §12: refusal for a file from a newer Grouper. */
+/** spec: export-import.md: refusal for a file from a newer Grouper. */
 export const NEWER_VERSION_MESSAGE = "This file was made by a newer Grouper; reload the page to update.";
-/** SPEC §12: refusal for anything that is neither a grouper file nor a name list. */
+/** spec: export-import.md: refusal for anything that is neither a grouper file nor a name list. */
 export const NOT_GROUPER_FILE_MESSAGE = "That file isn't a Grouper file or a list of names.";
 
-/** What the file picker accepts (SPEC §12): Grouper files and .txt / .csv name lists. */
+/** What the file picker accepts (spec: export-import.md): Grouper files and .txt / .csv name lists. */
 export const IMPORT_ACCEPT = ".json,.txt,.csv";
 
 /** Refusal for a .txt / .csv list with nothing in it (invented wording). */
@@ -48,11 +48,11 @@ export function importListButtonLabel(n: number): string {
   return `Import ${n} ${n === 1 ? "student" : "students"}`;
 }
 
-/** Name for a Roster whose file gives none (invented wording; SPEC §12 doesn't say). */
+/** Name for a Roster whose file gives none (invented wording; spec: export-import.md doesn't say). */
 export const UNNAMED_ROSTER_NAME = "Imported Roster";
 
 // ---------------------------------------------------------------------------------------------
-// File shapes (SPEC §12)
+// File shapes (spec: export-import.md)
 
 /** A Pair as written in a file: its kind and the two Students' names. */
 export interface FilePair {
@@ -155,7 +155,7 @@ export type ImportRead =
   | {
       readonly ok: true;
       /**
-       * A .txt / .csv name list (SPEC §12 Import item 3), for the confirm step. `source` is the Add
+       * A .txt / .csv name list (spec: export-import.md#import item 3), for the confirm step. `source` is the Add
        * names parser's reading: plain lines for .txt, a table for the column picker for .csv (or
        * tabbed text). `text` and `fileName` are what `useNameList` takes to show it.
        */
@@ -208,7 +208,7 @@ export function isNameListFileName(fileName: string): boolean {
   return /\.(txt|csv)$/i.test(fileName.trim());
 }
 
-/** `Period 2.csv` → "Period 2": the file name without its extension (SPEC §12), or a default. */
+/** `Period 2.csv` → "Period 2": the file name without its extension (spec: export-import.md), or a default. */
 export function nameListRosterName(fileName: string): string {
   return normaliseName(fileName.replace(/\.[^.]*$/, "")) || UNNAMED_ROSTER_NAME;
 }
@@ -220,7 +220,7 @@ function readNameListFile({ name, text }: ImportSource): ImportRead {
 }
 
 /**
- * The Roster a confirmed name-list Import adds (SPEC §12 Import item 3): the Roster name and the
+ * The Roster a confirmed name-list Import adds (spec: export-import.md#import item 3): the Roster name and the
  * names ticked in the Add names preview, no Pairs. It joins Import at step 2 (the clash question).
  */
 export function nameListRoster(name: string, names: readonly string[]): ImportedRoster {
@@ -310,7 +310,7 @@ export type ClashChoice = "replace" | "keep both";
 /** Title of the clash question (invented wording). */
 export const CLASH_TITLE = "Roster already here";
 
-/** The clash question (invented wording; SPEC §12 gives the choices, not the sentence). */
+/** The clash question (invented wording; spec: export-import.md gives the choices, not the sentence). */
 export function clashMessage(clashes: readonly Roster[]): string {
   if (clashes.length === 1) {
     const { name } = clashes[0]!;
@@ -389,7 +389,7 @@ export function buildRoster(id: RosterId, name: string, data: ImportedRoster, ne
 }
 
 /**
- * Import step 3: always adds Rosters (SPEC §12). With "replace", an imported Roster takes the place
+ * Import step 3: always adds Rosters (spec: export-import.md). With "replace", an imported Roster takes the place
  * in the picker of the Roster that had its name; with "keep both" (or a clash with another Roster
  * from the same file) it is saved as "<name> (imported)", "(imported 2)" … The first imported Roster
  * opens.
@@ -422,13 +422,13 @@ export function importRosters(
 }
 
 // ---------------------------------------------------------------------------------------------
-// Sentences (invented wording except the toast, which is SPEC §12's)
+// Sentences (invented wording except the toast, which is from spec: export-import.md)
 
 function count(n: number, one: string, many: string): string {
   return `${n} ${n === 1 ? one : many}`;
 }
 
-/** SPEC §12 toast: `Imported "Period 2": 25 Students, 5 pairs.`; for several Rosters, a total. */
+/** spec: export-import.md toast: `Imported "Period 2": 25 Students, 5 pairs.`; for several Rosters, a total. */
 export function importedMessage(imported: readonly ImportedResult[]): string {
   const students = imported.reduce((n, r) => n + r.roster.students.length, 0);
   const pairs = imported.reduce((n, r) => n + r.roster.pairs.length, 0);

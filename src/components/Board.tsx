@@ -78,7 +78,7 @@ export function Board({
     <main
       className={`flex min-h-0 flex-1 flex-col overflow-auto px-4 pt-3 print:block print:overflow-visible print:p-0 ${phone && roster ? "pb-[84px]" : "pb-4"}`}
     >
-      {/* Manual move instructions and results for screen readers (SPEC §7); always rendered. */}
+      {/* Manual move instructions and results for screen readers (spec: lock-and-manual-move.md); always rendered. */}
       <p role="status" aria-live="polite" className="sr-only">
         {showGroups ? state.announcement : ""}
       </p>
@@ -165,7 +165,7 @@ export function Board({
   );
 }
 
-/** Paper only (SPEC §9): "Period 2 groups" with the date and the number of Students. */
+/** Paper only (spec: share.md): "Period 2 groups" with the date and the number of Students. */
 function PrintHeader({ board, roster }: { board: BoardState; roster: Roster }) {
   return (
     <div className="hidden items-baseline justify-between border-b-2 border-black pb-1.5 mb-[14px] print:flex">
@@ -179,7 +179,7 @@ function PrintHeader({ board, roster }: { board: BoardState; roster: Roster }) {
  * The Group cards. Off phones the container is measured (ResizeObserver) and boardLayout picks the
  * column count and card size; flex-wrap + justify-center centres an incomplete last row.
  *
- * Manual move (SPEC §7): tap / Enter / Space selects and swaps, ✕ or Esc cancels, and dnd-kit drags
+ * Manual move (spec: lock-and-manual-move.md): tap / Enter / Space selects and swaps, ✕ or Esc cancels, and dnd-kit drags
  * a Student onto another (mouse, or touch after a short hold so taps still select and the page
  * still scrolls). dnd-kit never moves nodes: the drop goes to the dropStudent command and the cards
  * redraw from the new Board. Flags are worked out from the Board on every render.
