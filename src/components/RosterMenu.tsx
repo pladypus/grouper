@@ -5,13 +5,27 @@ export interface RosterMenuProps {
   canDelete: boolean;
   onNew: () => void;
   onRename: () => void;
+  /** Export: this Roster as `<Roster name>.grouper.json`. */
+  onExport: () => void;
+  /** Export all Rosters: the Backup. */
+  onExportAll: () => void;
+  onImport: () => void;
   onDelete: () => void;
   /** Delete Roster pressed while it's not allowed (the only Roster). */
   onDeleteRefused: () => void;
 }
 
-/** The ⋯ menu beside the Roster picker (SPEC §8 top bar item 1). Export and Import come later. */
-export function RosterMenu({ canDelete, onNew, onRename, onDelete, onDeleteRefused }: RosterMenuProps) {
+/** The ⋯ menu beside the Roster picker (SPEC §8 top bar item 1). New Roster, Rename, Export, Export all Rosters, Import, Delete Roster. */
+export function RosterMenu({
+  canDelete,
+  onNew,
+  onRename,
+  onExport,
+  onExportAll,
+  onImport,
+  onDelete,
+  onDeleteRefused,
+}: RosterMenuProps) {
   const [open, setOpen] = useState(false);
   const menuId = useId();
   const button = useRef<HTMLButtonElement>(null);
@@ -82,6 +96,15 @@ export function RosterMenu({ canDelete, onNew, onRename, onDelete, onDeleteRefus
           </button>
           <button type="button" role="menuitem" tabIndex={-1} className={itemClass} onClick={choose(onRename)}>
             Rename
+          </button>
+          <button type="button" role="menuitem" tabIndex={-1} className={itemClass} onClick={choose(onExport)}>
+            Export
+          </button>
+          <button type="button" role="menuitem" tabIndex={-1} className={itemClass} onClick={choose(onExportAll)}>
+            Export all Rosters
+          </button>
+          <button type="button" role="menuitem" tabIndex={-1} className={itemClass} onClick={choose(onImport)}>
+            Import
           </button>
           <button
             type="button"
