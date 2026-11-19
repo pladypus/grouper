@@ -4,3 +4,6 @@ dist
 *.tsbuildinfo
 .direnv
 result
+
+# Agent worktrees
+.claude/worktrees
