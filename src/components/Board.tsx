@@ -24,6 +24,7 @@ import {
   type Announcements,
 } from "@dnd-kit/core";
 import Plus from "lucide-react/icons/plus";
+import Upload from "lucide-react/icons/upload";
 import TriangleAlert from "lucide-react/icons/triangle-alert";
 import UserPlus from "lucide-react/icons/user-plus";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
@@ -37,6 +38,8 @@ export interface BoardProps {
   splitError: string | null;
   onShuffle: () => void;
   onNewRoster: () => void;
+  /** Import from the first-visit empty state. */
+  onImport: () => void;
   onAddStudents: () => void;
   /** Shows a toast (a Manual move refusal, "Drop onto a Student to swap with them."). */
   onToast: (message: string) => void;
@@ -46,9 +49,11 @@ const emptyClass =
   "grid flex-1 place-items-center rounded-[14px] border-2 border-dashed border-line p-10 text-center text-[22px] text-mute";
 const actionClass =
   "mt-4 inline-flex items-center gap-2 rounded-[10px] bg-accent px-5 py-2.5 text-lg font-bold text-accent-ink";
+const secondaryActionClass =
+  "mt-4 inline-flex items-center gap-2 rounded-[10px] border border-line bg-panel px-5 py-2.5 text-lg font-bold text-ink hover:border-mute";
 
 /** The area below the top bar: notices, then the Groups or an empty state. */
-export function Board({ phone, splitErrorId, splitError, onShuffle, onNewRoster, onAddStudents, onToast }: BoardProps) {
+export function Board({ phone, splitErrorId, splitError, onShuffle, onNewRoster, onImport, onAddStudents, onToast }: BoardProps) {
   const { roster, saving, state } = useRosters();
   const { board, conflict } = state;
   const showGroups = !!roster && hasGroups(board);
@@ -107,10 +112,16 @@ export function Board({ phone, splitErrorId, splitError, onShuffle, onNewRoster,
               Welcome to Grouper
             </h1>
             <p className="mt-1">Make a Roster for your class to get started.</p>
-            <button type="button" className={actionClass} onClick={onNewRoster}>
-              <Plus aria-hidden="true" className="size-5" />
-              New Roster
-            </button>
+            <div className="flex flex-wrap justify-center gap-3">
+              <button type="button" className={actionClass} onClick={onNewRoster}>
+                <Plus aria-hidden="true" className="size-5" />
+                New Roster
+              </button>
+              <button type="button" className={secondaryActionClass} onClick={onImport}>
+                <Upload aria-hidden="true" className="size-5" />
+                Import
+              </button>
+            </div>
           </div>
         </section>
       ) : showGroups ? (
