@@ -31,10 +31,10 @@ export interface ShuffleConflict {
    */
   readonly kind: SolverConflict["kind"] | "lone-leftover" | "chain-cut-by-lock";
   /**
-   * The Pairs behind a quick check (the chain's Good pairs, the clique's Keep apart pairs; for
-   * `apart-inside-chain` the Keep apart pair first; for `chain-cut-by-lock` the Good pairs linking
-   * the Locked Student to the free one). Empty for `lone-leftover`, and for `no-solution`: #17's
-   * explanation finds those.
+   * The Pairs behind the Conflict, for "Show the Rules involved": for a quick check the chain's Good
+   * pairs or the clique's Keep apart pairs (for `apart-inside-chain` the Keep apart pair first; for
+   * `chain-cut-by-lock` the Good pairs linking the Locked Student to the free one); for
+   * `no-solution` the clashing Pairs explain found, newest first. Empty for `lone-leftover`.
    */
   readonly pairIds: readonly PairId[];
 }
@@ -144,7 +144,7 @@ export function shuffle(roster: Roster, board: Board, options: ShuffleOptions = 
     return {
       ok: false,
       message: conflictMessage(roster, conflict, split, ids),
-      conflict: { kind: conflict.kind, pairIds: conflict.kind === "no-solution" ? [] : conflict.pairIds },
+      conflict: { kind: conflict.kind, pairIds: conflict.pairIds },
     };
   }
 

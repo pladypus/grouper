@@ -125,7 +125,7 @@ describe("solve", () => {
       const keepApart = pairs(range(5).map((i) => [0, i + 1] as [number, number]));
       expect(solve({ students: range(6), split: [2, 2, 2], keepApart })).toEqual({
         ok: false,
-        conflict: { kind: "no-solution" },
+        conflict: { kind: "no-solution", pairIds: ["p4", "p3", "p2", "p1", "p0"] },
       });
     });
 

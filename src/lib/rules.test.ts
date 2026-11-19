@@ -15,6 +15,7 @@ import {
 import {
   addPair,
   checkPair,
+  conflictPairs,
   deletePair,
   goodPairChains,
   goodPairPath,
@@ -192,6 +193,16 @@ describe("the Pairs drawer", () => {
     expect(lists.goodPairs.map((v) => v.label)).toEqual(["Ana & Ben", "Eli & Fay"]);
     expect(lists.keepApart.map((v) => [v.pair.id, v.names, v.label])).toEqual([["p2", ["Cal", "Dee"], "Cal & Dee"]]);
   });
+
+  it("lists a Conflict's Pairs newest first, skipping ones no longer on the Roster", () => {
+    const roster = withPairs(classOf(), "ana+ben", "cal-dee", "eli+fay");
+    expect(conflictPairs(roster, ["p1", "p3", "gone", "p2"]).map((v) => [v.pair.id, v.label])).toEqual([
+      ["p3", "Eli & Fay"],
+      ["p2", "Cal & Dee"],
+      ["p1", "Ana & Ben"],
+    ]);
+    expect(conflictPairs(roster, [])).toEqual([]);
+  });
 });
 
 describe("oversize-chain warning", () => {
@@ -258,13 +269,15 @@ describe("shuffle with Pairs", () => {
     );
   });
 
-  it("reports what search proves impossible with the Split in words", () => {
-    // Ana kept apart from everyone: no Group can hold her.
+  it("reports what search proves impossible with the Split in words, blaming the newest Pairs", () => {
+    // Ana kept apart from everyone: no Group can hold her. Any 5 of her 7 Pairs already leave too
+    // few Students to fill her Group; the newest 5 are blamed.
     const roster = withPairs(classOf(), ...NAMES.slice(1).map((n) => `ana-${n.toLowerCase()}`));
+    expect(roster.pairs.map((p) => p.id)).toEqual(["p1", "p2", "p3", "p4", "p5", "p6", "p7"]);
     expect(shuffle(roster, EMPTY_BOARD, opts(1))).toEqual({
       ok: false,
       message: "No way to make 2 groups of 4 keeps every pair.",
-      conflict: { kind: "no-solution", pairIds: [] },
+      conflict: { kind: "no-solution", pairIds: ["p7", "p6", "p5", "p4", "p3"] },
     });
   });
 

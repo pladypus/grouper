@@ -12,6 +12,7 @@ import {
   shareTitle,
   STORAGE_UNAVAILABLE_MESSAGE,
   type Board as BoardState,
+  type PairId,
   type Roster,
   type StudentId,
 } from "../lib";
@@ -46,6 +47,8 @@ export interface BoardProps {
   onAddStudents: () => void;
   /** Shows a toast (a Manual move refusal, "Drop onto a Student to swap with them."). */
   onToast: (message: string) => void;
+  /** "Show the Rules involved" → a Pair: open the Pairs drawer with it highlighted. */
+  onShowPair: (pairId: PairId) => void;
 }
 
 const emptyClass =
@@ -56,7 +59,17 @@ const secondaryActionClass =
   "mt-4 inline-flex items-center gap-2 rounded-[10px] border border-line bg-panel px-5 py-2.5 text-lg font-bold text-ink hover:border-mute";
 
 /** The area below the top bar: notices, then the Groups or an empty state. */
-export function Board({ phone, splitErrorId, splitError, onShuffle, onNewRoster, onImport, onAddStudents, onToast }: BoardProps) {
+export function Board({
+  phone,
+  splitErrorId,
+  splitError,
+  onShuffle,
+  onNewRoster,
+  onImport,
+  onAddStudents,
+  onToast,
+  onShowPair,
+}: BoardProps) {
   const { roster, saving, state, storage } = useRosters();
   const { board, conflict } = state;
   const showGroups = !!roster && hasGroups(board);
@@ -95,7 +108,7 @@ export function Board({ phone, splitErrorId, splitError, onShuffle, onNewRoster,
             {chain.message}
           </p>
         ))}
-      {roster && conflict && <ConflictNotice conflict={conflict} />}
+      {roster && conflict && <ConflictNotice roster={roster} conflict={conflict} onShowPair={onShowPair} />}
       {showGroups && board.outOfDate && (
         <div
           role="status"

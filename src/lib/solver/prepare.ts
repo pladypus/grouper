@@ -30,7 +30,7 @@ export interface Prepared {
 
 /**
  * A structured reason no grouping exists. Every quick check lists the Pairs behind it in `pairIds`
- * (for "Show the Rules involved", #17); `no-solution` is explained separately.
+ * (for "Show the Rules involved", #17); `no-solution` gets its Pairs from explain (stage 4).
  */
 export type SolverConflict =
   /** A Keep apart Pair whose two Students are in one Good pair chain (prevented on entry; defensive). */
@@ -62,7 +62,11 @@ export type SolverConflict =
       readonly pairIds: readonly string[];
     }
   /** The search proved there is no grouping that matches the Split and keeps every Rule. */
-  | { readonly kind: "no-solution" };
+  | {
+      readonly kind: "no-solution";
+      /** The clashing Pairs explain found (QuickXplain), newest first. */
+      readonly pairIds: readonly string[];
+    };
 
 export type PrepareResult =
   | { readonly ok: true; readonly prepared: Prepared }

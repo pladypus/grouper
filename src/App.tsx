@@ -8,6 +8,7 @@ import {
   ONLY_ROSTER_MESSAGE,
   randomId,
   type IdGenerator,
+  type PairId,
   type Rng,
   type RosterId,
   type StorageLike,
@@ -52,6 +53,8 @@ function Main() {
   const phone = usePhone();
   const [dialog, setDialog] = useState<Dialog>(null);
   const [drawer, setDrawer] = useState<StudentsMode | "pairs" | null>(null);
+  // The Pair to highlight in the Pairs drawer, picked in the Conflict notice's "Show the Rules involved".
+  const [highlightPair, setHighlightPair] = useState<PairId | null>(null);
   const [toast, setToast] = useState<string | null>(null);
   // The Split "Edit" refusal, shown on the board; tagged with its Roster so switching Roster drops it.
   const [splitRefusal, setSplitRefusal] = useState<{ rosterId: RosterId; message: string } | null>(null);
@@ -79,6 +82,7 @@ function Main() {
   const closeDrawer = useCallback(() => {
     dismissUndo();
     setDrawer(null);
+    setHighlightPair(null);
   }, [dismissUndo]);
 
   return (
@@ -90,7 +94,10 @@ function Main() {
         onSplitError={onSplitError}
         onShuffle={runShuffle}
         onOpenStudents={() => setDrawer("attendance")}
-        onOpenPairs={() => setDrawer("pairs")}
+        onOpenPairs={() => {
+          setHighlightPair(null);
+          setDrawer("pairs");
+        }}
         onNewRoster={() => setDialog("new")}
         onRenameRoster={() => setDialog("rename")}
         onExportRoster={exportRosterFile}
@@ -109,8 +116,12 @@ function Main() {
         onImport={importFlow.pick}
         onAddStudents={() => setDrawer("edit")}
         onToast={setToast}
+        onShowPair={(pairId) => {
+          setHighlightPair(pairId);
+          setDrawer("pairs");
+        }}
       />
-      {roster && drawer === "pairs" && <PairsDrawer onClose={closeDrawer} />}
+      {roster && drawer === "pairs" && <PairsDrawer highlight={highlightPair} onClose={closeDrawer} />}
       {roster && (drawer === "attendance" || drawer === "edit") && (
         <StudentsDrawer mode={drawer} onModeChange={setDrawer} onClose={closeDrawer} />
       )}
