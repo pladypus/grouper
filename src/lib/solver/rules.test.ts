@@ -310,31 +310,55 @@ describe("solver with Rules: spread", () => {
     return out;
   }
 
+  /**
+   * The chi² value a perfectly uniform sampler exceeds with probability 0.001 (z = 3.09), by the
+   * Wilson–Hilferty approximation (within ~1% of the exact value for df ≥ 5).
+   */
+  const chi2Critical = (df: number, z = 3.09) => df * (1 - 2 / (9 * df) + z * Math.sqrt(2 / (9 * df))) ** 3;
+
+  // Fixed seed, so the result is reproducible. The bar is set by the chi² distribution for each
+  // case's degrees of freedom (a flat "chi²/df < 2" is a 1-in-13 false alarm at df = 5 but
+  // needlessly loose at df = 131), and the draws per grouping are chosen so that a bias is caught
+  // at least as readily as with the old bar at 150 draws per grouping (same noncentrality at the
+  // bar), at a fraction of the run time: each solve runs 300 spread steps, ~0.1 ms.
   it.each([
     {
       name: "a chain of 3 and Keep apart pairs",
       input: { students: range(8), split: [2, 3, 3], goodPairs: pairs([[0, 1], [1, 2]], "g"), keepApart: pairs([[0, 3], [4, 5], [5, 6]], "k") },
+      groupings: 6,
+      drawsPerGrouping: 500,
     },
     {
       name: "a Good pair and a path of Keep apart pairs",
       input: { students: range(9), split: [3, 3, 3], goodPairs: pairs([[0, 1]], "g"), keepApart: pairs([[0, 3], [4, 5], [5, 6], [2, 7]], "k") },
+      groupings: 132,
+      drawsPerGrouping: 65,
     },
-  ])("is close to uniform over every valid grouping (chi²/df < 2) with $name", ({ input }: { input: SolveInput }) => {
-    const outcomes = enumerateValid(input);
-    expect(outcomes.length).toBeGreaterThan(5);
-    const rng = seededRng(99);
-    const draws = outcomes.length * 150;
-    const counts = new Map<string, number>();
-    for (let i = 0; i < draws; i++) {
-      const result = solve({ ...input, rng });
-      const key = keyOf(expectValid(input, result));
-      counts.set(key, (counts.get(key) ?? 0) + 1);
-    }
-    expect(counts.size).toBe(outcomes.length);
-    const expected = draws / outcomes.length;
-    const chi2 = outcomes.reduce((sum, k) => sum + ((counts.get(k) ?? 0) - expected) ** 2 / expected, 0);
-    expect(chi2 / (outcomes.length - 1)).toBeLessThan(2);
-  }, 30_000); // thousands of solves: about 6.5 s on CI, over Vitest's default 5 s
+  ])(
+    "is uniform over every valid grouping (chi² test, p = 0.001) with $name",
+    ({ input, groupings, drawsPerGrouping }: { input: SolveInput; groupings: number; drawsPerGrouping: number }) => {
+      const outcomes = enumerateValid(input);
+      expect(outcomes).toHaveLength(groupings);
+      const valid = new Set(outcomes);
+      const rng = seededRng(99);
+      const draws = outcomes.length * drawsPerGrouping;
+      const counts = new Map<string, number>();
+      for (let i = 0; i < draws; i++) {
+        const result = solve({ ...input, rng });
+        if (!result.ok) throw new Error(`expected groups, got ${result.conflict.kind}`);
+        const key = keyOf(result.groups);
+        if (!valid.has(key)) {
+          expectValid(input, result); // says which Rule or Split size broke
+          throw new Error(`grouping ${key} is not one of the valid groupings`);
+        }
+        counts.set(key, (counts.get(key) ?? 0) + 1);
+      }
+      expect(counts.size).toBe(outcomes.length);
+      const expected = draws / outcomes.length;
+      const chi2 = outcomes.reduce((sum, k) => sum + ((counts.get(k) ?? 0) - expected) ** 2 / expected, 0);
+      expect(chi2).toBeLessThan(chi2Critical(outcomes.length - 1));
+    },
+  );
 });
 
 describe("solver with Rules: speed", () => {
@@ -342,14 +366,17 @@ describe("solver with Rules: speed", () => {
     const rng = seededRng(8);
     const instances = Array.from({ length: 50 }, (_, i) => randomInstance(rng, 40, 4, 6, 20 + (i % 20)));
     for (const input of instances.slice(0, 10)) solve({ ...input, target: 4 }); // warm up
-    let worst = 0;
-    const start = Date.now();
-    for (const input of instances) {
-      const t = Date.now();
-      solve({ ...input, target: 4 });
-      worst = Math.max(worst, Date.now() - t);
-    }
-    expect((Date.now() - start) / instances.length).toBeLessThan(5);
-    expect(worst).toBeLessThan(50);
+    // Each instance's time is the median of 3 shuffles: one GC pause or a busy machine (other test
+    // files run in parallel) can't fail the test on its own, but an instance slow on most shuffles still does.
+    const ms = instances.map((input) => {
+      const runs = [0, 1, 2].map(() => {
+        const t = performance.now();
+        solve({ ...input, target: 4 });
+        return performance.now() - t;
+      });
+      return runs.sort((a, b) => a - b)[1]!;
+    });
+    expect(ms.reduce((sum, t) => sum + t, 0) / ms.length).toBeLessThan(5);
+    expect(Math.max(...ms)).toBeLessThan(50);
   });
 });
