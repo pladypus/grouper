@@ -8,7 +8,7 @@
 
 **Present / Absent**: A Student's attendance for the current Shuffle. Absent Students are left out of Groups but stay on the Roster, and their Rules are kept.
 
-**Group**: A set of Present Students produced by a Shuffle.
+**Group**: A set of Present Students produced by a Shuffle. Groups are temporary: they last only while the page is open and are not saved with the Roster. After the Roster changes, the Groups on screen stay as they are but are out of date until the next Reshuffle.
 
 **Target size**: The Group size the Teacher asks for. The Present Students are split into Groups of that size.
 
@@ -25,8 +25,9 @@ _Avoid_: "group count" (the number of Groups follows from the Target size, not t
 
 **Shuffle**: Randomly producing Groups that satisfy every Rule. **Reshuffle** repeats it, keeping Locked Groups.
 
-**Lock**: Pinning a Group so a Reshuffle leaves it unchanged.
+**Lock**: Pinning a Group so a Reshuffle leaves it unchanged. A Locked Group is frozen: no Manual move can go into or out of it until it is unlocked. A Student who becomes Absent drops out of a Locked Group, and the Lock is released if only one Student would remain.
 
-**Manual move**: The Teacher dragging a Student from one Group to another after a Shuffle.
+**Manual move**: The Teacher swapping two Students between Groups after a Shuffle, by dragging one onto the other or by tapping one and then the other. Group sizes never change. A Manual move may break a Rule; it is allowed, and the Groups involved are flagged.
+_Avoid_: "drag" (dragging is only one way to make a Manual move)
 
 **Export / Import**: Saving a Roster to a file and loading it back, for backup or for handing it to another Teacher.
