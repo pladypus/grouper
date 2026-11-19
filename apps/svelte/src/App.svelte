@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { browserStorage, resolveTheme, type IdGenerator, type StorageLike } from "@grouper/core";
+  import { browserStorage, resolveTheme, type IdGenerator, type Rng, type StorageLike } from "@grouper/core";
   import { GrouperStore, setStore, type StoreOptions } from "./state.svelte";
   import TopBar from "./components/TopBar.svelte";
   import Board from "./components/Board.svelte";
@@ -12,15 +12,17 @@
     /** Defaults to the browser's localStorage; tests pass a fake, or null for "unavailable". */
     storage?: StorageLike | null;
     newId?: IdGenerator;
+    /** The Shuffle's randomness; tests pass a seeded one. */
+    rng?: Rng;
     storageManager?: StoreOptions["storageManager"];
   }
 
-  const { storage, newId, storageManager }: Props = $props();
+  const { storage, newId, rng, storageManager }: Props = $props();
 
   // Props are read once: the store lives as long as the app.
   // svelte-ignore state_referenced_locally
   const store = setStore(
-    new GrouperStore({ storage: storage === undefined ? browserStorage() : storage, newId, storageManager }),
+    new GrouperStore({ storage: storage === undefined ? browserStorage() : storage, newId, rng, storageManager }),
   );
 
   // Save on every change to the Rosters (store.state is replaced, never mutated).
@@ -49,7 +51,7 @@
   }
 </script>
 
-<svelte:window {onkeydown} />
+<svelte:window {onkeydown} bind:innerWidth={store.viewportWidth} />
 
 <div class="flex h-dvh flex-col">
   <TopBar />

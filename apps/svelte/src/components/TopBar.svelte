@@ -5,9 +5,12 @@
   import Users from "@lucide/svelte/icons/users";
   import { getStore } from "../state.svelte";
   import RosterMenu from "./RosterMenu.svelte";
+  import ShuffleButton from "./ShuffleButton.svelte";
+  import SizeControls from "./SizeControls.svelte";
   import ThemeButton from "./ThemeButton.svelte";
 
   const store = getStore();
+  const zoneClass = $derived(store.phone ? "flex items-center gap-2" : "flex items-center gap-2 border-l border-line pl-5");
 </script>
 
 <header
@@ -28,9 +31,7 @@
       </select>
       <RosterMenu />
     </div>
-    <div
-      class="flex items-center gap-2 border-l border-line pl-5"
-    >
+    <div class={zoneClass}>
       <button
         type="button"
         class="inline-flex items-center gap-[7px] whitespace-nowrap rounded-full border border-line bg-panel px-3 py-[7px] font-semibold hover:border-mute"
@@ -42,7 +43,16 @@
         <ChevronRight aria-hidden="true" class="-ml-0.5 size-3.5 flex-none text-mute" />
       </button>
     </div>
+    <div class={zoneClass}>
+      <!-- Keyed so switching Roster starts SizeControls afresh. -->
+      {#key roster.id}
+        <SizeControls />
+      {/key}
+    </div>
   {/if}
   <span class="flex-1"></span>
   <ThemeButton />
+  {#if store.roster}
+    <ShuffleButton />
+  {/if}
 </header>
