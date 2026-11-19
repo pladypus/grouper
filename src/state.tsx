@@ -5,6 +5,7 @@
 // AppState change the reducer runs boardAfterRosterChange so it goes out of date or clears.
 
 import {
+  addNames,
   addPair,
   addStudent,
   deletePair,
@@ -85,6 +86,8 @@ export type Action =
   | { type: "deleteRoster"; rosterId: RosterId }
   | { type: "selectRoster"; rosterId: RosterId }
   | { type: "addStudent"; name: string; id: string }
+  /** Add names (SPEC §11): `ids` holds one fresh id per name, used in order for the names added. */
+  | { type: "addNames"; names: readonly string[]; ids: readonly string[] }
   | { type: "renameStudent"; studentId: StudentId; name: string }
   | { type: "removeStudent"; studentId: StudentId }
   | { type: "togglePresent"; studentId: StudentId }
@@ -143,6 +146,12 @@ function applyAction(state: State, action: Action): State {
       if (!roster) return state;
       const r = addStudent(roster, action.name, () => action.id);
       return r.ok ? { ...state, app: updateRoster(app, roster.id, () => r.roster) } : state;
+    }
+    case "addNames": {
+      if (!roster) return state;
+      let i = 0;
+      const r = addNames(roster, action.names, () => action.ids[i++]!);
+      return r.roster === roster ? state : { ...state, app: updateRoster(app, roster.id, () => r.roster) };
     }
     case "renameStudent": {
       if (!roster) return state;
@@ -214,11 +223,14 @@ export interface Rosters {
   /** False while the browser isn't saving: show STORAGE_UNAVAILABLE_MESSAGE. */
   readonly saving: boolean;
   readonly storage: StorageLike | null;
-  createRoster(name: string): Refusal;
+  /** New Roster, opened; with `names` (the New Roster dialog's class list) they are added to it. */
+  createRoster(name: string, names?: readonly string[]): Refusal;
   renameRoster(name: string): Refusal;
   deleteRoster(): Refusal;
   selectRoster(rosterId: RosterId): void;
   addStudent(name: string): Refusal;
+  /** Add names to the open Roster, skipping names already on it; returns how many were added. */
+  addNames(names: readonly string[]): number;
   renameStudent(studentId: StudentId, name: string): Refusal;
   removeStudent(studentId: StudentId): void;
   togglePresent(studentId: StudentId): void;
@@ -306,11 +318,13 @@ export function RostersProvider({ storage, newId, rng = Math.random, children }:
     roster,
     saving: loaded.available && saveOk,
     storage,
-    createRoster(name) {
+    createRoster(name, names = []) {
       const id = newId();
       const r = createRoster(app, name, () => id);
       if (!r.ok) return r.message;
       dispatch({ type: "createRoster", name, id });
+      // The new Roster is open by now, so the names go onto it.
+      if (names.length > 0) dispatch({ type: "addNames", names, ids: names.map(() => newId()) });
       return null;
     },
     renameRoster(name) {
@@ -337,6 +351,14 @@ export function RostersProvider({ storage, newId, rng = Math.random, children }:
       if (!r.ok) return r.message;
       dispatch({ type: "addStudent", name, id });
       return null;
+    },
+    addNames(names) {
+      if (!roster) return 0;
+      const ids = names.map(() => newId());
+      let i = 0;
+      const { added } = addNames(roster, names, () => ids[i++]!);
+      if (added.length > 0) dispatch({ type: "addNames", names, ids });
+      return added.length;
     },
     renameStudent(studentId, name) {
       if (!roster) return null;

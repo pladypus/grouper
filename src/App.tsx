@@ -16,6 +16,7 @@ import { useCallback, useState } from "react";
 import { Board } from "./components/Board";
 import { ConfirmDialog, NameDialog } from "./components/Dialog";
 import { useImport } from "./components/Import";
+import { NewRosterDialog } from "./components/NewRosterDialog";
 import { PairsDrawer } from "./components/PairsDrawer";
 import { StudentsDrawer, type StudentsMode } from "./components/StudentsDrawer";
 import { Toast } from "./components/Toast";
@@ -114,14 +115,11 @@ function Main() {
         <StudentsDrawer mode={drawer} onModeChange={setDrawer} onClose={closeDrawer} />
       )}
       {dialog === "new" && (
-        <NameDialog
-          title="New Roster"
-          label="Roster name"
-          submitLabel="Create"
-          onSubmit={(name) => {
-            const refusal = createRoster(name);
-            // A new Roster is empty, so go straight to adding its Students.
-            if (!refusal) setDrawer("edit");
+        <NewRosterDialog
+          onCreate={(name, names) => {
+            const refusal = createRoster(name, names);
+            // An empty new Roster goes straight to adding its Students.
+            if (!refusal && names.length === 0) setDrawer("edit");
             return refusal;
           }}
           onClose={closeDialog}

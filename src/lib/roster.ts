@@ -204,6 +204,29 @@ export function addStudent(
   return { ok: true, student, roster: { ...roster, students: [...roster.students, student] } };
 }
 
+/**
+ * Add names (SPEC §11): adds each name at the end of the list, in order, skipping any that are
+ * empty or already on the Roster (including earlier names in this list). Existing Students, their
+ * attendance and Pairs are untouched; new Students start Present. Never refused.
+ */
+export function addNames(
+  roster: Roster,
+  rawNames: readonly string[],
+  newId: IdGenerator,
+): { roster: Roster; added: Student[]; skipped: string[] } {
+  let next = roster;
+  const added: Student[] = [];
+  const skipped: string[] = [];
+  for (const raw of rawNames) {
+    const r = addStudent(next, raw, newId);
+    if (r.ok) {
+      next = r.roster;
+      added.push(r.student);
+    } else if (normaliseName(raw) !== "") skipped.push(normaliseName(raw));
+  }
+  return { roster: next, added, skipped };
+}
+
 export function renameStudent(roster: Roster, studentId: StudentId, rawName: string): Result<{ roster: Roster }> {
   if (!roster.students.some((s) => s.id === studentId)) return refuse(UNKNOWN_STUDENT_MESSAGE);
   const check = checkStudentName(roster, rawName, studentId);
