@@ -1,5 +1,9 @@
 import {
+  backupFileName,
   browserStorage,
+  exportBackup,
+  exportRoster,
+  rosterFileName,
   deleteRosterConfirmMessage,
   ONLY_ROSTER_MESSAGE,
   randomId,
@@ -11,11 +15,13 @@ import {
 import { useCallback, useState } from "react";
 import { Board } from "./components/Board";
 import { ConfirmDialog, NameDialog } from "./components/Dialog";
+import { useImport } from "./components/Import";
 import { NewRosterDialog } from "./components/NewRosterDialog";
 import { PairsDrawer } from "./components/PairsDrawer";
 import { StudentsDrawer, type StudentsMode } from "./components/StudentsDrawer";
 import { Toast } from "./components/Toast";
 import { TopBar } from "./components/TopBar";
+import { downloadText } from "./download";
 import { RostersProvider, useRosters } from "./state";
 import { usePhone } from "./usePhone";
 
@@ -42,7 +48,7 @@ type Dialog = "new" | "rename" | "delete" | null;
 const SPLIT_ERROR_ID = "split-error";
 
 function Main() {
-  const { roster, createRoster, renameRoster, deleteRoster, dismissUndo, shuffle } = useRosters();
+  const { state, roster, createRoster, renameRoster, deleteRoster, dismissUndo, shuffle } = useRosters();
   const phone = usePhone();
   const [dialog, setDialog] = useState<Dialog>(null);
   const [drawer, setDrawer] = useState<StudentsMode | "pairs" | null>(null);
@@ -57,6 +63,15 @@ function Main() {
   const runShuffle = () => {
     const refusal = shuffle();
     if (refusal) setToast(refusal);
+  };
+
+  const importFlow = useImport(setToast);
+  const exportRosterFile = () => {
+    if (roster) downloadText(rosterFileName(roster), exportRoster(roster, new Date()));
+  };
+  const exportAll = () => {
+    const now = new Date();
+    downloadText(backupFileName(now), exportBackup(state.app.rosters, now));
   };
 
   const closeDialog = useCallback(() => setDialog(null), []);
@@ -78,6 +93,9 @@ function Main() {
         onOpenPairs={() => setDrawer("pairs")}
         onNewRoster={() => setDialog("new")}
         onRenameRoster={() => setDialog("rename")}
+        onExportRoster={exportRosterFile}
+        onExportAll={exportAll}
+        onImport={importFlow.pick}
         onDeleteRoster={() => setDialog("delete")}
         onDeleteRefused={() => setToast(ONLY_ROSTER_MESSAGE)}
       />
@@ -87,6 +105,7 @@ function Main() {
         splitError={splitError}
         onShuffle={runShuffle}
         onNewRoster={() => setDialog("new")}
+        onImport={importFlow.pick}
         onAddStudents={() => setDrawer("edit")}
         onToast={setToast}
       />
@@ -127,6 +146,7 @@ function Main() {
           onClose={closeDialog}
         />
       )}
+      {importFlow.element}
       <Toast message={toast} onDone={clearToast} />
     </div>
   );

@@ -139,3 +139,64 @@ export function ConfirmDialog({ title, message, confirmLabel, onConfirm, onClose
     </Modal>
   );
 }
+
+interface ClashDialogProps {
+  title: string;
+  message: string;
+  onReplace: () => void;
+  onKeepBoth: () => void;
+  onClose: () => void;
+}
+
+/** Import's name-clash question (SPEC §12): Replace or Keep both, one question for every clash. */
+export function ClashDialog({ title, message, onReplace, onKeepBoth, onClose }: ClashDialogProps) {
+  const messageId = useId();
+  return (
+    <Modal title={title} role="alertdialog" onClose={onClose} describedBy={messageId}>
+      <p id={messageId}>{message}</p>
+      <div className="mt-4 flex flex-wrap justify-end gap-2">
+        <button type="button" className={buttonClass} onClick={onClose}>
+          Cancel
+        </button>
+        <button type="button" className={buttonClass} onClick={onReplace}>
+          Replace
+        </button>
+        <button type="button" className={primaryClass} onClick={onKeepBoth} autoFocus>
+          Keep both
+        </button>
+      </div>
+    </Modal>
+  );
+}
+
+interface ListDialogProps {
+  title: string;
+  /** One section per heading, each with its lines. */
+  sections: readonly { heading: string; lines: readonly string[] }[];
+  onClose: () => void;
+}
+
+/** A read-only list with an OK button (what an Import skipped). */
+export function ListDialog({ title, sections, onClose }: ListDialogProps) {
+  return (
+    <Modal title={title} onClose={onClose}>
+      <div className="max-h-[60vh] overflow-auto">
+        {sections.map((s) => (
+          <section key={s.heading} className="mb-3">
+            <h3 className="font-semibold">{s.heading}</h3>
+            <ul className="ml-5 list-disc">
+              {s.lines.map((line, i) => (
+                <li key={i}>{line}</li>
+              ))}
+            </ul>
+          </section>
+        ))}
+      </div>
+      <div className="mt-4 flex justify-end">
+        <button type="button" className={primaryClass} onClick={onClose} autoFocus>
+          OK
+        </button>
+      </div>
+    </Modal>
+  );
+}

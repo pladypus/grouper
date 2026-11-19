@@ -33,7 +33,11 @@ import {
   selectRoster,
   togglePresent,
   updateRoster,
+  importRosters,
   type AppState,
+  type ClashChoice,
+  type ImportedResult,
+  type ImportedRoster,
   type Board,
   type Rng,
   type IdGenerator,
@@ -100,7 +104,9 @@ export type Action =
   /** A Manual move outcome (tap, drop, cancel) the command already worked out. */
   | { type: "move"; outcome: MoveOutcome }
   /** The Lock toggle in a Group header (SPEC §7 Lock). */
-  | { type: "toggleLock"; groupId: GroupId };
+  | { type: "toggleLock"; groupId: GroupId }
+  /** Import (SPEC §12): the AppState with the imported Rosters added, worked out by the command. */
+  | { type: "imported"; app: AppState };
 
 /**
  * Applies one action, then keeps the Board in step with the open Roster (out of date after
@@ -197,6 +203,8 @@ function applyAction(state: State, action: Action): State {
       };
     case "resetSplit":
       return { ...state, board: resetSplit(state.board) };
+    case "imported":
+      return { ...state, app: action.app, removed: null };
     case "toggleLock": {
       const board = toggleLock(state.board, action.groupId);
       // Locking the selected Student's Group drops the selection: a Locked Group is frozen.
@@ -254,6 +262,11 @@ export interface Rosters {
    * Returns the toast ("Drop onto a Student to swap with them.", a Locked refusal) or null.
    */
   dropStudent(dragged: StudentId, target: StudentId | null): Refusal;
+  /**
+   * Import (SPEC §12): adds the Rosters read from a file (Replace or Keep both on a name clash) and
+   * opens the first. Returns what was added and skipped, for the toast and the skipped message.
+   */
+  importRosters(rosters: readonly ImportedRoster[], choice: ClashChoice): ImportedResult[];
 }
 
 const RostersContext = createContext<Rosters | null>(null);
@@ -425,6 +438,11 @@ export function RostersProvider({ storage, newId, rng = Math.random, children }:
       const outcome = dropStudent(state.board, roster, dragged, target);
       dispatch({ type: "move", outcome });
       return outcome.toast ?? null;
+    },
+    importRosters(imported, choice) {
+      const r = importRosters(app, imported, choice, newId);
+      dispatch({ type: "imported", app: r.state });
+      return r.imported;
     },
   };
 
