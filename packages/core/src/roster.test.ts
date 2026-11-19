@@ -19,6 +19,7 @@ import {
   restoreStudent,
   selectRoster,
   setPresent,
+  setTargetSize,
   togglePresent,
   updateRoster,
   type AppState,
@@ -193,5 +194,16 @@ describe("attendance", () => {
     const roster = rosterWith(["Ana"]);
     expect(setPresent(roster, "s1", true)).toBe(roster);
     expect(togglePresent(roster, "nope")).toBe(roster);
+  });
+});
+
+describe("setTargetSize", () => {
+  it("sets a whole number of at least 2", () => {
+    const roster = rosterWith(["Ana"]);
+    expect(setTargetSize(roster, 5).target).toBe(5);
+    expect(setTargetSize(roster, 1).target).toBe(2);
+    expect(setTargetSize(roster, 3.4).target).toBe(3);
+    expect(setTargetSize(roster, DEFAULT_TARGET_SIZE)).toBe(roster);
+    expect(setTargetSize(roster, Number.NaN)).toBe(roster);
   });
 });
