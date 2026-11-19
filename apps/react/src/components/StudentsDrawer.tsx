@@ -3,6 +3,7 @@ import Pencil from "lucide-react/icons/pencil";
 import X from "lucide-react/icons/x";
 import { useEffect, useId, useRef, useState } from "react";
 import { useRosters } from "../state";
+import { Drawer, drawerButtonClass as buttonClass, drawerErrorClass as errorClass } from "./Drawer";
 
 export type StudentsMode = "attendance" | "edit";
 
@@ -12,20 +13,11 @@ export interface StudentsDrawerProps {
   onClose: () => void;
 }
 
-const buttonClass = "rounded-md border border-line bg-panel px-2.5 py-1 hover:border-mute";
-const errorClass = "my-1.5 rounded-md border border-bad-line bg-bad-soft px-2.5 py-1.5 text-bad";
 const fieldClass = "min-w-0 flex-1 rounded-md border border-line bg-field px-2 py-1.5";
 
 /** SPEC §8 Students drawer: Attendance (tap to toggle) and Edit list (add, rename, remove). */
 export function StudentsDrawer({ mode, onModeChange, onClose }: StudentsDrawerProps) {
   const { dismissUndo } = useRosters();
-  const titleId = useId();
-
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && !e.defaultPrevented && onClose();
-    document.addEventListener("keydown", onKey);
-    return () => document.removeEventListener("keydown", onKey);
-  }, [onClose]);
 
   const switchMode = (next: StudentsMode) => {
     dismissUndo();
@@ -38,33 +30,17 @@ export function StudentsDrawer({ mode, onModeChange, onClose }: StudentsDrawerPr
     }`;
 
   return (
-    <>
-      <div className="fixed inset-0 z-10 bg-black/40" aria-hidden="true" onClick={onClose} />
-      <aside
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby={titleId}
-        className="fixed inset-y-0 right-0 z-[11] w-[min(440px,100%)] overflow-auto bg-panel p-4 shadow-[-8px_0_30px_rgba(0,0,0,.25)]"
-      >
-        <header className="mb-2.5 flex items-center justify-between">
-          <h2 id={titleId} className="text-lg font-bold">
-            Students
-          </h2>
-          <button type="button" className={buttonClass} onClick={onClose}>
-            Done
-          </button>
-        </header>
-        <div className="mb-3 flex" role="group" aria-label="Mode">
-          <button type="button" aria-pressed={mode === "attendance"} className={segClass(mode === "attendance")} onClick={() => switchMode("attendance")}>
-            Attendance
-          </button>
-          <button type="button" aria-pressed={mode === "edit"} className={segClass(mode === "edit")} onClick={() => switchMode("edit")}>
-            Edit list
-          </button>
-        </div>
-        {mode === "attendance" ? <Attendance /> : <EditList />}
-      </aside>
-    </>
+    <Drawer title="Students" onClose={onClose}>
+      <div className="mb-3 flex" role="group" aria-label="Mode">
+        <button type="button" aria-pressed={mode === "attendance"} className={segClass(mode === "attendance")} onClick={() => switchMode("attendance")}>
+          Attendance
+        </button>
+        <button type="button" aria-pressed={mode === "edit"} className={segClass(mode === "edit")} onClick={() => switchMode("edit")}>
+          Edit list
+        </button>
+      </div>
+      {mode === "attendance" ? <Attendance /> : <EditList />}
+    </Drawer>
   );
 }
 
