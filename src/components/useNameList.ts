@@ -41,7 +41,7 @@ export interface NameList {
 }
 
 /**
- * Add names state shared by the Students drawer, the New Roster dialog and (later) list Import:
+ * Add names state shared by the Students drawer, the New Roster dialog and list Import:
  * text → lines or table → column choice → preview → ticked names. `existing` is the Roster's
  * Students (or [] for a new Roster), so names already on it are skipped.
  */
