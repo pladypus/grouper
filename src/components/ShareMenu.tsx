@@ -1,18 +1,26 @@
 import {
+  copiedPictureMessage,
   copiedTextMessage,
   COPY_FAILED_MESSAGE,
   FULL_SCREEN_FAILED_MESSAGE,
   groupsAsText,
   hasGroups,
+  PICTURE_DOWNLOADED_MESSAGE,
+  PICTURE_FAILED_MESSAGE,
+  pictureFileName,
+  pictureLayout,
   SHARE_NEEDS_GROUPS_MESSAGE,
 } from "../lib";
 import Copy from "lucide-react/icons/copy";
+import ImageIcon from "lucide-react/icons/image";
 import Maximize from "lucide-react/icons/maximize";
 import Minimize from "lucide-react/icons/minimize";
 import Printer from "lucide-react/icons/printer";
 import Share from "lucide-react/icons/share";
 import { useEffect, useState } from "react";
-import { copyText } from "../clipboard";
+import { copyPng, copyText } from "../clipboard";
+import { downloadBlob } from "../download";
+import { drawPicture, pngBlob } from "../picture";
 import { useRosters } from "../state";
 import { Menu, type MenuItem } from "./Menu";
 
@@ -32,7 +40,7 @@ function useFullScreen(): boolean {
 
 /**
  * SPEC §9 / top bar item 5: Share, disabled until there are Groups. Each action is one row in
- * `items`; Copy picture (#24) goes first.
+ * `items`.
  */
 export function ShareMenu({ onToast }: { onToast: (message: string) => void }) {
   const { roster, state } = useRosters();
@@ -41,6 +49,29 @@ export function ShareMenu({ onToast }: { onToast: (message: string) => void }) {
   const enabled = !!roster && hasGroups(board);
 
   const items: MenuItem[] = [
+    {
+      id: "copy-picture",
+      label: "Copy picture",
+      hint: "A 16:9 picture of the Groups, for a slide",
+      icon: ImageIcon,
+      onSelect() {
+        if (!roster) return;
+        const now = new Date();
+        // Drawn and handed to the clipboard synchronously, inside the click (Safari's rule).
+        const canvas = drawPicture((measure) => pictureLayout(board, roster, now, measure));
+        if (!canvas) return onToast(PICTURE_FAILED_MESSAGE);
+        const png = pngBlob(canvas);
+        void copyPng(png).then(async (copied) => {
+          if (copied) return onToast(copiedPictureMessage(board));
+          try {
+            downloadBlob(pictureFileName(roster, now), await png);
+            onToast(PICTURE_DOWNLOADED_MESSAGE);
+          } catch {
+            onToast(PICTURE_FAILED_MESSAGE);
+          }
+        });
+      },
+    },
     {
       id: "copy-text",
       label: "Copy as text",

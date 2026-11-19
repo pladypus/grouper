@@ -50,6 +50,17 @@ export function copiedTextMessage(board: Board): string {
   return `Copied ${plural(board.groups.length, "Group")} as text.`;
 }
 
+/** The toast after Copy picture: "Copied a picture of 5 Groups. Paste it into your slide." */
+export function copiedPictureMessage(board: Board): string {
+  return `Copied a picture of ${plural(board.groups.length, "Group")}. Paste it into your slide.`;
+}
+
+/** The toast when the browser can't put a picture on the clipboard and the PNG downloads instead. */
+export const PICTURE_DOWNLOADED_MESSAGE = "This browser can't copy pictures, so it was downloaded instead.";
+
+/** The toast when the browser can't draw the picture at all. */
+export const PICTURE_FAILED_MESSAGE = "This browser couldn't make the picture. Try Copy as text.";
+
 /** The Share button's tooltip while it's disabled (no Groups yet). */
 export const SHARE_NEEDS_GROUPS_MESSAGE = "Shuffle first, then share the Groups.";
 

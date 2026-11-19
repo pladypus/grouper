@@ -1,7 +1,7 @@
-// Saves text as a file the browser downloads (SPEC §12: Blob + object URL + `<a download>`).
+// Saves a file the browser downloads (SPEC §12: Blob + object URL + `<a download>`).
 
-export function downloadText(fileName: string, text: string, type = "application/json"): void {
-  const url = URL.createObjectURL(new Blob([text], { type }));
+export function downloadBlob(fileName: string, blob: Blob): void {
+  const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
   a.download = fileName;
@@ -11,4 +11,8 @@ export function downloadText(fileName: string, text: string, type = "application
   a.remove();
   // Give the browser a moment to start the download before the URL goes.
   setTimeout(() => URL.revokeObjectURL(url), 0);
+}
+
+export function downloadText(fileName: string, text: string, type = "application/json"): void {
+  downloadBlob(fileName, new Blob([text], { type }));
 }
