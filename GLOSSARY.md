@@ -33,3 +33,6 @@ _Avoid_: "Cluster", "Apart rule" (earlier names, replaced by Good pair and Keep 
 _Avoid_: "drag" (dragging is only one way to make a Manual move)
 
 **Export / Import**: Saving Rosters to a file and loading them back. Exporting one Roster is for handing it to another Teacher; a **Backup** is one file holding every Roster. A file holds Students and Rules only, never attendance or Groups, so imported Students all start Present. Import adds Rosters, from a grouper file or from a plain list of names; when a name is already taken, the Teacher chooses to replace the existing Roster or keep both.
+
+**Add names**: Adding many Students to a Roster at once, from pasted text or a .txt/.csv list, in the Students drawer or when creating a new Roster. The Teacher confirms a preview first. Names already on the Roster are skipped and listed, never duplicated.
+_Avoid_: "paste names", "bulk add" (a file can be added too; Import is for whole Rosters)
