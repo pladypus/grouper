@@ -27,6 +27,8 @@
 </script>
 
 <main class="flex min-h-0 flex-1 flex-col overflow-auto px-4 pt-3 {store.phone && store.roster ? 'pb-[84px]' : 'pb-4'}">
+  <!-- Manual move instructions and results for screen readers (SPEC §7); always rendered. -->
+  <p role="status" aria-live="polite" class="sr-only">{showGroups ? store.announcement : ""}</p>
   {#if !store.saving}
     <p
       role="alert"

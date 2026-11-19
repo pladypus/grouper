@@ -8,6 +8,7 @@
   import RosterNameDialog from "./components/RosterNameDialog.svelte";
   import DeleteRosterDialog from "./components/DeleteRosterDialog.svelte";
   import Toast from "./components/Toast.svelte";
+  import { refocusStudent } from "./drag";
 
   interface Props {
     /** Defaults to the browser's localStorage; tests pass a fake, or null for "unavailable". */
@@ -49,6 +50,11 @@
     if (event.key !== "Escape" || event.defaultPrevented) return;
     if (store.dialog) store.dialog = null;
     else if (store.drawer) store.closeDrawer();
+    else if (store.selected !== null) {
+      const selected = store.selected;
+      store.cancelSelection();
+      refocusStudent(selected);
+    }
   }
 </script>
 
