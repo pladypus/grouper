@@ -296,11 +296,12 @@ describe("board layout", () => {
     let size = { width: 1200, height: 700 };
     vi.spyOn(HTMLElement.prototype, "clientWidth", "get").mockImplementation(() => size.width);
     vi.spyOn(HTMLElement.prototype, "clientHeight", "get").mockImplementation(() => size.height);
-    const observers: (() => void)[] = [];
+    // dnd-kit (#18) also observes, and reads the entries it is called with.
+    const observers: ((entries: unknown[]) => void)[] = [];
     vi.stubGlobal(
       "ResizeObserver",
       class {
-        constructor(cb: () => void) {
+        constructor(cb: (entries: unknown[]) => void) {
           observers.push(cb);
         }
         observe() {}
@@ -318,7 +319,7 @@ describe("board layout", () => {
     }
 
     size = { width: 500, height: 1400 };
-    act(() => observers.forEach((cb) => cb()));
+    act(() => observers.forEach((cb) => cb([])));
     const narrow = boardLayout(500, 1400, 6);
     expect(narrow.columns).not.toBe(expected.columns);
     expect(cards()[0]!.style.width).toBe(`${Math.floor(narrow.cardWidth)}px`);
