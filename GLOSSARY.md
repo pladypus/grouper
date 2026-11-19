@@ -4,7 +4,7 @@
 
 **Roster**: A named, saved list of Students together with its Rules (e.g. "Period 2"). A Teacher can keep several.
 
-**Student**: A person on a Roster.
+**Student**: A person on a Roster, known by name. Names are unique within a Roster, ignoring case and spacing ("sam " is the same Student as "Sam"); a Teacher tells two Sams apart by writing "Sam B.".
 
 **Present / Absent**: A Student's attendance for the current Shuffle. Absent Students are left out of Groups but stay on the Roster, and their Rules are kept.
 
@@ -32,4 +32,4 @@ _Avoid_: "Cluster", "Apart rule" (earlier names, replaced by Good pair and Keep 
 **Manual move**: The Teacher swapping two Students between Groups after a Shuffle, by dragging one onto the other or by tapping one and then the other. Group sizes never change. A Manual move may break a Rule; it is allowed, and the Groups involved are flagged.
 _Avoid_: "drag" (dragging is only one way to make a Manual move)
 
-**Export / Import**: Saving a Roster to a file and loading it back, for backup or for handing it to another Teacher.
+**Export / Import**: Saving Rosters to a file and loading them back. Exporting one Roster is for handing it to another Teacher; a **Backup** is one file holding every Roster. A file holds Students and Rules only, never attendance or Groups, so imported Students all start Present. Import adds Rosters, from a grouper file or from a plain list of names; when a name is already taken, the Teacher chooses to replace the existing Roster or keep both.
