@@ -5,11 +5,16 @@ import {
   clashMessage,
   exportBackup,
   exportRoster,
+  EMPTY_NAME_LIST_MESSAGE,
   FILE_VERSION,
+  IMPORT_ACCEPT,
   importClashes,
   importedMessage,
   importRosters,
+  isNameListFileName,
   keepBothName,
+  nameListRoster,
+  nameListRosterName,
   NEWER_VERSION_MESSAGE,
   NOT_GROUPER_FILE_MESSAGE,
   readImportFile,
@@ -48,6 +53,7 @@ const NOW = new Date("2026-11-18T09:30:00.000Z");
 function read(text: string, name = "Period 2.grouper.json") {
   const r = readImportFile({ name, text });
   if (!r.ok) throw new Error(r.message);
+  if (r.kind !== "grouper") throw new Error(`read as ${r.kind}`);
   return r;
 }
 
@@ -289,5 +295,74 @@ describe("toast", () => {
       ids(),
     );
     expect(importedMessage(two.imported)).toBe("Imported 2 Rosters: 1 Student, 0 pairs.");
+  });
+});
+
+describe("reading a .txt / .csv name list (#22)", () => {
+  it("the file picker accepts Grouper files and name lists", () => {
+    expect(IMPORT_ACCEPT).toBe(".json,.txt,.csv");
+  });
+
+  it("dispatches a .txt to the Add names parser: one name per line", () => {
+    const r = readImportFile({ name: "Period 2.txt", text: "Ana\n2. Ben, Jr\n\nCal\n" });
+    expect(r).toEqual({
+      ok: true,
+      kind: "names",
+      name: "Period 2",
+      fileName: "Period 2.txt",
+      text: "Ana\n2. Ben, Jr\n\nCal\n",
+      source: { kind: "lines", lines: ["Ana", "2. Ben, Jr", "", "Cal"] },
+    });
+  });
+
+  it("dispatches a .csv to the column picker: a table", () => {
+    const r = readImportFile({ name: "Year 9.CSV", text: "First,Last\nAna,Lee\n" });
+    expect(r).toMatchObject({
+      ok: true,
+      kind: "names",
+      name: "Year 9",
+      source: { kind: "table", rows: [["First", "Last"], ["Ana", "Lee"]] },
+    });
+  });
+
+  it("reads tabbed text in a .txt as a table", () => {
+    const r = readImportFile({ name: "list.txt", text: "Ana\tLee\nBen\tOk\n" });
+    expect(r).toMatchObject({ ok: true, kind: "names", source: { kind: "table" } });
+  });
+
+  it("still reads a grouper file saved as .txt as a grouper file", () => {
+    const text = JSON.stringify({ grouper: "roster", version: 1, name: "P", exported: "", students: ["Ana"], pairs: [] });
+    expect(readImportFile({ name: "download.txt", text })).toMatchObject({ ok: true, kind: "grouper" });
+  });
+
+  it("refuses an empty list, and a plain list that isn't .txt or .csv", () => {
+    expect(readImportFile({ name: "empty.txt", text: "﻿ \n\n" })).toEqual({ ok: false, message: EMPTY_NAME_LIST_MESSAGE });
+    expect(readImportFile({ name: "names.json", text: "Ana\nBen" })).toEqual({ ok: false, message: NOT_GROUPER_FILE_MESSAGE });
+    expect(readImportFile({ name: "names.doc", text: "Ana\nBen" })).toEqual({ ok: false, message: NOT_GROUPER_FILE_MESSAGE });
+  });
+
+  it("recognises .txt and .csv names, any case", () => {
+    expect(["a.txt", "B.CSV", " c.Txt "].map(isNameListFileName)).toEqual([true, true, true]);
+    expect(["a.json", "a.tsv", "txt", "a.txt.json"].map(isNameListFileName)).toEqual([false, false, false, false]);
+  });
+
+  it("defaults the Roster name to the file name without its extension", () => {
+    expect(nameListRosterName("Period 2.csv")).toBe("Period 2");
+    expect(nameListRosterName("  Year  9.v2.txt")).toBe("Year 9.v2");
+    expect(nameListRosterName(".txt")).toBe(UNNAMED_ROSTER_NAME);
+  });
+
+  it("a confirmed list joins Import as a Roster with Students and no Pairs, everyone Present", () => {
+    const state: AppState = { rosters: [newRoster("a", "Period 2")], currentId: "a" };
+    const list = nameListRoster("Period 2", ["Ana", "Ben"]);
+    expect(list).toEqual({ name: "Period 2", students: ["Ana", "Ben"], pairs: [], skipped: [] });
+    expect(importClashes(state, [list]).map((r) => r.id)).toEqual(["a"]);
+    const { imported } = importRosters(state, [list], "keep both", ids());
+    expect(imported[0]!.roster.name).toBe("Period 2 (imported)");
+    expect(imported[0]!.roster.students.map((s) => [s.name, s.present])).toEqual([
+      ["Ana", true],
+      ["Ben", true],
+    ]);
+    expect(importedMessage(imported)).toBe(`Imported "Period 2 (imported)": 2 Students, 0 pairs.`);
   });
 });

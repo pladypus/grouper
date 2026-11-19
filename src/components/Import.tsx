@@ -4,6 +4,7 @@ import {
   IMPORT_ACCEPT,
   importClashes,
   importedMessage,
+  nameListRoster,
   NOT_GROUPER_FILE_MESSAGE,
   readImportFile,
   SKIPPED_TITLE,
@@ -16,6 +17,10 @@ import {
 import { useRef, useState, type ReactNode } from "react";
 import { useRosters } from "../state";
 import { ClashDialog, ListDialog } from "./Dialog";
+import { ImportListDialog } from "./ImportListDialog";
+
+/** A .txt / .csv list waiting for its confirm step. */
+type NameListRead = Extract<ImportRead, { ok: true; kind: "names" }>;
 
 export interface ImportFlow {
   /** Opens the file picker (⋯ menu Import, the first-visit Import). */
@@ -28,14 +33,15 @@ export interface ImportFlow {
  * Import (SPEC §12): file picker → `readImportFile` (the one file-type dispatch, in lib) → the
  * Replace / Keep both question if any names clash → add → success toast, then the skipped list.
  *
- * #22 (name lists) plugs in at `onRead`: a `kind: "names"` result shows its preview and then calls
- * `add([roster])`, which asks the same clash question.
+ * A .txt / .csv name list first shows its confirm step (Roster name, column picker, Add names
+ * preview), then joins at `add([roster])`, so it gets the same clash question and toast.
  */
 export function useImport(onToast: (message: string) => void): ImportFlow {
   const { state, importRosters } = useRosters();
   const input = useRef<HTMLInputElement>(null);
   const [clash, setClash] = useState<{ rosters: readonly ImportedRoster[]; clashes: Roster[] } | null>(null);
   const [skipped, setSkipped] = useState<ImportedResult[] | null>(null);
+  const [nameList, setNameList] = useState<NameListRead | null>(null);
 
   const finish = (rosters: readonly ImportedRoster[], choice: ClashChoice) => {
     setClash(null);
@@ -54,6 +60,7 @@ export function useImport(onToast: (message: string) => void): ImportFlow {
 
   const onRead = (read: ImportRead) => {
     if (!read.ok) onToast(read.message);
+    else if (read.kind === "names") setNameList(read);
     else add(read.rosters);
   };
 
@@ -83,6 +90,20 @@ export function useImport(onToast: (message: string) => void): ImportFlow {
           if (file) void onFile(file);
         }}
       />
+      {nameList && (
+        <ImportListDialog
+          // A fresh confirm step (and column guess) for each file chosen.
+          key={`${nameList.fileName}\n${nameList.text}`}
+          text={nameList.text}
+          fileName={nameList.fileName}
+          defaultName={nameList.name}
+          onImport={(name, names) => {
+            setNameList(null);
+            add([nameListRoster(name, names)]);
+          }}
+          onClose={() => setNameList(null)}
+        />
+      )}
       {clash && (
         <ClashDialog
           title={CLASH_TITLE}

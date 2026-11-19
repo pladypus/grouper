@@ -3,18 +3,18 @@
 //
 // Import runs in three steps, each usable on its own:
 // 1. `readImportFile({ name, text })`: the ONE place that decides what kind of file this is (the
-//    file-type dispatch). Today it reads grouper Roster and Backup files; #22 adds .txt / .csv name
-//    lists here, as another `kind`. Version upgrades and the newer-version / not-Grouper refusals
-//    happen here.
+//    file-type dispatch): a grouper Roster or Backup file (`kind: "grouper"`) or a .txt / .csv name
+//    list (`kind: "names"`). Version upgrades and the newer-version / not-Grouper refusals happen here.
 // 2. `importClashes(state, rosters)`: the names already taken, for the Replace / Keep both question
 //    (one question for every clash in the file).
 // 3. `importRosters(state, rosters, choice, newId)`: adds the Rosters, building each through the
 //    ordinary Roster operations (`addStudent`, `addPair`), so a repeated name or a Pair that
 //    `checkPair` would refuse is skipped and reported instead of dropped silently.
-// A name-list Import (#22) produces an `ImportedRoster` (a name and Students, no Pairs) and joins at
-// step 2, so it shares the clash question and the success toast.
+// A name-list Import goes through the Add names parser (or the column picker) and a confirm step in
+// the UI; `nameListRoster` then makes an `ImportedRoster` (a name and Students, no Pairs) that joins
+// at step 2, so it shares the clash question and the success toast.
 
-import { nameKey, normaliseName } from "./names";
+import { nameKey, normaliseName, readNameSource, type NameSource } from "./names";
 import {
   addStudent,
   newRoster,
@@ -34,8 +34,19 @@ export const NEWER_VERSION_MESSAGE = "This file was made by a newer Grouper; rel
 /** SPEC §12: refusal for anything that is neither a grouper file nor a name list. */
 export const NOT_GROUPER_FILE_MESSAGE = "That file isn't a Grouper file or a list of names.";
 
-/** What the file picker accepts. #22 widens this to ".json,.txt,.csv" when name lists arrive. */
-export const IMPORT_ACCEPT = ".json";
+/** What the file picker accepts (SPEC §12): Grouper files and .txt / .csv name lists. */
+export const IMPORT_ACCEPT = ".json,.txt,.csv";
+
+/** Refusal for a .txt / .csv list with nothing in it (invented wording). */
+export const EMPTY_NAME_LIST_MESSAGE = "That list has no names in it.";
+
+/** Title of the name-list confirm step (invented wording). */
+export const IMPORT_LIST_TITLE = "Import a class list";
+
+/** The confirm step's button: "Import 25 students" (invented wording, after "Add 25 students"). */
+export function importListButtonLabel(n: number): string {
+  return `Import ${n} ${n === 1 ? "student" : "students"}`;
+}
 
 /** Name for a Roster whose file gives none (invented wording; SPEC §12 doesn't say). */
 export const UNNAMED_ROSTER_NAME = "Imported Roster";
@@ -135,11 +146,25 @@ export interface ImportedRoster {
 export type ImportRead =
   | {
       readonly ok: true;
-      /** A grouper file. #22 adds `kind: "names"` for a .txt / .csv list. */
+      /** A grouper file. */
       readonly kind: "grouper";
       /** True for a Backup ("Export all Rosters"), false for one Roster. */
       readonly backup: boolean;
       readonly rosters: readonly ImportedRoster[];
+    }
+  | {
+      readonly ok: true;
+      /**
+       * A .txt / .csv name list (SPEC §12 Import item 3), for the confirm step. `source` is the Add
+       * names parser's reading: plain lines for .txt, a table for the column picker for .csv (or
+       * tabbed text). `text` and `fileName` are what `useNameList` takes to show it.
+       */
+      readonly kind: "names";
+      /** The default Roster name: the file name without its extension. */
+      readonly name: string;
+      readonly fileName: string;
+      readonly text: string;
+      readonly source: NameSource;
     }
   | { readonly ok: false; readonly message: string };
 
@@ -168,13 +193,38 @@ export function upgradeFile(file: Json, upgrades: Readonly<Record<number, (file:
 
 /**
  * Import step 1, and the only file-type dispatch: works out what the file is and reads it. A JSON
- * object with a `grouper` field is a grouper file whatever its extension; anything else is refused
- * (#22: a .txt / .csv name list goes to the name-list reader here instead).
+ * object with a `grouper` field is a grouper file whatever its extension; otherwise a .txt or .csv
+ * file is a name list; anything else is refused.
  */
 export function readImportFile(source: ImportSource): ImportRead {
   const json = parseJson(source.text);
   if (isObject(json) && "grouper" in json) return readGrouperFile(json, source.name);
+  if (isNameListFileName(source.name)) return readNameListFile(source);
   return { ok: false, message: NOT_GROUPER_FILE_MESSAGE };
+}
+
+/** Whether a file name is a .txt or .csv name list (case-insensitive). */
+export function isNameListFileName(fileName: string): boolean {
+  return /\.(txt|csv)$/i.test(fileName.trim());
+}
+
+/** `Period 2.csv` → "Period 2": the file name without its extension (SPEC §12), or a default. */
+export function nameListRosterName(fileName: string): string {
+  return normaliseName(fileName.replace(/\.[^.]*$/, "")) || UNNAMED_ROSTER_NAME;
+}
+
+function readNameListFile({ name, text }: ImportSource): ImportRead {
+  if (text.replace(/^﻿/, "").trim() === "") return { ok: false, message: EMPTY_NAME_LIST_MESSAGE };
+  const source = readNameSource(text, name);
+  return { ok: true, kind: "names", name: nameListRosterName(name), fileName: name, text, source };
+}
+
+/**
+ * The Roster a confirmed name-list Import adds (SPEC §12 Import item 3): the Roster name and the
+ * names ticked in the Add names preview, no Pairs. It joins Import at step 2 (the clash question).
+ */
+export function nameListRoster(name: string, names: readonly string[]): ImportedRoster {
+  return { name, students: [...names], pairs: [], skipped: [] };
 }
 
 function readGrouperFile(json: Json, fileName: string): ImportRead {
