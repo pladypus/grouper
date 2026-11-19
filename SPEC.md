@@ -22,32 +22,26 @@ A Teacher opens https://grouper.pladypus.dev, picks a Roster ("Period 2"), takes
 
 | Concern | Decision |
 |---|---|
-| Framework | **React 19 or Svelte 5, decided by a bake-off** (see [below](#framework-bake-off)). Either way a plain Vite single-page app (no Next, no SvelteKit), TypeScript. |
-| State | Each framework's own way, no state library: React `useReducer` + context; Svelte `$state` runes in a `.svelte.ts` module. The domain operations (shuffle, swap, lock, Pair checks) are pure functions in core that both call. |
+| Framework | **React 19**, picked by a bake-off ([below](#framework-bake-off), [ADR 0001](docs/adr/0001-react.md)). A plain Vite single-page app (no Next), TypeScript. |
+| State | No state library: `useReducer` + context (`src/state.tsx`). The domain operations (shuffle, swap, lock, Pair checks) are pure functions in core (`src/lib/`) that the reducer calls. |
 | Styling | Tailwind v4 via `@tailwindcss/vite`. The prototype's theme tokens become `@theme` variables (light and dark); Group hues are set per card as CSS custom properties. The print layout uses `print:` variants. |
-| Icons | Lucide (`lucide-react` / `@lucide/svelte`). |
-| Drag and drop | Each framework's usual library: dnd-kit (React), svelte-dnd-action (Svelte). Both must work on mouse and touch. App state owns Group membership; a drop is turned into a swap, and the library never reorders lists by itself. Tap-to-swap is the fallback in both. |
+| Icons | Lucide (`lucide-react`). |
+| Drag and drop | dnd-kit (`@dnd-kit/core`), on mouse and touch. App state owns Group membership; a drop is turned into a swap, and the library never reorders lists by itself. Tap-to-swap is the fallback. |
 | Storage | `localStorage`, JSON, all keys prefixed `grouper:` (see [§10](#10-storage-and-keeping-data-safe-8)). |
 | Offline | Web app manifest + icon, and a service worker that precaches the built app (`vite-plugin-pwa`, `registerType: 'autoUpdate'`). New versions take effect on the next launch, with no update prompt. |
 | Solver | Hand-written, dependency-free, runs synchronously on the main thread (no Web Worker). |
-| Tests | Vitest. Core logic gets unit tests; UI gets component tests with Testing Library in jsdom (`@testing-library/react` / `@testing-library/svelte`). |
+| Tests | Vitest. Core logic gets unit tests; UI gets component tests with Testing Library in jsdom (`@testing-library/react`). |
 | Hosting | GitHub Pages from `pladypus/grouper`, Pages source = GitHub Actions, custom domain `grouper.pladypus.dev` (so Vite `base: '/'`). |
 
 ### Framework bake-off
 
-Research #3 chose Svelte on the assumption that the owner was a non-specialist. In fact the owner's other web projects (`mortgage-calculator`, `website`, `groomsmen-website`) are all React 19 + Tailwind v4. So the first tickets are built in both frameworks, and the owner picks one by trying the two.
-
-- **Repo layout during the bake-off:** npm workspaces. `packages/core` holds everything framework-free (solver, Split, Rules, names, files, storage, and the pure domain operations), tested once. `apps/react` and `apps/svelte` are thin UIs over it. Layout in [§13](#13-suggested-module-layout).
-- **Built twice:** #12 scaffold, #14 Rosters, #15 Shuffle, #16 Pairs, #18 Manual move, #19 Lock. This covers state, forms, drag and the projector layout.
-- **Kept identical in both** so the comparison stays fair: core, Tailwind, Lucide, tests, and every UI behaviour in this spec. Only the framework, the state approach and the drag library differ.
-- **Trying them:** locally only (`npm run dev -w apps/react`, `npm run dev -w apps/svelte`). During the bake-off, grouper.pladypus.dev serves a static placeholder page.
-- **Picking (#26):** an agent writes `docs/bake-off.md`, a side-by-side report covering lines of code, gzip bundle size, tests, drag feel on touch, and the awkward parts of each. The owner picks, and the pick is recorded as `docs/adr/0001-<framework>.md`. Then the repo is **flattened**: the winner and core become one Vite app at the root, the loser is deleted, workspaces are removed, and the real app deploys. Everything after the pick (#17, #20–#25) is built once.
+Research #3 chose Svelte on the assumption that the owner was a non-specialist, but the owner's other web projects are React 19 + Tailwind v4. So the first slice (#12, #14, #15, #16, #18, #19) was built twice, as `apps/react` and `apps/svelte` over a shared `packages/core` in npm workspaces, and compared in [`docs/bake-off.md`](docs/bake-off.md). The owner picked React (#26, [ADR 0001](docs/adr/0001-react.md)), the Svelte app was deleted, and the repo was flattened to one Vite app at the root ([§13](#13-suggested-module-layout)). Everything after the pick (#17, #20–#25) is built once.
 
 ### Repo upkeep (copied from the owner's `mortgage-calculator` repo when the build starts)
 
 - `.github/dependabot.yml`: monthly npm + GitHub Actions updates, 7-day cooldown, grouped.
 - `verify.yml`: on pull requests, job `test-and-build` runs `npm ci`, `npm test`, `npm run build`.
-- `deploy.yml`: Vite's documented Pages workflow (checkout → setup-node → `npm ci` → `npm run build` → configure-pages → upload-pages-artifact `./dist` → deploy-pages). Until #26 it uploads the static placeholder directory instead of `./dist`. Triggers are only:
+- `deploy.yml`: Vite's documented Pages workflow (checkout → setup-node → `npm ci` → `npm run build` → configure-pages → upload-pages-artifact `./dist` → deploy-pages), with `npm test` before the build so a broken main can't deploy. Triggers are only:
 
   ```yaml
   on:
@@ -148,7 +142,7 @@ Inputs: Present Students, the Roster's Pairs, the Target size, the Teacher's edi
 
 ## 5. Solver (#2)
 
-A pure module (`packages/core/src/solver/` during the bake-off, `src/lib/solver/` after), about 200 lines, no dependencies, fully unit-tested. Takes integer Student ids. Reference prototype: [`research/solver-algorithm/solver.mjs`](https://github.com/pladypus/grouper/blob/research/solver-algorithm/research/solver-algorithm/solver.mjs) on the `research/solver-algorithm` branch; findings in [`research/solver-algorithm.md`](https://github.com/pladypus/grouper/blob/research/solver-algorithm/research/solver-algorithm.md).
+A pure module (`src/lib/solver/`), about 200 lines, no dependencies, fully unit-tested. Takes integer Student ids. Reference prototype: [`research/solver-algorithm/solver.mjs`](https://github.com/pladypus/grouper/blob/research/solver-algorithm/research/solver-algorithm/solver.mjs) on the `research/solver-algorithm` branch; findings in [`research/solver-algorithm.md`](https://github.com/pladypus/grouper/blob/research/solver-algorithm/research/solver-algorithm.md).
 
 ```ts
 solve(input: {
@@ -288,7 +282,7 @@ No separate projector or present mode.
 
 | Key | Value |
 |---|---|
-| `grouper:roster:<id>` | One Roster: `{id, name, students:[{id, name, present}], pairs:[{id, type, a, b, created}], target, split?}` |
+| `grouper:roster:<id>` | One Roster: `{id, name, students:[{id, name, present}], pairs:[{id, type, a, b, created}], target, split?, pairClock}`. `pairClock` is the Roster's creation clock for Pairs (the next Pair's `created`), so deleting the newest Pair never reuses its number; a save without it loads with the clock one past the highest `created`. |
 | `grouper:order` | Array of Roster ids in picker order |
 | `grouper:current` | Id of the Roster last open |
 | `grouper:theme` | `auto` \| `light` \| `dark` |
@@ -376,29 +370,33 @@ Toast on success: "Imported "Period 2": 25 Students, 5 pairs."
 
 ## 13. Suggested module layout
 
-During the bake-off ([§2](#framework-bake-off)):
+One Vite app at the repo root (flattened from the bake-off's workspaces at #26):
 
 ```
-package.json       npm workspaces: packages/*, apps/*
-site/              static placeholder page that Pages deploys until #26
-packages/core/src/
-  solver/          prepare, maxClique, search, mix, explain (pure, tested)
-  shuffle.ts       Locks, Split around Locks, calls solver, builds Groups (pure, tested)
-  split.ts         derived Split, Split text, Split edit validation (pure, tested)
-  rules.ts         chains, entry-time contradiction check, Manual-move flags (pure, tested)
-  roster.ts        pure Roster/Group operations both UIs call: add/rename/remove Student, attendance, swap, lock (pure, tested)
-  names/           name key, list parser, column guess (pure, tested)
-  files.ts         Export/Backup writers, Import reader + upgrade + leniency report (pure, tested)
-  storage.ts       localStorage adapter with try/catch and schema version
-apps/react/src/    App.tsx, state (useReducer + context), components/*.tsx
-apps/svelte/src/   App.svelte, state.svelte.ts ($state runes), components/*.svelte
+package.json       one app: scripts dev, build, test, preview
+index.html         Vite entry
+vite.config.ts     Vite + Vitest config (jsdom for every test)
+src/
+  main.tsx, App.tsx, state.tsx (useReducer + context), styles.css, *.test.tsx
+  components/      *.tsx
+  lib/             core: framework-free, imported through the barrel src/lib/index.ts
+    solver/        prepare, maxClique, search, mix, explain (pure, tested)
+    shuffle.ts     Locks, Split around Locks, calls solver, builds Groups (pure, tested)
+    split.ts       derived Split, Split text, Split edit validation (pure, tested)
+    rules.ts       chains, entry-time contradiction check, Manual-move flags (pure, tested)
+    roster.ts      pure Roster operations: add/rename/remove Student, attendance (pure, tested)
+    groups.ts, move.ts, lock.ts, layout.ts, theme.ts   Board, swap, Lock, layout, theme (pure, tested)
+    names/         name key, list parser, column guess (pure, tested)
+    files.ts       Export/Backup writers, Import reader + upgrade + leniency report (pure, tested)
+    share/         text, canvas picture, clipboard/download
+    storage.ts     localStorage adapter with try/catch and schema version
 ```
 
-Components in each app: TopBar, Board, GroupCard, StudentsDrawer, PairsDrawer, NewRosterDialog, AddNamesPreview, ColumnPicker, ImportDialog, ConflictNotice, Toast, IosTip.
+UI files import core as `./lib` (from `src/`) or `../lib` (from `src/components/`). Core never imports from the UI.
 
-After the pick (#26) it flattens to a single app: core moves to `src/lib/` (plus `share/`: text, canvas picture, clipboard/download), the winner's components to `src/components/`.
+Components: TopBar, Board, GroupCard, StudentsDrawer, PairsDrawer, NewRosterDialog, AddNamesPreview, ColumnPicker, ImportDialog, ConflictNotice, Toast, IosTip.
 
-Everything in core except `storage.ts` is UI-free and covered by Vitest. Each app has Testing Library component tests.
+Everything in core except `storage.ts` is UI-free and covered by Vitest. The UI has Testing Library component tests beside `App.tsx`.
 
 ---
 
@@ -421,18 +419,18 @@ These were not settled by a ticket. Each follows from the decisions above and is
 
 ## 15. Build tickets
 
-The build is split into vertical slices. Each is a GitHub issue labelled `ready-for-agent` (#26 is `ready-for-human`), with native "blocked by" links. Start with any ticket whose blockers are closed. Tickets marked **both** are built in `apps/react` and `apps/svelte` ([§2](#framework-bake-off)).
+The build is split into vertical slices. Each is a GitHub issue labelled `ready-for-agent` (#26 is `ready-for-human`), with native "blocked by" links. Start with any ticket whose blockers are closed. Tickets marked **both** were built in both bake-off apps ([§2](#framework-bake-off)) and now live once in the flattened React app; every remaining ticket is built once in the single-app layout ([§13](#13-suggested-module-layout)).
 
 | Ticket | Blocked by |
 |---|---|
-| #12 Scaffold the monorepo and deploy a placeholder site (**both**) | none |
+| #12 Scaffold the monorepo and deploy a placeholder site (**both**, done) | none |
 | #13 Repo upkeep: Dependabot, auto-merge with deploy, main ruleset | #12 |
-| #14 Rosters and Students saved in the browser (**both**) | #12 |
-| #15 Shuffle Present Students into Groups, no Rules yet (**both**) | #14 |
-| #16 Pairs that every Shuffle obeys (**both**) | #15 |
-| #18 Manual move: swap two Students by drag or tap (**both**) | #16 |
-| #19 Lock Groups and Reshuffle around them (**both**) | #18 |
-| #26 Pick React or Svelte and flatten the repo | #19 |
+| #14 Rosters and Students saved in the browser (**both**, done) | #12 |
+| #15 Shuffle Present Students into Groups, no Rules yet (**both**, done) | #14 |
+| #16 Pairs that every Shuffle obeys (**both**, done) | #15 |
+| #18 Manual move: swap two Students by drag or tap (**both**, done) | #16 |
+| #19 Lock Groups and Reshuffle around them (**both**, done) | #18 |
+| #26 Pick React or Svelte and flatten the repo (done: React) | #19 |
 | #17 Explain a Conflict with the Rules involved | #16, #26 |
 | #20 Export, Backup and Import of Grouper files | #16, #26 |
 | #21 Add names: paste or drop a class list into a Roster | #14, #26 |

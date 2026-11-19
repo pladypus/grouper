@@ -27,7 +27,6 @@
         );
 
       # `nix run` wrapper: installs deps on first run, then runs an npm script.
-      # `script` may name a workspace, e.g. "dev -w apps/react".
       npmApp = pkgs: name: script: {
         type = "app";
         program = "${
@@ -111,9 +110,9 @@
       apps = forEachSupportedSystem (
         { pkgs, ... }:
         {
-          # Framework bake-off: one dev server per app (`nix run .#react`, `nix run .#svelte`).
-          react = npmApp pkgs "grouper-react" "dev -w apps/react";
-          svelte = npmApp pkgs "grouper-svelte" "dev -w apps/svelte";
+          default = npmApp pkgs "grouper-dev" "dev";
+          dev = npmApp pkgs "grouper-dev" "dev";
+          preview = npmApp pkgs "grouper-preview" "preview";
         }
       );
 

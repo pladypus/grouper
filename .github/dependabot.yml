@@ -1,7 +1,5 @@
 version: 2
 updates:
-  # The root package-lock.json covers every npm workspace (apps/*, packages/*),
-  # so one entry at / updates them all.
   # Minor and patch updates share one PR; each major gets its own.
   - package-ecosystem: npm
     directory: /
