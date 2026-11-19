@@ -5,6 +5,8 @@ import {
   createRoster,
   EMPTY_APP_STATE,
   FULL_SCREEN_FAILED_MESSAGE,
+  PICTURE_DOWNLOADED_MESSAGE,
+  PICTURE_FAILED_MESSAGE,
   saveAppState,
   seededRng,
   updateRoster,
@@ -100,27 +102,155 @@ describe("Share button", () => {
     expect(shareButton()).toHaveAttribute("aria-haspopup", "menu");
   });
 
-  it("opens a menu: Copy as text, Print…, Full screen; arrows move, Esc closes back to the button", () => {
+  it("opens a menu: Copy picture, Copy as text, Print…, Full screen; arrows move, Esc closes back to the button", () => {
     renderApp();
     shuffle();
     openShare();
     const menu = screen.getByRole("menu", { name: "Share" });
     expect(shareButton()).toHaveAttribute("aria-expanded", "true");
     expect(within(menu).getAllByRole("menuitem").map((b) => b.textContent)).toEqual([
+      "Copy pictureA 16:9 picture of the Groups, for a slide",
       "Copy as text“Group 1: Ana, Dee, Eli” lines",
       "Print…",
       "Full screenFor the projector; Esc to leave",
     ]);
-    expect(item(/^Copy as text/)).toHaveFocus();
+    expect(item(/^Copy picture/)).toHaveFocus();
     fireEvent.keyDown(menu, { key: "ArrowDown" });
-    expect(item(/^Print/)).toHaveFocus();
+    expect(item(/^Copy as text/)).toHaveFocus();
     fireEvent.keyDown(menu, { key: "End" });
     expect(item(/^Full screen/)).toHaveFocus();
     fireEvent.keyDown(menu, { key: "ArrowDown" });
-    expect(item(/^Copy as text/)).toHaveFocus();
+    expect(item(/^Copy picture/)).toHaveFocus();
     fireEvent.keyDown(menu, { key: "Escape" });
     expect(screen.queryByRole("menu")).not.toBeInTheDocument();
     expect(shareButton()).toHaveFocus();
+  });
+});
+
+describe("Copy picture", () => {
+  const png = new Blob(["png"], { type: "image/png" });
+  let draws: { op: string; args: unknown[]; fillStyle: unknown; font: unknown }[];
+  let canvases: HTMLCanvasElement[];
+  let downloads: { name: string; blob: Blob }[];
+  let items: { data: Record<string, Promise<Blob>> }[];
+
+  /** jsdom has no 2D canvas: a fake context that records each drawing call with the style it used. */
+  function fakeCanvas() {
+    draws = [];
+    canvases = [];
+    vi.spyOn(HTMLCanvasElement.prototype, "getContext").mockImplementation(function (this: HTMLCanvasElement) {
+      canvases.push(this);
+      const ctx: Record<string, unknown> = { fillStyle: "", font: "10px sans-serif" };
+      const record =
+        (op: string) =>
+        (...args: unknown[]) =>
+          void draws.push({ op, args, fillStyle: ctx.fillStyle, font: ctx.font });
+      for (const op of ["fillRect", "fillText", "beginPath", "moveTo", "arcTo", "arc", "closePath", "clip", "fill", "save", "restore"])
+        ctx[op] = record(op);
+      ctx.measureText = (text: string) => ({ width: text.length * 0.55 * Number(/([\d.]+)px/.exec(String(ctx.font))![1]) });
+      return ctx as unknown as RenderingContext;
+    } as never);
+    vi.spyOn(HTMLCanvasElement.prototype, "toBlob").mockImplementation((done) => done(png));
+  }
+
+  /** ClipboardItem and clipboard.write, which `write` decides the outcome of. */
+  function fakeClipboard(write: () => Promise<void> = () => Promise.resolve()) {
+    items = [];
+    vi.stubGlobal(
+      "ClipboardItem",
+      class {
+        constructor(public data: Record<string, Promise<Blob>>) {
+          items.push(this);
+        }
+      },
+    );
+    vi.stubGlobal("navigator", {
+      ...navigator,
+      clipboard: { ...clipboard, write: vi.fn(write) },
+      storage: { persist: () => Promise.resolve(true) },
+    });
+  }
+
+  beforeEach(() => {
+    fakeCanvas();
+    downloads = [];
+    const blobs = new Map<string, Blob>();
+    URL.createObjectURL = vi.fn((blob: Blob) => {
+      const url = `blob:test/${blobs.size}`;
+      blobs.set(url, blob);
+      return url;
+    });
+    URL.revokeObjectURL = vi.fn();
+    vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(function (this: HTMLAnchorElement) {
+      downloads.push({ name: this.download, blob: blobs.get(this.href)! });
+    });
+  });
+
+  const texts = () => draws.filter((d) => d.op === "fillText").map((d) => d.args[0]);
+
+  it("draws a 1920×1080 picture of the Groups and puts it on the clipboard as image/png", async () => {
+    fakeClipboard();
+    renderApp();
+    shuffle();
+    openShare();
+    await act(async () => click(item(/^Copy picture/)));
+
+    expect([canvases[0]!.width, canvases[0]!.height]).toEqual([1920, 1080]);
+    expect(texts().slice(0, 2)).toEqual(["Period 2 groups", "18 Nov 2026"]);
+    const names = cardLines().flatMap((line) => line.replace(/^Group \d: /, "").split(", "));
+    expect(texts().filter((t) => names.includes(t as string))).toEqual(names);
+    expect(texts()).toEqual(expect.arrayContaining(["Group 1", "Group 2", "Group 3", "· 4 students"]));
+
+    expect(navigator.clipboard.write).toHaveBeenCalledOnce();
+    expect(Object.keys(items[0]!.data)).toEqual(["image/png"]);
+    await expect(items[0]!.data["image/png"]).resolves.toBe(png);
+    expect(downloads).toEqual([]);
+    expect(screen.queryByRole("menu")).not.toBeInTheDocument();
+    expect(screen.getByText("Copied a picture of 3 Groups. Paste it into your slide.")).toBeInTheDocument();
+  });
+
+  it("stays light in the dark theme", async () => {
+    fakeClipboard();
+    renderApp();
+    click(within(bar()).getByRole("button", { name: /^Theme: auto/ }));
+    click(within(bar()).getByRole("button", { name: /^Theme: light/ }));
+    expect(document.documentElement).toHaveAttribute("data-theme", "dark");
+    shuffle();
+    openShare();
+    await act(async () => click(item(/^Copy picture/)));
+    expect(draws[0]).toMatchObject({ op: "fillRect", args: [0, 0, 1920, 1080], fillStyle: "#ffffff" });
+    expect(draws.find((d) => d.args[0] === "Period 2 groups")!.fillStyle).toBe("#1e1f24");
+  });
+
+  it("downloads '<Roster> groups YYYY-MM-DD.png' when the browser refuses the clipboard", async () => {
+    fakeClipboard(() => Promise.reject(new Error("denied")));
+    renderApp();
+    shuffle();
+    openShare();
+    await act(async () => click(item(/^Copy picture/)));
+    expect(downloads).toEqual([{ name: "Period 2 groups 2026-11-18.png", blob: png }]);
+    expect(screen.getByText(PICTURE_DOWNLOADED_MESSAGE)).toBeInTheDocument();
+  });
+
+  it("downloads it where there's no ClipboardItem at all", async () => {
+    renderApp();
+    shuffle();
+    openShare();
+    await act(async () => click(item(/^Copy picture/)));
+    expect(downloads.map((d) => d.name)).toEqual(["Period 2 groups 2026-11-18.png"]);
+    expect(screen.getByText(PICTURE_DOWNLOADED_MESSAGE)).toBeInTheDocument();
+  });
+
+  it("says so when the browser can't draw", async () => {
+    fakeClipboard();
+    vi.mocked(HTMLCanvasElement.prototype.getContext).mockReturnValue(null);
+    renderApp();
+    shuffle();
+    openShare();
+    await act(async () => click(item(/^Copy picture/)));
+    expect(navigator.clipboard.write).not.toHaveBeenCalled();
+    expect(downloads).toEqual([]);
+    expect(screen.getByText(PICTURE_FAILED_MESSAGE)).toBeInTheDocument();
   });
 });
 

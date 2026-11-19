@@ -1,4 +1,19 @@
 /**
+ * Puts a PNG on the clipboard as `image/png`. Takes the PNG as a promise and calls
+ * `clipboard.write` before anything is awaited, so Safari still counts it as part of the click.
+ * Resolves to false where the browser has no ClipboardItem or refuses the write.
+ */
+export async function copyPng(png: Promise<Blob>): Promise<boolean> {
+  try {
+    if (!navigator.clipboard?.write || typeof ClipboardItem === "undefined") return false;
+    await navigator.clipboard.write([new ClipboardItem({ "image/png": png })]);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/**
  * Puts plain text on the clipboard. Uses the async Clipboard API, and falls back to selecting a
  * hidden textarea and `execCommand("copy")` where that API is missing or refused (older browsers,
  * plain http). Resolves to whether the text was copied.
