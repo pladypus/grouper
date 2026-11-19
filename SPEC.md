@@ -142,7 +142,7 @@ Inputs: Present Students, the Roster's Pairs, the Target size, the Teacher's edi
 
 ## 5. Solver (#2)
 
-A pure module (`src/lib/solver/`), about 200 lines, no dependencies, fully unit-tested. Takes integer Student ids. Reference prototype: [`research/solver-algorithm/solver.mjs`](https://github.com/pladypus/grouper/blob/research/solver-algorithm/research/solver-algorithm/solver.mjs) on the `research/solver-algorithm` branch; findings in [`research/solver-algorithm.md`](https://github.com/pladypus/grouper/blob/research/solver-algorithm/research/solver-algorithm.md).
+A pure module (`src/lib/solver/`), about 200 lines, no dependencies, fully unit-tested. Takes integer Student ids. Reference prototype: [`research/solver-algorithm/solver.mjs`](https://github.com/pladypus/grouper/blob/archive/research/solver-algorithm/research/solver-algorithm/solver.mjs) in the `archive/research/solver-algorithm` tag; findings in [`research/solver-algorithm.md`](https://github.com/pladypus/grouper/blob/archive/research/solver-algorithm/research/solver-algorithm.md).
 
 ```ts
 solve(input: {
@@ -207,7 +207,7 @@ When a Shuffle hits a Conflict, no Groups change. The board shows a red notice:
 
 ## 8. Screens (#6)
 
-The [`prototype/main-screen`](https://github.com/pladypus/grouper/tree/prototype/main-screen) branch (`prototype/main-screen.html`, add `?demo` for every card state) is the visual reference; screenshots of the final iterations are `card-iterations/v7-*.png` and `header-iterations/h7-*.png`.
+The [`archive/prototype/main-screen`](https://github.com/pladypus/grouper/tree/archive/prototype/main-screen) tag (`prototype/main-screen.html`, add `?demo` for every card state) is the visual reference; screenshots of the final iterations are `card-iterations/v7-*.png` and `header-iterations/h7-*.png`.
 
 ### Top bar (one row, fixed height)
 Left to right:
@@ -255,7 +255,7 @@ Top-centre, `role="status"`, about 3 s.
 
 ## 9. Share, print, copy, full screen (#9)
 
-The [`prototype/print-copy`](https://github.com/pladypus/grouper/tree/prototype/print-copy) branch is the reference (`?variant=A` with C's Copy picture; `?print` for the print layout).
+The [`archive/prototype/print-copy`](https://github.com/pladypus/grouper/tree/archive/prototype/print-copy) tag is the reference (`?variant=A` with C's Copy picture; `?print` for the print layout).
 
 **Share** menu:
 - **Copy picture:** a 16:9 PNG (1920×1080) of the Groups, always light whatever the theme: title "Period 2 groups", the date, and coloured Group cards laid out like the board with names sized to fit. Drawn to a canvas and written with `navigator.clipboard.write([new ClipboardItem({'image/png': blob})])`; if that isn't available or fails, the PNG downloads as `Period 2 groups YYYY-MM-DD.png`.
