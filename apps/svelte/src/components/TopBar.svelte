@@ -11,7 +11,7 @@
 </script>
 
 <header
-  class="sticky top-0 z-5 flex flex-none flex-wrap items-center gap-x-5 gap-y-2.5 border-b border-line bg-panel px-4 py-2.5 max-[760px]:px-3"
+  class="sticky top-0 z-10 flex flex-none flex-wrap items-center gap-x-5 gap-y-2.5 border-b border-line bg-panel px-4 py-2.5"
 >
   {#if store.roster}
     {@const roster = store.roster}
@@ -29,13 +29,13 @@
       <RosterMenu />
     </div>
     <div
-      class="flex items-center gap-2 border-l border-line pl-5 max-[760px]:order-last max-[760px]:basis-full max-[760px]:border-l-0 max-[760px]:pl-0"
+      class="flex items-center gap-2 border-l border-line pl-5"
     >
       <button
         type="button"
-        class="inline-flex items-center gap-[7px] whitespace-nowrap rounded-full border border-line bg-panel px-3 py-[7px] font-semibold hover:border-mute max-[760px]:flex-1 max-[760px]:justify-center"
+        class="inline-flex items-center gap-[7px] whitespace-nowrap rounded-full border border-line bg-panel px-3 py-[7px] font-semibold hover:border-mute"
         aria-haspopup="dialog"
-        onclick={() => store.openStudents()}
+        onclick={() => store.openStudents("attendance")}
       >
         <Users aria-hidden="true" class="size-[18px] flex-none" />
         <span><b class="text-accent">{presentCount(roster)}</b>/{roster.students.length} Present</span>

@@ -1,9 +1,11 @@
 @import "tailwindcss";
 
-/* `dark:` follows the resolved theme the app writes to <html data-theme>, not the media query. */
+/* The theme is chosen in the app (auto / light / dark) and applied as data-theme on <html>,
+   so `dark:` follows that attribute rather than the media query. */
 @custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
 
-/* Theme tokens from the main-screen prototype (prototype/main-screen.html :root), light values. */
+/* Theme tokens from the main-screen prototype's :root block (SPEC §8). Light values here; the dark
+   values override the same variables below, so every `bg-panel`, `text-ink`… utility switches. */
 @theme {
   --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
 
@@ -38,7 +40,7 @@
   --color-lock-tint: #eef0f3;
 }
 
-/* Group hue parameters (SPEC §8 Colours), used by Group cards. */
+/* Group hues (used from #15): header hsl(hue var(--hue-s) var(--hue-l)), tint var(--hue-soft-l). */
 :root {
   color-scheme: light;
   --hue-s: 58%;
@@ -46,9 +48,12 @@
   --hue-soft-l: 94%;
 }
 
-/* Dark values of the same tokens. */
 :root[data-theme="dark"] {
   color-scheme: dark;
+  --hue-s: 38%;
+  --hue-l: 36%;
+  --hue-soft-l: 21%;
+
   --color-bg: #15161a;
   --color-panel: #1f2127;
   --color-ink: #e8e9ee;
@@ -78,7 +83,4 @@
   --color-on-c: #f2f3f7;
   --color-lock-band: #4a4f5c;
   --color-lock-tint: #262930;
-  --hue-s: 38%;
-  --hue-l: 36%;
-  --hue-soft-l: 21%;
 }

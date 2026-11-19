@@ -4,46 +4,44 @@
   import X from "@lucide/svelte/icons/x";
   import { getStore, type StudentsMode } from "../state.svelte";
 
+  // SPEC §8 Students drawer: Attendance (tap to toggle) and Edit list (add, rename, remove).
   const store = getStore();
   const roster = $derived(store.roster!);
+  const id = $props.id();
 
-  let newName = $state("");
-  let addError = $state<string | null>(null);
+  let name = $state("");
+  let error = $state<string | null>(null);
   let undoError = $state<string | null>(null);
-  let renaming = $state<{ id: string; name: string; error: string | null } | null>(null);
+  let editing = $state<{ id: string; name: string; error: string | null } | null>(null);
 
-  function setMode(mode: StudentsMode) {
+  function switchMode(mode: StudentsMode) {
     store.setStudentsMode(mode);
-    renaming = null;
-    addError = null;
+    editing = null;
+    error = null;
     undoError = null;
   }
 
   function add(event: SubmitEvent) {
     event.preventDefault();
-    const result = store.addStudent(newName);
-    if (!result.ok) {
-      addError = result.message;
-      return;
-    }
-    newName = "";
-    addError = null;
+    const result = store.addStudent(name);
+    error = result.ok ? null : result.message;
+    if (result.ok) name = "";
   }
 
   function startRename(student: Student) {
-    renaming = { id: student.id, name: student.name, error: null };
+    editing = { id: student.id, name: student.name, error: null };
   }
 
   function saveRename(event: SubmitEvent) {
     event.preventDefault();
-    if (!renaming) return;
-    const result = store.renameStudent(renaming.id, renaming.name);
-    if (!result.ok) renaming.error = result.message;
-    else renaming = null;
+    if (!editing) return;
+    const result = store.renameStudent(editing.id, editing.name);
+    if (result.ok) editing = null;
+    else editing.error = result.message;
   }
 
   function remove(student: Student) {
-    if (renaming?.id === student.id) renaming = null;
+    if (editing?.id === student.id) editing = null;
     undoError = null;
     store.removeStudent(student.id);
   }
@@ -53,42 +51,46 @@
     undoError = result.ok ? null : result.message;
   }
 
-  const focus = (input: HTMLInputElement) => {
-    input.focus();
-    input.select();
-  };
-
-  const seg = "flex-1 border border-line bg-panel p-2 aria-pressed:border-ink aria-pressed:bg-ink aria-pressed:text-panel";
-  const field = "min-w-0 flex-1 rounded-md border border-line bg-field px-2 py-[5px]";
-  const button = "rounded-md border border-line bg-panel px-2.5 py-1 hover:border-mute";
-  const refusal = "mt-1.5 rounded-md border border-bad-line bg-bad-soft px-2.5 py-1.5 text-bad";
+  const segClass = (on: boolean) =>
+    `flex-1 border px-2 py-2 first:rounded-l-lg last:rounded-r-lg last:border-l-0 ${
+      on ? "border-ink bg-ink text-panel" : "border-line bg-panel"
+    }`;
+  const buttonClass = "rounded-md border border-line bg-panel px-2.5 py-1 hover:border-mute";
+  const errorClass = "my-1.5 rounded-md border border-bad-line bg-bad-soft px-2.5 py-1.5 text-bad";
+  const fieldClass = "min-w-0 flex-1 rounded-md border border-line bg-field px-2 py-1.5";
+  const rowClass = "flex items-center gap-1.5 border-b border-line px-1 py-1.5";
+  const iconButtonClass = "inline-flex items-center gap-1 rounded px-1 text-mute";
 </script>
 
 <div class="fixed inset-0 z-10 bg-black/40" aria-hidden="true" onclick={() => store.closeDrawer()}></div>
-<div
+<!-- svelte-ignore a11y_no_noninteractive_element_to_interactive_role -->
+<aside
   role="dialog"
   aria-modal="true"
-  aria-labelledby="students-title"
-  class="fixed inset-y-0 right-0 z-11 w-[min(440px,100%)] overflow-auto bg-panel p-4 shadow-[-8px_0_30px_rgba(0,0,0,.25)]"
+  aria-labelledby="{id}-title"
+  class="fixed inset-y-0 right-0 z-[11] w-[min(440px,100%)] overflow-auto bg-panel p-4 shadow-[-8px_0_30px_rgba(0,0,0,.25)]"
 >
   <header class="mb-2.5 flex items-center justify-between">
-    <h2 id="students-title" class="text-lg font-bold">Students</h2>
-    <button type="button" class={button} onclick={() => store.closeDrawer()}>Done</button>
+    <h2 id="{id}-title" class="text-lg font-bold">Students</h2>
+    <button type="button" class={buttonClass} onclick={() => store.closeDrawer()}>Done</button>
   </header>
-
   <div class="mb-3 flex" role="group" aria-label="Mode">
     <button
       type="button"
-      class="{seg} rounded-l-lg"
       aria-pressed={store.studentsMode === "attendance"}
-      onclick={() => setMode("attendance")}>Attendance</button
+      class={segClass(store.studentsMode === "attendance")}
+      onclick={() => switchMode("attendance")}
     >
+      Attendance
+    </button>
     <button
       type="button"
-      class="{seg} rounded-r-lg border-l-0"
       aria-pressed={store.studentsMode === "edit"}
-      onclick={() => setMode("edit")}>Edit list</button
+      class={segClass(store.studentsMode === "edit")}
+      onclick={() => switchMode("edit")}
     >
+      Edit list
+    </button>
   </div>
 
   {#if store.studentsMode === "attendance"}
@@ -98,89 +100,104 @@
       <p class="text-sm text-mute">
         Tap a name to mark them Absent or Present. {presentCount(roster)} of {roster.students.length} Present.
       </p>
-      <div class="my-2.5 flex flex-wrap gap-2">
+      <ul class="my-2.5 flex flex-wrap gap-2" aria-label="Attendance">
         {#each roster.students as student (student.id)}
-          <button
-            type="button"
-            class="rounded-[10px] border px-3.5 py-2.5 text-base aria-pressed:border-ok aria-pressed:bg-ok-soft aria-[pressed=false]:border-line aria-[pressed=false]:bg-off aria-[pressed=false]:text-mute aria-[pressed=false]:line-through"
-            aria-pressed={student.present}
-            onclick={() => store.togglePresent(student.id)}>{student.name}</button
-          >
+          <li>
+            <button
+              type="button"
+              aria-pressed={student.present}
+              onclick={() => store.togglePresent(student.id)}
+              class="rounded-[10px] border px-3.5 py-2.5 text-base {student.present
+                ? 'border-ok bg-ok-soft'
+                : 'border-line bg-off text-mute line-through'}"
+            >
+              {student.name}
+            </button>
+          </li>
         {/each}
-      </div>
+      </ul>
     {/if}
   {:else}
     {#if store.removed}
-      <div
-        role="status"
-        class="mb-2.5 flex flex-wrap items-center gap-x-2.5 gap-y-1.5 rounded-lg bg-accent-soft px-3.5 py-2.5"
-      >
-        <span>{removedStudentMessage(store.removed)}</span>
-        <button type="button" class={button} onclick={undo}>Undo</button>
+      <div role="status" class="mb-2.5 flex flex-wrap items-center gap-x-2.5 gap-y-1.5 rounded-lg bg-accent-soft px-3.5 py-2.5">
+        {removedStudentMessage(store.removed)}
+        <button type="button" class={buttonClass} onclick={undo}>Undo</button>
+        {#if undoError}
+          <p class="w-full text-bad">{undoError}</p>
+        {/if}
       </div>
-      {#if undoError}
-        <p role="alert" class={refusal}>{undoError}</p>
-      {/if}
     {/if}
-
-    <form class="flex gap-1.5" onsubmit={add} novalidate>
+    <form class="flex items-center gap-1.5" onsubmit={add}>
       <input
-        class={field}
+        bind:value={name}
+        oninput={() => (error = null)}
         aria-label="Student name"
         placeholder="Add a Student"
-        bind:value={newName}
-        oninput={() => (addError = null)}
-        aria-invalid={addError ? "true" : undefined}
+        autocomplete="off"
+        aria-invalid={error ? true : undefined}
+        aria-describedby={error ? `${id}-error` : undefined}
+        class={fieldClass}
         {@attach (input) => input.focus()}
       />
-      <button type="submit" class={button}>Add</button>
+      <button type="submit" class={buttonClass}>Add</button>
     </form>
-    {#if addError}
-      <p role="alert" class={refusal}>{addError}</p>
+    {#if error}
+      <p id="{id}-error" role="alert" class={errorClass}>{error}</p>
     {/if}
-
-    <ul class="my-2.5" aria-label="Students on {roster.name}">
+    <ul class="my-2.5" aria-label="Students">
       {#each roster.students as student (student.id)}
-        <li class="border-b border-line px-1 py-1.5">
-          {#if renaming?.id === student.id}
-            <form class="flex gap-1.5" onsubmit={saveRename} novalidate>
+        {#if editing?.id === student.id}
+          <li class="border-b border-line px-1 py-1.5">
+            <form class="flex items-center gap-1.5" onsubmit={saveRename}>
               <input
-                class={field}
+                bind:value={editing.name}
+                oninput={() => editing && (editing.error = null)}
+                onkeydown={(event) => {
+                  if (event.key === "Escape") {
+                    event.preventDefault();
+                    editing = null;
+                  }
+                }}
                 aria-label="New name for {student.name}"
-                bind:value={renaming.name}
-                oninput={() => renaming && (renaming.error = null)}
-                aria-invalid={renaming.error ? "true" : undefined}
-                {@attach focus}
+                autocomplete="off"
+                aria-invalid={editing.error ? true : undefined}
+                aria-describedby={editing.error ? `${id}-rename-error` : undefined}
+                class={fieldClass}
+                {@attach (input) => {
+                  input.focus();
+                  input.select();
+                }}
               />
-              <button type="submit" class={button}>Save</button>
-              <button type="button" class={button} onclick={() => (renaming = null)}>Cancel</button>
+              <button type="submit" class={buttonClass}>Save</button>
+              <button type="button" class={buttonClass} onclick={() => (editing = null)}>Cancel</button>
             </form>
-            {#if renaming.error}
-              <p role="alert" class={refusal}>{renaming.error}</p>
+            {#if editing.error}
+              <p id="{id}-rename-error" role="alert" class={errorClass}>{editing.error}</p>
             {/if}
-          {:else}
-            <div class="flex items-center gap-1">
-              <span class="flex-1">{student.name}</span>
-              <button
-                type="button"
-                class="inline-flex items-center gap-1 px-1 text-mute hover:text-ink"
-                aria-label="Rename {student.name}"
-                onclick={() => startRename(student)}
-              >
-                <Pencil aria-hidden="true" class="size-4" />Rename
-              </button>
-              <button
-                type="button"
-                class="inline-flex items-center gap-1 px-1 text-mute hover:text-bad"
-                aria-label="Remove {student.name} from the Roster"
-                onclick={() => remove(student)}
-              >
-                <X aria-hidden="true" class="size-4" />Remove
-              </button>
-            </div>
-          {/if}
-        </li>
+          </li>
+        {:else}
+          <li class={rowClass}>
+            <span class="flex-1">{student.name}</span>
+            <button
+              type="button"
+              class="{iconButtonClass} hover:text-ink"
+              aria-label="Rename {student.name}"
+              onclick={() => startRename(student)}
+            >
+              <Pencil aria-hidden="true" class="size-4" />
+            </button>
+            <button
+              type="button"
+              class="{iconButtonClass} hover:text-bad"
+              aria-label="Remove {student.name}"
+              onclick={() => remove(student)}
+            >
+              <X aria-hidden="true" class="size-4" />
+              Remove
+            </button>
+          </li>
+        {/if}
       {/each}
     </ul>
   {/if}
-</div>
+</aside>

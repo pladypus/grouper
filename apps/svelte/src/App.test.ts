@@ -118,8 +118,8 @@ describe("Students drawer", () => {
       `There's already a Sam on this Roster. Tell them apart with something like "Sam B.".`,
     );
     await addStudent("Sam B.");
-    const list = screen.getByRole("list", { name: "Students on Period 2" });
-    expect(within(list).getAllByRole("listitem").map((li) => li.textContent?.replace(/Rename|Remove/g, "").trim())).toEqual([
+    const list = screen.getByRole("list", { name: "Students" });
+    expect(within(list).getAllByRole("listitem").map((li) => li.textContent?.replace("Remove", "").trim())).toEqual([
       "Ana",
       "Sam",
       "Ben",
@@ -170,14 +170,14 @@ describe("Students drawer", () => {
     await fireEvent.click(screen.getByRole("button", { name: "2/3 Present" }));
     await fireEvent.click(screen.getByRole("button", { name: "Edit list" }));
 
-    await fireEvent.click(screen.getByRole("button", { name: "Remove Ben from the Roster" }));
+    await fireEvent.click(screen.getByRole("button", { name: "Remove Ben" }));
     expect(screen.queryByRole("button", { name: "Rename Ben" })).not.toBeInTheDocument();
-    expect(screen.getByRole("status")).toHaveTextContent("Removed Ben.");
+    expect(screen.getByText("Removed Ben.")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "1/2 Present" })).toBeInTheDocument();
 
     await fireEvent.click(screen.getByRole("button", { name: "Undo" }));
-    expect(screen.queryByRole("status")).not.toBeInTheDocument();
-    const names = within(screen.getByRole("list", { name: "Students on Period 2" }))
+    expect(screen.queryByText("Removed Ben.")).not.toBeInTheDocument();
+    const names = within(screen.getByRole("list", { name: "Students" }))
       .getAllByRole("button", { name: /^Rename / })
       .map((b) => b.getAttribute("aria-label"));
     expect(names).toEqual(["Rename Ana", "Rename Ben", "Rename Cal"]);
@@ -192,10 +192,14 @@ describe("Roster menu", () => {
     // The only Roster can't be deleted.
     let menu = await openMenu();
     const del = within(menu).getByRole("menuitem", { name: "Delete Roster" });
-    expect(del).toBeDisabled();
-    expect(del).toHaveAccessibleDescription("You can't delete your only Roster.");
+    expect(del).toHaveAttribute("aria-disabled", "true");
+    await fireEvent.click(del);
+    expect(screen.queryByRole("menu")).not.toBeInTheDocument();
+    expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument();
+    expect(screen.getByRole("status")).toHaveTextContent("You can't delete your only Roster.");
 
     // Roster names are unique, compared like Student names.
+    menu = await openMenu();
     await fireEvent.click(within(menu).getByRole("menuitem", { name: "New Roster" }));
     await createRoster("period 2");
     expect(screen.getByRole("alert")).toHaveTextContent(`There's already a Roster called "Period 2".`);

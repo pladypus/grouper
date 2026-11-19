@@ -6,6 +6,7 @@
   import StudentsDrawer from "./components/StudentsDrawer.svelte";
   import RosterNameDialog from "./components/RosterNameDialog.svelte";
   import DeleteRosterDialog from "./components/DeleteRosterDialog.svelte";
+  import Toast from "./components/Toast.svelte";
 
   interface Props {
     /** Defaults to the browser's localStorage; tests pass a fake, or null for "unavailable". */
@@ -42,7 +43,7 @@
   });
 
   function onkeydown(event: KeyboardEvent) {
-    if (event.key !== "Escape") return;
+    if (event.key !== "Escape" || event.defaultPrevented) return;
     if (store.dialog) store.dialog = null;
     else if (store.drawer) store.closeDrawer();
   }
@@ -53,6 +54,7 @@
 <div class="flex h-dvh flex-col">
   <TopBar />
   <Board />
+  <Toast />
 </div>
 
 {#if store.drawer === "students" && store.roster}

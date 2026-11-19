@@ -56,8 +56,10 @@ export class GrouperStore {
   drawer = $state<"students" | null>(null);
   studentsMode = $state<StudentsMode>("attendance");
   dialog = $state<Dialog>(null);
-  /** The last removed Student, for the Undo notice. */
+  /** The last removed Student, while their Undo notice is showing. */
   removed = $state.raw<RemovedStudent | null>(null);
+  /** The toast's message (SPEC §8 Toasts), or null. */
+  toast = $state<string | null>(null);
 
   readonly #storage: StorageLike | null;
   readonly #newId: IdGenerator;
@@ -174,7 +176,7 @@ export class GrouperStore {
 
   // --- UI --------------------------------------------------------------------------------------
 
-  openStudents(mode: StudentsMode = this.studentsMode): void {
+  openStudents(mode: StudentsMode): void {
     this.studentsMode = mode;
     this.drawer = "students";
   }
@@ -187,6 +189,10 @@ export class GrouperStore {
   setStudentsMode(mode: StudentsMode): void {
     this.studentsMode = mode;
     this.removed = null;
+  }
+
+  showToast(message: string): void {
+    this.toast = message;
   }
 
   /** Theme button: auto → light → dark → auto, remembered per browser. */
