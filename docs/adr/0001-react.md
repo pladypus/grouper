@@ -4,7 +4,7 @@ Status: accepted, 2026-11-19 ([#26](https://github.com/pladypus/grouper/issues/2
 
 ## Context
 
-Research #3 chose Svelte, assuming the owner was new to web frameworks. The owner's other web projects are React 19 + Tailwind v4, so the first slice (#12, #14, #15, #16, #18, #19) was built twice, in `apps/react` and `apps/svelte`, over one shared core, and compared in [the bake-off report](../bake-off.md). The owner ran both locally.
+Research #3 chose Svelte, assuming the owner was new to web frameworks. The owner's other web projects are React 19 + Tailwind v4, so the first slice (#12, #14, #15, #16, #18, #19) was built twice, in `apps/react` and `apps/svelte`, over one shared core, and compared in [the bake-off report](https://github.com/pladypus/grouper/blob/8efcda7/docs/bake-off.md). The owner ran both locally.
 
 ## Decision
 

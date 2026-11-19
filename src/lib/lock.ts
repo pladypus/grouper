@@ -1,4 +1,4 @@
-// Locks (SPEC §4 steps 1–3, §7 Lock): the Lock toggle, its labels, and the checks a Reshuffle runs
+// Locks (spec: shuffle-rules.md steps 1–3, lock-and-manual-move.md#lock): the Lock toggle, its labels, and the checks a Reshuffle runs
 // on Locked Groups before the solver sees the free pool (shuffle.ts calls `planLocks`).
 //
 // Wiring (UI):
@@ -115,7 +115,7 @@ export type LockPlan =
     };
 
 /**
- * SPEC §4 steps 1–3 for the Present Students:
+ * spec: shuffle-rules.md steps 1–3 for the Present Students:
  * 1. drop Absent or removed Students from each Locked Group; a Locked Group left with one Student is
  *    released (they rejoin the pool), one left with none just goes;
  * 2. the free pool is every Present Student not in a kept Lock; exactly 1 is a Conflict;

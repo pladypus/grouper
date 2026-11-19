@@ -1,4 +1,4 @@
-// Solver stage 3 (SPEC §5): spread. Backtracking alone is biased (it fills Groups in a pattern), so
+// Solver stage 3 (spec: solver.md): spread. Backtracking alone is biased (it fills Groups in a pattern), so
 // the grouping it found is mixed by Metropolis steps: pick two different Groups, pick a random subset
 // of blocks in each (each block with probability ½), and swap the subsets if their total sizes match
 // and no Keep apart edge breaks. The proposal is symmetric, so every valid grouping reachable this
@@ -7,7 +7,7 @@
 import type { Prepared } from "./prepare";
 import { randomInt, type Rng } from "./rng";
 
-/** SPEC §14: fixed at 300 (research range 200–500). */
+/** spec: solver.md: fixed at 300 (research range 200–500). */
 export const SPREAD_STEPS = 300;
 
 /** Mixes `assign` (block index → Group index) in place and returns it. */

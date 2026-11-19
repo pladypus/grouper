@@ -1,4 +1,4 @@
-// #22: Import a .txt or .csv list as a new Roster (SPEC §12 Import item 3).
+// #22: Import a .txt or .csv list as a new Roster (spec: export-import.md#import item 3).
 import {
   addStudent,
   clashMessage,

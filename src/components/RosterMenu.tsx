@@ -15,7 +15,7 @@ export interface RosterMenuProps {
   onDeleteRefused: () => void;
 }
 
-/** The ⋯ menu beside the Roster picker (SPEC §8 top bar item 1). New Roster, Rename, Export, Export all Rosters, Import, Delete Roster. */
+/** The ⋯ menu beside the Roster picker (spec: screens.md#top-bar-one-row-fixed-height item 1). New Roster, Rename, Export, Export all Rosters, Import, Delete Roster. */
 export function RosterMenu({
   canDelete,
   onNew,

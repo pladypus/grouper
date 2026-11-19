@@ -1,4 +1,4 @@
-// The Shuffle solver (SPEC §5): pure, dependency-free, synchronous. Takes integer Student ids for
+// The Shuffle solver (spec: solver.md): pure, dependency-free, synchronous. Takes integer Student ids for
 // the free pool and returns Groups that match the Split and keep every Rule, or a Conflict.
 //
 // Stages: prepare (blocks + Keep apart edges, quick checks) → search (backtracking with restarts)

@@ -1,4 +1,4 @@
-// localStorage adapter (SPEC §10). Every key starts with `grouper:`. Every read and write is wrapped
+// localStorage adapter (spec: storage.md). Every key starts with `grouper:`. Every read and write is wrapped
 // in try/catch: when storage is unavailable or full the app keeps working for the session and the UI
 // shows STORAGE_UNAVAILABLE_MESSAGE. The Storage object is a parameter so tests can pass a fake.
 
@@ -33,7 +33,7 @@ export const STORAGE_KEYS = {
   iosTipDismissed: `${STORAGE_PREFIX}ios-tip-dismissed`,
 } as const;
 
-/** SPEC §10: the notice shown while Rosters aren't being saved. */
+/** spec: storage.md: the notice shown while Rosters aren't being saved. */
 export const STORAGE_UNAVAILABLE_MESSAGE =
   "This browser isn't saving your Rosters. Use Export all Rosters before you close the page.";
 
@@ -169,7 +169,7 @@ export function saveIosTipDismissed(storage: StorageLike | null): boolean {
 }
 
 /**
- * SPEC §10: the first time a Roster is saved, ask the browser to keep storage (silently, result
+ * spec: storage.md: the first time a Roster is saved, ask the browser to keep storage (silently, result
  * ignored). Pass `navigator.storage`; missing support and rejections are swallowed.
  */
 export function requestPersistentStorage(manager: { persist?: () => Promise<boolean> } | undefined | null): void {
@@ -192,7 +192,7 @@ function parseJson(text: string | null): unknown {
 }
 
 /**
- * SPEC §10 stored shape: `{id, name, students:[{id, name, present}], pairs:[{id, type, a, b, created}], target,
+ * spec: storage.md stored shape: `{id, name, students:[{id, name, present}], pairs:[{id, type, a, b, created}], target,
  * pairClock}`. `pairClock` (the creation clock for Pairs, browser-only) came with #16: saves without
  * it still load, with the clock starting one past the newest Pair.
  */

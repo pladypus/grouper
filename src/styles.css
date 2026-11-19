@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 /* The theme is chosen in the app (auto / light / dark) and applied as data-theme on <html>,
-   so `dark:` follows that attribute rather than the media query. Paper is always light (SPEC §9),
+   so `dark:` follows that attribute rather than the media query. Paper is always light (spec: share.md),
    so the dark theme applies on screen only. */
 @custom-variant dark {
   @media screen {
@@ -11,7 +11,7 @@
   }
 }
 
-/* Theme tokens from the main-screen prototype's :root block (SPEC §8). Light values here; the dark
+/* Theme tokens from the main-screen prototype's :root block (spec: screens.md#board). Light values here; the dark
    values override the same variables below, so every `bg-panel`, `text-ink`… utility switches. */
 @theme {
   --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
@@ -94,7 +94,7 @@
   }
 }
 
-/* Print layout (SPEC §9), the same for Print… and Ctrl+P: A4 portrait on white, Group colours
+/* Print layout (spec: share.md), the same for Print… and Ctrl+P: A4 portrait on white, Group colours
    kept. The rest is `print:` variants on the components (hidden parts, cards three across). */
 @page {
   size: A4 portrait;

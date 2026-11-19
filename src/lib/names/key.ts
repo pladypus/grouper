@@ -1,4 +1,4 @@
-// Name key and display-name normalisation (SPEC §3 Student).
+// Name key and display-name normalisation (spec: domain-model.md#student-7).
 // Two names with the same key are the same Student. Roster names are compared the same way.
 
 /** A name as it is shown: trimmed, with each run of whitespace collapsed to one space. Case is kept. */

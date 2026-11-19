@@ -1,4 +1,4 @@
-// #20: Export, Backup and Import of Grouper files (SPEC §12).
+// #20: Export, Backup and Import of Grouper files (spec: export-import.md).
 import {
   addPair,
   addStudent,

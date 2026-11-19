@@ -1,4 +1,4 @@
-// Target size → Split (SPEC §3 "Target size, Split, Leftovers"): the derived Split, its text, and
+// Target size → Split (spec: domain-model.md#target-size-split-leftovers-4-6): the derived Split, its text, and
 // the Teacher's hand-edited Split.
 
 import type { Result } from "./roster";

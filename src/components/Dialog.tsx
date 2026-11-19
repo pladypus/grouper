@@ -148,7 +148,7 @@ interface ClashDialogProps {
   onClose: () => void;
 }
 
-/** Import's name-clash question (SPEC §12): Replace or Keep both, one question for every clash. */
+/** Import's name-clash question (spec: export-import.md): Replace or Keep both, one question for every clash. */
 export function ClashDialog({ title, message, onReplace, onKeepBoth, onClose }: ClashDialogProps) {
   const messageId = useId();
   return (

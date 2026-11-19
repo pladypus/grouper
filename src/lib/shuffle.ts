@@ -1,4 +1,4 @@
-// Shuffle / Reshuffle (SPEC §4): Locks first (lock.ts `planLocks`), then the free pool's Split, then
+// Shuffle / Reshuffle (spec: shuffle-rules.md): Locks first (lock.ts `planLocks`), then the free pool's Split, then
 // the solver. Locked Groups keep their place and colour; new Groups fill the other positions.
 
 import { EMPTY_BOARD, type Board, type Group } from "./groups";
@@ -26,7 +26,7 @@ export interface ShuffleOptions {
 /** Why a Shuffle found no Groups, for the Conflict notice. */
 export interface ShuffleConflict {
   /**
-   * A solver Conflict, or one of SPEC §4's Lock checks: `lone-leftover` (exactly one Present Student
+   * A solver Conflict, or one of the Lock checks in spec: shuffle-rules.md: `lone-leftover` (exactly one Present Student
    * outside the Locked Groups) or `chain-cut-by-lock` (a Present chain partly Locked, partly free).
    */
   readonly kind: SolverConflict["kind"] | "lone-leftover" | "chain-cut-by-lock";
@@ -61,7 +61,7 @@ export function noGroupingMessage(split: readonly number[]): string {
   return `No way to make ${list} keeps every pair.`;
 }
 
-/** The plain Conflict sentence (SPEC §6) for a solver Conflict; `ids` maps solver ids to Students. */
+/** The plain Conflict sentence (spec: conflicts.md) for a solver Conflict; `ids` maps solver ids to Students. */
 function conflictMessage(
   roster: Roster,
   conflict: SolverConflict,
@@ -97,7 +97,7 @@ function conflictMessage(
 
 /**
  * Shuffles the open Roster's Present Students into new Groups, keeping every Pair among them (Good
- * pair chains run through Absent Students) and keeping the Locked Groups (SPEC §4):
+ * pair chains run through Absent Students) and keeping the Locked Groups (spec: shuffle-rules.md):
  * - Locked Groups lose their Absent or removed members and otherwise stay exactly as they are (id,
  *   members, place, hue, Lock), even if they break a Rule (they stay flagged). One left with a single
  *   Student is released and that Student rejoins the pool (`toast` says so); one left empty goes.

@@ -1,4 +1,4 @@
-// Share → Copy picture (SPEC §9): where everything goes on the 1920×1080 PNG. Pure: the UI hands in
+// Share → Copy picture (spec: share.md): where everything goes on the 1920×1080 PNG. Pure: the UI hands in
 // a measureText function (the canvas's), draws the result and puts it on the clipboard.
 
 import { groupMembers, groupSizeLabel, groupTitle, type Board } from "../groups";

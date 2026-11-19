@@ -19,7 +19,7 @@ export interface ImportListDialogProps {
 const NO_STUDENTS: readonly { name: string }[] = [];
 
 /**
- * SPEC §12 Import item 3, the confirm step for a .txt / .csv list: the Roster name (defaulting to
+ * spec: export-import.md#import item 3, the confirm step for a .txt / .csv list: the Roster name (defaulting to
  * the file name, editable), the column picker for a table, and the Add names preview.
  */
 export function ImportListDialog({ text, fileName, defaultName, onImport, onClose }: ImportListDialogProps) {

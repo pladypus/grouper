@@ -33,7 +33,7 @@ export interface PairsDrawerProps {
   onClose: () => void;
 }
 
-/** SPEC §8 Pairs drawer: pick two Students, ＋ Good pair / ＋ Keep apart; the Pairs listed by kind, each deletable. */
+/** spec: screens.md#pairs-drawer: pick two Students, ＋ Good pair / ＋ Keep apart; the Pairs listed by kind, each deletable. */
 export function PairsDrawer({ highlight = null, onClose }: PairsDrawerProps) {
   const { roster, addPair } = useRosters();
   const [a, setA] = useState("");

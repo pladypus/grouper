@@ -1,4 +1,4 @@
-// Explain (#17, SPEC §5 stage 4): QuickXplain over the Pairs, newest blamed first. The research's
+// Explain (#17, spec: solver.md stage 4): QuickXplain over the Pairs, newest blamed first. The research's
 // hand-made cases are in rules.test.ts (through `solve`); here: the preference order, that every
 // answer genuinely conflicts and is minimal when within budget, the budget, and speed.
 

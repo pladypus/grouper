@@ -1,4 +1,4 @@
-// The column picker's first guess (SPEC §12 Import, §14 "CSV column guess"): whether row 1 is a
+// The column picker's first guess (spec: export-import.md#import, the CSV column guess): whether row 1 is a
 // header, and which column(s) hold the names. The Teacher can change both.
 
 import { columnCount } from "./parse";

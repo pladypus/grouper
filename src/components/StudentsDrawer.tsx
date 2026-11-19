@@ -25,7 +25,7 @@ export interface StudentsDrawerProps {
 
 const fieldClass = "min-w-0 flex-1 rounded-md border border-line bg-field px-2 py-1.5";
 
-/** SPEC §8 Students drawer: Attendance (tap to toggle) and Edit list (add, rename, remove). */
+/** spec: screens.md#students-drawer: Attendance (tap to toggle) and Edit list (add, rename, remove). */
 export function StudentsDrawer({ mode, onModeChange, onClose }: StudentsDrawerProps) {
   const { dismissUndo } = useRosters();
 
@@ -181,7 +181,7 @@ function EditList() {
 }
 
 /**
- * SPEC §11 Add names in the Students drawer: paste box (or a dropped/chosen file), column picker,
+ * Add names (spec: add-names.md) in the Students drawer: paste box (or a dropped/chosen file), column picker,
  * preview, then "Add N students". `onDone` gets how many were added, or null for Cancel.
  */
 function AddNamesPanel({ onDone }: { onDone: (added: number | null) => void }) {

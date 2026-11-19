@@ -1,4 +1,4 @@
-// Board layout arithmetic (SPEC §8 Board): column count from the measured space, Group colours,
+// Board layout arithmetic (spec: screens.md#board): column count from the measured space, Group colours,
 // and name sizing. Pure numbers in pixels; the UI measures and applies them.
 
 /** Group header hues in degrees, cycled by position. */

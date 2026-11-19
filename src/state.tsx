@@ -1,4 +1,4 @@
-// App state the React way (SPEC §2): useReducer + context. Every change goes through the pure
+// App state the React way (spec: stack-and-hosting.md): useReducer + context. Every change goes through the pure
 // operations in src/lib; the reducer only routes actions to them. Commands run the same
 // operation first so a refusal ("There's already a Sam…") can be returned to the form that asked.
 // The Board (Groups on screen, #15) lives next to the AppState and is never saved; after every
@@ -59,15 +59,15 @@ export interface State {
   readonly app: AppState;
   /** The last removed Student, while their Undo notice is showing. */
   readonly removed: RemovedStudent | null;
-  /** The Groups on screen; in memory only (SPEC §3 Group). */
+  /** The Groups on screen; in memory only (spec: domain-model.md#group-5). */
   readonly board: Board;
   /**
-   * The last Shuffle's Conflict (SPEC §6), shown in the red notice on the board; the Groups stayed
+   * The last Shuffle's Conflict (spec: conflicts.md), shown in the red notice on the board; the Groups stayed
    * as they were. Cleared by the next successful Shuffle and by any Roster change.
    */
   readonly conflict: ConflictNotice | null;
   /**
-   * The Student picked by tap / Enter / Space for a swap (SPEC §7 Manual move), or null. Cleared by
+   * The Student picked by tap / Enter / Space for a swap (spec: lock-and-manual-move.md#manual-move-swap), or null. Cleared by
    * every Shuffle and Roster switch.
    */
   readonly selected: Selection;
@@ -86,7 +86,7 @@ export type Action =
   | { type: "deleteRoster"; rosterId: RosterId }
   | { type: "selectRoster"; rosterId: RosterId }
   | { type: "addStudent"; name: string; id: string }
-  /** Add names (SPEC §11): `ids` holds one fresh id per name, used in order for the names added. */
+  /** Add names (spec: add-names.md): `ids` holds one fresh id per name, used in order for the names added. */
   | { type: "addNames"; names: readonly string[]; ids: readonly string[] }
   | { type: "renameStudent"; studentId: StudentId; name: string }
   | { type: "removeStudent"; studentId: StudentId }
@@ -103,9 +103,9 @@ export type Action =
   | { type: "resetSplit" }
   /** A Manual move outcome (tap, drop, cancel) the command already worked out. */
   | { type: "move"; outcome: MoveOutcome }
-  /** The Lock toggle in a Group header (SPEC §7 Lock). */
+  /** The Lock toggle in a Group header (spec: lock-and-manual-move.md#lock). */
   | { type: "toggleLock"; groupId: GroupId }
-  /** Import (SPEC §12): the AppState with the imported Rosters added, worked out by the command. */
+  /** Import (spec: export-import.md): the AppState with the imported Rosters added, worked out by the command. */
   | { type: "imported"; app: AppState };
 
 /**
@@ -263,7 +263,7 @@ export interface Rosters {
    */
   dropStudent(dragged: StudentId, target: StudentId | null): Refusal;
   /**
-   * Import (SPEC §12): adds the Rosters read from a file (Replace or Keep both on a name clash) and
+   * Import (spec: export-import.md): adds the Rosters read from a file (Replace or Keep both on a name clash) and
    * opens the first. Returns what was added and skipped, for the toast and the skipped message.
    */
   importRosters(rosters: readonly ImportedRoster[], choice: ClashChoice): ImportedResult[];

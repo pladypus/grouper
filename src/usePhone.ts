@@ -1,7 +1,7 @@
 import { isPhoneWidth } from "./lib";
 import { useEffect, useState } from "react";
 
-/** True at phone width (SPEC §8: ≤ 760 px): one-column board, Reshuffle pinned to the bottom. */
+/** True at phone width (spec: screens.md#top-bar-one-row-fixed-height, phones ≤ 760 px): one-column board, Reshuffle pinned to the bottom. */
 export function usePhone(): boolean {
   const [phone, setPhone] = useState(() => isPhoneWidth(window.innerWidth));
   useEffect(() => {

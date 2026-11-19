@@ -11,7 +11,7 @@ import { useMemo, useState } from "react";
 
 type Rows = readonly (readonly string[])[];
 
-/** The column picker's state for a table (SPEC §12): pass it straight to <ColumnPicker {...table} />. */
+/** The column picker's state for a table (spec: export-import.md): pass it straight to <ColumnPicker {...table} />. */
 export interface TableChoice {
   readonly rows: Rows;
   /** Ticked column indexes, in column order. */

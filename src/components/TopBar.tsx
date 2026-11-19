@@ -32,7 +32,7 @@ export interface TopBarProps {
 const pillClass =
   "inline-flex items-center gap-[7px] whitespace-nowrap rounded-full border border-line bg-panel px-3 py-[7px] font-semibold hover:border-mute";
 
-/** One row, fixed height (SPEC §8); not printed (SPEC §9). */
+/** One row, fixed height (spec: screens.md#top-bar-one-row-fixed-height); not printed (spec: share.md). */
 export function TopBar(props: TopBarProps) {
   const { state, roster, selectRoster, storage } = useRosters();
   const zoneClass = props.phone ? "flex items-center gap-2" : "flex items-center gap-2 border-l border-line pl-5";

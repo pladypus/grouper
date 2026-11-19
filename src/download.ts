@@ -1,4 +1,4 @@
-// Saves a file the browser downloads (SPEC §12: Blob + object URL + `<a download>`).
+// Saves a file the browser downloads (spec: export-import.md: Blob + object URL + `<a download>`).
 
 export function downloadBlob(fileName: string, blob: Blob): void {
   const url = URL.createObjectURL(blob);

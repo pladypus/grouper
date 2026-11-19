@@ -1,4 +1,4 @@
-// Manual move (SPEC §7): swapping two Students between Groups, the tap/keyboard selection the UI
+// Manual move (spec: lock-and-manual-move.md): swapping two Students between Groups, the tap/keyboard selection the UI
 // uses, and the flags on Groups that break a Rule.
 //
 // Wiring (UI):

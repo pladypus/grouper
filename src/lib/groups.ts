@@ -1,4 +1,4 @@
-// The Groups on screen and their lifecycle (SPEC §3 Group, §7 Lifecycle). Pure state the UI holds
+// The Groups on screen and their lifecycle (spec: domain-model.md#group-5, lock-and-manual-move.md#lifecycle). Pure state the UI holds
 // next to its AppState. It is never saved: a reload starts with EMPTY_BOARD.
 //
 // Wiring (UI):
@@ -26,7 +26,7 @@ export interface Group {
   readonly members: readonly StudentId[];
   /** Fixed when the Group is made (a Reshuffle shrinks a Locked Group that lost Absent or removed members). */
   readonly size: number;
-  /** Set by the Lock toggle (`toggleLock`, lock.ts); a Reshuffle keeps a Locked Group (SPEC §4). */
+  /** Set by the Lock toggle (`toggleLock`, lock.ts); a Reshuffle keeps a Locked Group (spec: shuffle-rules.md). */
   readonly locked: boolean;
   /** Header hue in degrees, from GROUP_HUES by position; kept by a Locked Group on Reshuffle. */
   readonly hue: number;

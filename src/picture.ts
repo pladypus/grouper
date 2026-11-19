@@ -1,4 +1,4 @@
-// Draws Copy picture's layout (lib/share/picture.ts) on a canvas and makes the PNG (SPEC §9).
+// Draws Copy picture's layout (lib/share/picture.ts) on a canvas and makes the PNG (spec: share.md).
 
 import type { MeasureText, Picture } from "./lib";
 
