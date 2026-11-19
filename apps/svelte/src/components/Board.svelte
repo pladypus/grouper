@@ -1,5 +1,11 @@
 <script lang="ts">
-  import { EMPTY_BOARD_MESSAGE, hasGroups, OUT_OF_DATE_MESSAGE, STORAGE_UNAVAILABLE_MESSAGE } from "@grouper/core";
+  import {
+    EMPTY_BOARD_MESSAGE,
+    hasGroups,
+    OUT_OF_DATE_MESSAGE,
+    oversizeChains,
+    STORAGE_UNAVAILABLE_MESSAGE,
+  } from "@grouper/core";
   import Plus from "@lucide/svelte/icons/plus";
   import TriangleAlert from "@lucide/svelte/icons/triangle-alert";
   import UserPlus from "@lucide/svelte/icons/user-plus";
@@ -10,6 +16,8 @@
   // On phones the pinned Reshuffle covers the bottom 84 px, so leave room for it.
   const store = getStore();
   const showGroups = $derived(!!store.roster && hasGroups(store.board));
+  /** Present Good pair chains bigger than the Target size (SPEC §3): warned live, Shuffle stays enabled. */
+  const oversize = $derived(store.roster ? oversizeChains(store.roster) : []);
 
   const emptyClass =
     "grid flex-1 place-items-center rounded-[14px] border-2 border-dashed border-line p-10 text-center text-[22px] text-mute";
@@ -30,6 +38,18 @@
   {/if}
   {#if store.roster && store.splitError}
     <p id={SPLIT_ERROR_ID} role="alert" class={badClass}>{store.splitError}</p>
+  {/if}
+  {#each oversize as chain (chain.students.join(" "))}
+    <p role="status" class="mb-2.5 flex items-center gap-2.5 rounded-lg border border-warn-line bg-warn-soft px-3.5 py-2.5 text-warn">
+      <TriangleAlert aria-hidden="true" class="size-4 flex-none" />
+      {chain.message}
+    </p>
+  {/each}
+  {#if store.roster && store.conflict}
+    <!-- #17 adds "Show the Rules involved" here, from store.conflict.pairIds. -->
+    <div role="alert" class={badClass}>
+      <p>{store.conflict.message}</p>
+    </div>
   {/if}
   {#if showGroups && store.board.outOfDate}
     <div
@@ -69,7 +89,7 @@
         </button>
       </div>
     </div>
-  {:else}
+  {:else if !store.conflict}
     <div class={emptyClass}>{EMPTY_BOARD_MESSAGE}</div>
   {/if}
 </main>

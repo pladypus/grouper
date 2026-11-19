@@ -3,6 +3,7 @@
   import Pencil from "@lucide/svelte/icons/pencil";
   import X from "@lucide/svelte/icons/x";
   import { getStore, type StudentsMode } from "../state.svelte";
+  import Drawer, { drawerButtonClass as buttonClass, drawerErrorClass as errorClass } from "./Drawer.svelte";
 
   // SPEC §8 Students drawer: Attendance (tap to toggle) and Edit list (add, rename, remove).
   const store = getStore();
@@ -55,25 +56,12 @@
     `flex-1 border px-2 py-2 first:rounded-l-lg last:rounded-r-lg last:border-l-0 ${
       on ? "border-ink bg-ink text-panel" : "border-line bg-panel"
     }`;
-  const buttonClass = "rounded-md border border-line bg-panel px-2.5 py-1 hover:border-mute";
-  const errorClass = "my-1.5 rounded-md border border-bad-line bg-bad-soft px-2.5 py-1.5 text-bad";
   const fieldClass = "min-w-0 flex-1 rounded-md border border-line bg-field px-2 py-1.5";
   const rowClass = "flex items-center gap-1.5 border-b border-line px-1 py-1.5";
   const iconButtonClass = "inline-flex items-center gap-1 rounded px-1 text-mute";
 </script>
 
-<div class="fixed inset-0 z-10 bg-black/40" aria-hidden="true" onclick={() => store.closeDrawer()}></div>
-<!-- svelte-ignore a11y_no_noninteractive_element_to_interactive_role -->
-<aside
-  role="dialog"
-  aria-modal="true"
-  aria-labelledby="{id}-title"
-  class="fixed inset-y-0 right-0 z-[11] w-[min(440px,100%)] overflow-auto bg-panel p-4 shadow-[-8px_0_30px_rgba(0,0,0,.25)]"
->
-  <header class="mb-2.5 flex items-center justify-between">
-    <h2 id="{id}-title" class="text-lg font-bold">Students</h2>
-    <button type="button" class={buttonClass} onclick={() => store.closeDrawer()}>Done</button>
-  </header>
+<Drawer title="Students">
   <div class="mb-3 flex" role="group" aria-label="Mode">
     <button
       type="button"
@@ -200,4 +188,4 @@
       {/each}
     </ul>
   {/if}
-</aside>
+</Drawer>
