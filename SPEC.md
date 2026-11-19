@@ -112,7 +112,7 @@ Research #3 chose Svelte on the assumption that the owner was a non-specialist. 
 - **Derived Split** for `n` Present Students (n ≥ 2) and Target size `t`:
   - if `n < t`: one Group of `n`;
   - else `g = floor(n / t)` Groups of `t`, and the `n mod t` Leftovers are added one each to Groups in turn (round-robin), so Groups only ever grow.
-  - Examples: 25 at 4 → 5×4 + 1×5. 25 at 2 → 12×2 + 1×3. 27 at 4 → 3×4 + 3×5. 7 at 5 → 1×7.
+  - Examples: 25 at 4 → 5×4 + 1×5. 25 at 2 → 11×2 + 1×3. 27 at 4 → 3×4 + 3×5. 7 at 5 → 1×7.
 - The Split is shown in words beside the stepper: "2 groups of 4, 3 groups of 5". Smallest size first.
 - **Editing the Split** ("Edit" link): the Teacher types sizes ("4, 4, 5, 5"). Refused with a message if any size is not a whole number ≥ 1 ("Use whole numbers, e.g. 4, 4, 5."), any size is 1 ("A group of 1 isn't allowed."), or the sum isn't the Present count ("Those sizes add up to 24, but 25 Students are Present.").
 - With fewer than 2 Present Students there is no Split and Shuffle is disabled ("Mark at least 2 students Present.").
