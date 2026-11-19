@@ -1,10 +1,9 @@
-// Shuffle / Reshuffle (SPEC §4): Present Students + Split + Pairs → solver → Groups on the Board.
-//
-// Still to come, slotting in before `solve`: #19's Locked Groups keep their members, position and
-// hue; the free pool is everyone else and its Split is re-derived from the Target size.
+// Shuffle / Reshuffle (SPEC §4): Locks first (lock.ts `planLocks`), then the free pool's Split, then
+// the solver. Locked Groups keep their place and colour; new Groups fill the other positions.
 
 import { EMPTY_BOARD, type Board, type Group } from "./groups";
-import { groupHue } from "./layout";
+import { GROUP_HUES, groupHue } from "./layout";
+import { lockReleasedMessage, planLocks, type KeptLock } from "./lock";
 import {
   presentStudents,
   randomId,
@@ -15,7 +14,7 @@ import {
 } from "./roster";
 import { apartCliqueMessage, chainTooBigMessage, keepApartInsideChainMessage } from "./rules";
 import { solve, type Rng, type SolverConflict, type SolverPair } from "./solver";
-import { activeSplit, canShuffle, NEED_TWO_PRESENT_MESSAGE, splitText } from "./split";
+import { activeSplit, canShuffle, deriveSplit, NEED_TWO_PRESENT_MESSAGE, splitText } from "./split";
 
 export interface ShuffleOptions {
   /** Defaults to Math.random. */
@@ -26,17 +25,27 @@ export interface ShuffleOptions {
 
 /** Why a Shuffle found no Groups, for the Conflict notice. */
 export interface ShuffleConflict {
-  readonly kind: SolverConflict["kind"];
+  /**
+   * A solver Conflict, or one of SPEC §4's Lock checks: `lone-leftover` (exactly one Present Student
+   * outside the Locked Groups) or `chain-cut-by-lock` (a Present chain partly Locked, partly free).
+   */
+  readonly kind: SolverConflict["kind"] | "lone-leftover" | "chain-cut-by-lock";
   /**
    * The Pairs behind a quick check (the chain's Good pairs, the clique's Keep apart pairs; for
-   * `apart-inside-chain` the Keep apart pair first). Empty for `no-solution`: #17's explanation
-   * finds those.
+   * `apart-inside-chain` the Keep apart pair first; for `chain-cut-by-lock` the Good pairs linking
+   * the Locked Student to the free one). Empty for `lone-leftover`, and for `no-solution`: #17's
+   * explanation finds those.
    */
   readonly pairIds: readonly PairId[];
 }
 
 export type ShuffleResult =
-  | { readonly ok: true; readonly board: Board }
+  | {
+      readonly ok: true;
+      readonly board: Board;
+      /** Set when a Lock was released: toast "Lock released: Ana would have been alone in a Locked Group." */
+      readonly toast?: string;
+    }
   /**
    * Refused; the Board stays as it was. `conflict` is set when the Rules can't all be kept: show
    * `message` in the red Conflict notice on the board. Without it (fewer than 2 Present) the
@@ -87,20 +96,34 @@ function conflictMessage(
 }
 
 /**
- * Shuffles the open Roster's Present Students into new Groups matching the current Split (the
- * hand-edited one if it still fits, else derived), keeping every Pair among them (Good pair chains
- * run through Absent Students). On success the Board has fresh Groups, numbered and coloured by
- * position, and is no longer out of date; the edited Split is kept. Refused (Board unchanged) with
- * fewer than 2 Present, or with a Conflict.
+ * Shuffles the open Roster's Present Students into new Groups, keeping every Pair among them (Good
+ * pair chains run through Absent Students) and keeping the Locked Groups (SPEC §4):
+ * - Locked Groups lose their Absent or removed members and otherwise stay exactly as they are (id,
+ *   members, place, hue, Lock), even if they break a Rule (they stay flagged). One left with a single
+ *   Student is released and that Student rejoins the pool (`toast` says so); one left empty goes.
+ * - The free pool (every other Present Student) is split by the hand-edited Split if there are no
+ *   Locks and it still fits, else the Split derived from the Target size for the pool alone.
+ * - New Groups fill the positions the Locked Groups don't hold, in order, with the hues the Locked
+ *   Groups don't use.
+ * On success the Board is no longer out of date and the edited Split is kept for later. Refused
+ * (Board unchanged) with fewer than 2 Present, or with a Conflict (including the Lock checks: one
+ * Student left outside the Locks, or a chain cut by a Lock).
  */
 export function shuffle(roster: Roster, board: Board, options: ShuffleOptions = {}): ShuffleResult {
   const { rng = Math.random, newId = randomId } = options;
   const present = presentStudents(roster);
   if (!canShuffle(present.length)) return { ok: false, message: NEED_TWO_PRESENT_MESSAGE };
 
-  const split = activeSplit(present.length, roster.target, board.editedSplit);
-  // Solver ids: Present Students are 0…n-1 (the pool); Absent ones follow so chains run through them.
-  const ids: StudentId[] = [...present, ...roster.students.filter((s) => !s.present)].map((s) => s.id);
+  const plan = planLocks(board, roster);
+  if (!plan.ok) return { ok: false, message: plan.message, conflict: { kind: plan.kind, pairIds: plan.pairIds } };
+  const { locks, pool, released } = plan;
+
+  const split =
+    locks.length === 0 ? activeSplit(pool.length, roster.target, board.editedSplit) : deriveSplit(pool.length, roster.target);
+  // Solver ids: the pool is 0…n-1; everyone else follows so chains run through Absent Students
+  // (a chain can't reach a Locked Student here: planLocks refused that).
+  const inPool = new Set(pool.map((s) => s.id));
+  const ids: StudentId[] = [...pool.map((s) => s.id), ...roster.students.filter((s) => !inPool.has(s.id)).map((s) => s.id)];
   const index = new Map(ids.map((id, i) => [id, i]));
   const goodPairs: SolverPair[] = [];
   const keepApart: SolverPair[] = [];
@@ -111,14 +134,11 @@ export function shuffle(roster: Roster, board: Board, options: ShuffleOptions = 
     (p.type === "good pair" ? goodPairs : keepApart).push({ id: p.id, a, b, created: p.created });
   }
 
-  const result = solve({
-    students: present.map((_, i) => i),
-    split,
-    goodPairs,
-    keepApart,
-    target: roster.target,
-    rng,
-  });
+  // A free pool of 0 (everyone Present is Locked) is fine: no new Groups.
+  const result =
+    pool.length === 0
+      ? ({ ok: true, groups: [] } as const)
+      : solve({ students: pool.map((_, i) => i), split, goodPairs, keepApart, target: roster.target, rng });
   if (!result.ok) {
     const { conflict } = result;
     return {
@@ -128,14 +148,49 @@ export function shuffle(roster: Roster, board: Board, options: ShuffleOptions = 
     };
   }
 
-  const groups: Group[] = result.groups.map((members, i) => ({
-    id: newId(),
-    members: members.map((m) => ids[m]!),
-    size: members.length,
-    locked: false,
-    hue: groupHue(i),
-  }));
+  const groups = placeGroups(
+    locks,
+    result.groups.map((members) => members.map((m) => ids[m]!)),
+    newId,
+  );
   const names: Record<StudentId, string> = {};
   for (const s of present) names[s.id] = s.name;
-  return { ok: true, board: { ...EMPTY_BOARD, editedSplit: board.editedSplit, groups, names } };
+  const next: Board = { ...EMPTY_BOARD, editedSplit: board.editedSplit, groups, names };
+  if (released.length === 0) return { ok: true, board: next };
+  return { ok: true, board: next, toast: lockReleasedMessage(released.map((id) => names[id] ?? "")) };
+}
+
+/**
+ * Lays out the Board: each Locked Group at its old position where it still fits (Locks keep their
+ * order; they only move up when there are fewer Groups than before), new Groups in the gaps in
+ * order. Locked Groups keep their hue; each new Group takes its position's hue, or the next one in
+ * GROUP_HUES that no other Group has yet (so a new Group never shares a Locked Group's colour while
+ * hues are left).
+ */
+function placeGroups(locks: readonly KeptLock[], free: readonly StudentId[][], newId: IdGenerator): Group[] {
+  const total = locks.length + free.length;
+  const used = new Set(locks.map((l) => l.group.hue));
+  const groups: Group[] = [];
+  let nextLock = 0;
+  let nextFree = 0;
+  for (let position = 0; position < total; position++) {
+    const lock = locks[nextLock];
+    if (lock && (lock.index <= position || nextFree === free.length)) {
+      groups.push(lock.group);
+      nextLock++;
+      continue;
+    }
+    const members = free[nextFree++]!;
+    let hue = groupHue(position);
+    for (let k = 0; k < GROUP_HUES.length; k++) {
+      const candidate = groupHue(position + k);
+      if (!used.has(candidate)) {
+        hue = candidate;
+        break;
+      }
+    }
+    used.add(hue);
+    groups.push({ id: newId(), members, size: members.length, locked: false, hue });
+  }
+  return groups;
 }
