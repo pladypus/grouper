@@ -32,6 +32,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useRosters } from "../state";
 import { ConflictNotice } from "./ConflictNotice";
 import { GroupCard, type MoveView } from "./GroupCard";
+import { IosTip } from "./IosTip";
 
 export interface BoardProps {
   phone: boolean;
@@ -51,7 +52,7 @@ const actionClass =
 
 /** The area below the top bar: notices, then the Groups or an empty state. */
 export function Board({ phone, splitErrorId, splitError, onShuffle, onNewRoster, onAddStudents, onToast }: BoardProps) {
-  const { roster, saving, state } = useRosters();
+  const { roster, saving, state, storage } = useRosters();
   const { board, conflict } = state;
   const showGroups = !!roster && hasGroups(board);
   return (
@@ -72,6 +73,7 @@ export function Board({ phone, splitErrorId, splitError, onShuffle, onNewRoster,
           {STORAGE_UNAVAILABLE_MESSAGE}
         </p>
       )}
+      {state.app.rosters.length === 0 && <IosTip storage={storage} />}
       {roster && splitError && (
         <p id={splitErrorId} role="alert" className="mb-2.5 rounded-lg border border-bad-line bg-bad-soft px-3.5 py-2.5 text-bad print:hidden">
           {splitError}
