@@ -20,7 +20,9 @@ export default defineConfig({
       manifest: {
         name: "Grouper",
         short_name: "Grouper",
-        description: "Shuffle your class into colour-coded Groups.",
+        // Same wording as og:description in index.html (#63).
+        description:
+          "A free classroom tool for teachers: split your class into random groups.",
         start_url: "/",
         scope: "/",
         display: "standalone",

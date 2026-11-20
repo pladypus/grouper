@@ -3,14 +3,76 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Grouper</title>
+    <!-- Crawler-readable description (#63): web filters categorise a domain by crawling it without
+         running JS, so the head and the static text in #root say plainly that this is a classroom tool.
+         Keep the wording in step with the manifest description in vite.config.ts. -->
+    <title>Grouper: random student groups for teachers</title>
+    <meta
+      name="description"
+      content="Grouper is a free classroom tool for teachers: mark who's here, then split your class into random groups that respect who should, and shouldn't, work together."
+    />
+    <link rel="canonical" href="https://grouper.pladypus.dev/" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Grouper" />
+    <meta property="og:url" content="https://grouper.pladypus.dev/" />
+    <meta property="og:title" content="Grouper: random student groups for teachers" />
+    <meta
+      property="og:description"
+      content="A free classroom tool for teachers: split your class into random groups."
+    />
+    <meta property="og:image" content="https://grouper.pladypus.dev/pwa-512x512.png" />
+    <meta property="og:image:alt" content="The Grouper icon" />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="Grouper: random student groups for teachers" />
+    <meta
+      name="twitter:description"
+      content="A free classroom tool for teachers: split your class into random groups."
+    />
+    <meta name="twitter:image" content="https://grouper.pladypus.dev/pwa-512x512.png" />
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "Grouper",
+        "url": "https://grouper.pladypus.dev/",
+        "description": "A free classroom tool for teachers: mark who's here, then split your class into random groups that respect who should, and shouldn't, work together.",
+        "applicationCategory": "EducationalApplication",
+        "operatingSystem": "Any (web browser)",
+        "isAccessibleForFree": true,
+        "inLanguage": "en",
+        "audience": { "@type": "EducationalAudience", "educationalRole": "teacher" },
+        "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+      }
+    </script>
     <meta name="theme-color" content="#1e1f24" />
     <link rel="icon" href="/icon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <meta name="apple-mobile-web-app-title" content="Grouper" />
   </head>
   <body class="bg-bg font-sans text-ink">
-    <div id="root"></div>
+    <!-- React's createRoot replaces everything inside #root when the app mounts. -->
+    <div id="root">
+      <main class="mx-auto max-w-xl px-4 py-12">
+        <h1 class="text-2xl font-semibold">Grouper: random student groups for teachers</h1>
+        <p class="mt-4">
+          Grouper is a free classroom tool for teachers. Mark who's here, choose how many students go in
+          each group, and split your class into random groups, shown big enough to read on a
+          projector.
+        </p>
+        <p class="mt-4">
+          Choose students who should always share a group and students who never should, lock the
+          groups you like and reshuffle the rest, then share the groups as a picture for a slide, as
+          text, or as a printout.
+        </p>
+        <p class="mt-4">
+          Class lists stay in your browser: no accounts, no sign-up, and no student data sent to a
+          server. Grouper works offline and can be added to the Home Screen.
+        </p>
+        <noscript>
+          <p class="mt-4 font-semibold">Grouper needs JavaScript turned on to run.</p>
+        </noscript>
+      </main>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

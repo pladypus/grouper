@@ -18,7 +18,9 @@ Node comes from the Nix flake (Node 22, the same as CI). With [direnv](https://d
 ```sh
 npm ci
 npm run dev       # Vite dev server
-npm test          # Vitest: lib unit tests and Testing Library component tests (jsdom)
+npm test          # all tests: test:unit, then test:lighthouse
+npm run test:unit # Vitest: lib unit tests and Testing Library component tests (jsdom)
+npm run test:lighthouse  # build, then Lighthouse SEO audit of dist/ (needs Chrome, or CHROME_PATH pointing at one)
 npm run build     # type-check and build to dist/
 npm run preview   # serve the built app, service worker included
 ```
@@ -35,7 +37,7 @@ src/
   components/   React components
   state.tsx     app state: useReducer + context, commands that call lib
   App.tsx, main.tsx, styles.css (Tailwind v4 theme tokens)
-public/         icons for the web app manifest
+public/         icons for the web app manifest, robots.txt, sitemap.xml
 ```
 
 ## Docs
@@ -47,6 +49,6 @@ public/         icons for the web app manifest
 
 ## Deploy and upkeep
 
-- Every change to `main` goes through a squash-merged PR that passes the `test-and-build` check.
+- Every change to `main` goes through a squash-merged PR that passes the `test-and-build` check (tests, build, and a Lighthouse SEO audit that must score 100).
 - A push to `main` deploys to GitHub Pages (`.github/workflows/deploy.yml`).
 - Dependabot opens monthly grouped updates. They auto-merge once the check passes, then dispatch a deploy.

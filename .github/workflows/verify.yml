@@ -18,5 +18,7 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      # Unit tests, then Lighthouse's SEO audit of a fresh build (spec: stack-and-hosting.md, Crawlers),
+      # using the runner's preinstalled Chrome.
       - run: npm test
       - run: npm run build
