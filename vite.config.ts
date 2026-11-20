@@ -22,7 +22,7 @@ export default defineConfig({
         short_name: "Grouper",
         // Same wording as og:description in index.html (#63).
         description:
-          "A free classroom tool for teachers: split your class into random groups, each with its own colour.",
+          "A free classroom tool for teachers: split your class into random groups.",
         start_url: "/",
         scope: "/",
         display: "standalone",
