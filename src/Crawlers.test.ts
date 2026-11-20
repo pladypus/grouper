@@ -5,7 +5,7 @@ import sitemapXml from "../public/sitemap.xml?raw";
 
 // spec: stack-and-hosting.md (Crawlers): school web filters categorise the site by crawling it without
 // running JS (#63), so index.html must describe Grouper as a classroom tool on its own.
-// The full Lighthouse SEO audit runs in CI (lighthouserc.json).
+// The full Lighthouse SEO audit is `npm run test:lighthouse` (lighthouserc.json).
 
 const SITE = "https://grouper.pladypus.dev/";
 const doc = new DOMParser().parseFromString(indexHtml, "text/html");

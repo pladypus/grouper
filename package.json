@@ -7,8 +7,9 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "preview": "vite preview",
-    "test": "vitest run",
-    "lighthouse": "lhci autorun"
+    "test": "npm run test:unit && npm run test:lighthouse",
+    "test:unit": "vitest run",
+    "test:lighthouse": "npm run build && lhci autorun"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
