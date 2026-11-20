@@ -35,7 +35,7 @@ src/
   components/   React components
   state.tsx     app state: useReducer + context, commands that call lib
   App.tsx, main.tsx, styles.css (Tailwind v4 theme tokens)
-public/         icons for the web app manifest
+public/         icons for the web app manifest, robots.txt, sitemap.xml
 ```
 
 ## Docs
