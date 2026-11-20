@@ -4,7 +4,7 @@ Grouper is a static website where a Teacher keeps class Rosters and Shuffles the
 
 Capitalised terms (Roster, Student, Present, Group, Target size, Split, Leftovers, Good pair, Keep apart, Conflict, Shuffle, Lock, Manual move, Export, Backup, Import, Add names) mean exactly what [GLOSSARY.md](../../GLOSSARY.md) says. UI labels the Teacher sees are in "quotes".
 
-Each file cites the ticket it comes from. A few small gaps no ticket covered were filled while writing this spec; they are marked "(choice, cheap to change)".
+Each file cites the ticket it comes from. A few small gaps no ticket covered were filled while writing this spec, and the owner has confirmed them.
 
 ## Product in one paragraph
 

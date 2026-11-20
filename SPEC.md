@@ -17,5 +17,5 @@ The spec now lives in [docs/spec/](docs/spec/README.md), one file per section.
 | <a id="11-add-names-10"></a>§11 Add names | [docs/spec/add-names.md](docs/spec/add-names.md) |
 | <a id="12-export-and-import-7"></a>§12 Export and Import | [docs/spec/export-import.md](docs/spec/export-import.md) |
 | <a id="13-suggested-module-layout"></a>§13 Suggested module layout | dropped — see [README Layout](README.md#layout) |
-| <a id="14-choices-made-while-writing-this-spec"></a>§14 Choices made while writing this spec | folded into the files above, marked "(choice, cheap to change)" |
+| <a id="14-choices-made-while-writing-this-spec"></a>§14 Choices made while writing this spec | folded into the files above and confirmed by the owner |
 | <a id="15-build-tickets"></a>§15 Build tickets | dropped — see the [GitHub issues](https://github.com/pladypus/grouper/issues) |

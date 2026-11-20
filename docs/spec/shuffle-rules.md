@@ -14,6 +14,6 @@ Inputs: Present Students, the Roster's Pairs, the Target size, the Teacher's edi
 3. **Rules across Locks.**
    - Keep apart: a free Student is never placed in a Locked Group (automatic, since Locked Groups don't change), so these always hold.
    - A chain with some Present members Locked and some free is a Conflict naming the Lock and the chain ("Ana is in Locked Group 2, but Dee, linked to Ana by a Good pair, isn't. Unlock Group 2 or delete the pair.").
-   - A Rule broken *inside* or *between* Locked Groups (a flagged Group the Teacher Locked) is carried over unchanged, still flagged. It is not a Conflict. (Choice, cheap to change: the research prototype reported `apart-inside-lock`; #5's "a flagged Group can be Locked and Reshuffle carries it over unchanged" overrides it.)
+   - A Rule broken *inside* or *between* Locked Groups (a flagged Group the Teacher Locked) is carried over unchanged, still flagged. It is not a Conflict. (The research prototype reported `apart-inside-lock`; #5's "a flagged Group can be Locked and Reshuffle carries it over unchanged" overrides it.)
 4. **Solve** the free pool into the free Split with the [solver](solver.md).
-5. **Result.** Locked Groups keep their place and colour (choice, cheap to change); new Groups fill the remaining positions in order. Groups are numbered by position (Group 1, Group 2 …). The out-of-date notice and any Manual-move flags on unlocked Groups clear.
+5. **Result.** Locked Groups keep their place and colour; new Groups fill the remaining positions in order. Groups are numbered by position (Group 1, Group 2 …). The out-of-date notice and any Manual-move flags on unlocked Groups clear.

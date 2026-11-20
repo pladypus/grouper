@@ -9,8 +9,8 @@
 | `grouper:ios-tip-dismissed` | `1` once dismissed |
 | `grouper:schema` | Storage schema version (`1`), for future migrations |
 
-- **Attendance is saved in the browser** with the Roster (so a reload doesn't lose the roll), but never exported (choice, cheap to change).
-- Every read and write is wrapped in try/catch. If storage is unavailable or full, the app still works for the session and shows a notice: "This browser isn't saving your Rosters. Use Export all Rosters before you close the page." (The notice's wording is a choice, cheap to change.)
+- **Attendance is saved in the browser** with the Roster (so a reload doesn't lose the roll), but never exported.
+- Every read and write is wrapped in try/catch. If storage is unavailable or full, the app still works for the session and shows a notice: "This browser isn't saving your Rosters. Use Export all Rosters before you close the page."
 - Saves happen on every change.
 - The first time a Roster is saved, call `navigator.storage.persist()` silently and ignore the result.
 - **No** Backup reminders and no "last backup" indicator. Export all Rosters is simply available.
