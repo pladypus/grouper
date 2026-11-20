@@ -7,3 +7,4 @@ result
 
 # Agent worktrees
 .claude/worktrees
+.lighthouseci

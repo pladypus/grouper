@@ -21,6 +21,7 @@ npm run dev       # Vite dev server
 npm test          # Vitest: lib unit tests and Testing Library component tests (jsdom)
 npm run build     # type-check and build to dist/
 npm run preview   # serve the built app, service worker included
+npm run lighthouse  # Lighthouse SEO audit of dist/ (needs Chrome or CHROME_PATH; CI runs it)
 ```
 
 `nix run` installs dependencies if needed and starts the dev server.
@@ -47,6 +48,6 @@ public/         icons for the web app manifest, robots.txt, sitemap.xml
 
 ## Deploy and upkeep
 
-- Every change to `main` goes through a squash-merged PR that passes the `test-and-build` check.
+- Every change to `main` goes through a squash-merged PR that passes the `test-and-build` check (tests, build, and a Lighthouse SEO audit that must score 100).
 - A push to `main` deploys to GitHub Pages (`.github/workflows/deploy.yml`).
 - Dependabot opens monthly grouped updates. They auto-merge once the check passes, then dispatch a deploy.

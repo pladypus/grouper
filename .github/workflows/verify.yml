@@ -20,3 +20,6 @@ jobs:
       - run: npm ci
       - run: npm test
       - run: npm run build
+      # spec: stack-and-hosting.md (Crawlers): Lighthouse's SEO audit of the built site must score 100
+      # (lighthouserc.json). The runner's preinstalled Chrome is used.
+      - run: npm run lighthouse
