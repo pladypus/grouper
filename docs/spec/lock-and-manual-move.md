@@ -14,5 +14,5 @@
 
 ## Lifecycle
 - Any Roster edit (attendance, Students, Pairs) leaves the Groups on screen as they are and shows: "⚠ The Roster changed since these Groups were made, so they're out of date. [Reshuffle]". Absent or removed Students stay visible in their Group, faded, until the Reshuffle.
-- Changing the Target size or the Split does not mark Groups out of date; it only affects the next Shuffle (choice, cheap to change).
-- Switching Roster clears the Groups (choice, cheap to change).
+- Changing the Target size or the Split does not mark Groups out of date; it only affects the next Shuffle.
+- Switching Roster clears the Groups.

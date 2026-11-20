@@ -13,7 +13,7 @@
 | Tests | Vitest. Core logic gets unit tests; UI gets component tests with Testing Library in jsdom (`@testing-library/react`). |
 | Hosting | GitHub Pages from `pladypus/grouper`, Pages source = GitHub Actions, custom domain `grouper.pladypus.dev` (so Vite `base: '/'`). |
 
-**TypeScript** throughout (choice, cheap to change).
+**TypeScript** throughout.
 
 ## Framework bake-off
 

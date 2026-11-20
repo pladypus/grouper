@@ -31,12 +31,12 @@ Via `<input type=file accept=".json,.txt,.csv">` from the ⋯ menu. Always **add
 2. **Backup file** → adds every Roster in it.
 3. **.txt / .csv name list** → one new Roster:
    - .txt: one name per line (the [Add names](add-names.md) parser).
-   - .csv (or tabbed text): a preview table; the Teacher ticks the name column(s) (several are joined with a space, e.g. First + Last) and says whether row 1 is a header. The app pre-ticks a likely column: a header matching `name`, `student`, `first`, `last` (case-insensitive), else the column with the most distinct non-numeric values. (This **CSV column guess** heuristic is a choice, cheap to change.)
+   - .csv (or tabbed text): a preview table; the Teacher ticks the name column(s) (several are joined with a space, e.g. First + Last) and says whether row 1 is a header. The app pre-ticks a likely column: a header matching `name`, `student`, `first`, `last` (case-insensitive), else the column with the most distinct non-numeric values.
    - Confirm step: the resulting names (the [Add names](add-names.md) preview) and the Roster name, defaulting to the filename without its extension, editable.
 
 **Roster name clash:** the Teacher chooses **Replace** or **Keep both** (saved as "<name> (imported)", then "(imported 2)" …). For a Backup, one question covers every clash.
 
-**Versions:** older `version`s are upgraded on Import. A newer version is refused: "This file was made by a newer Grouper; reload the page to update." Anything that is neither a grouper file nor a .txt/.csv list is refused: "That file isn't a Grouper file or a list of names." (The exact refusal wording is a choice, cheap to change.)
+**Versions:** older `version`s are upgraded on Import. A newer version is refused: "This file was made by a newer Grouper; reload the page to update." Anything that is neither a grouper file nor a .txt/.csv list is refused: "That file isn't a Grouper file or a list of names."
 
 **Lenient, but nothing dropped silently:**
 - A repeated name (by name key) is kept once, and Pairs point at that Student.
