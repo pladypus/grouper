@@ -31,9 +31,9 @@ export function AboutDialog({ onClose, build = BUILD_INFO }: AboutDialogProps) {
           1 + 11 + 16 + 24px gap starts the text under the title (40px icon + 12px gap). Below 360px it tightens so the lines don't wrap. */}
       <p
         id={privacyId}
-        className="flex w-fit max-w-full items-start gap-6 rounded-md border border-ok-line bg-ok-soft py-2.5 pl-[11px] pr-4 text-sm text-ink max-[359px]:gap-2 max-[359px]:pl-3 max-[359px]:pr-3"
+        className="flex w-fit max-w-full items-center gap-6 rounded-md border border-ok-line bg-ok-soft py-2.5 pl-[11px] pr-4 text-sm text-ink max-[359px]:gap-2 max-[359px]:pl-3 max-[359px]:pr-3"
       >
-        <ShieldCheck aria-hidden="true" className="mt-0.5 size-4 flex-none text-ok" />
+        <ShieldCheck aria-hidden="true" className="size-4 flex-none text-ok" />
         <span>
           <span className="block">Class lists stay in this browser.</span>
           <span className="block">Nothing is sent to a server.</span>
