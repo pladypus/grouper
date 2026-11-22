@@ -21,6 +21,12 @@ export interface ModalProps {
 export function Modal({ title, role = "dialog", onClose, children, describedBy, wide, narrow, icon, subtitle }: ModalProps) {
   const titleId = useId();
   const subtitleId = useId();
+  const panel = useRef<HTMLDivElement>(null);
+  // A dialog with nothing focused inside it (About has no button) takes focus itself, so Esc and screen readers
+  // land in it. Children's autoFocus and effects run first, so dialogs that focus a field or button keep theirs.
+  useEffect(() => {
+    if (!panel.current?.contains(document.activeElement)) panel.current?.focus();
+  }, []);
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
     document.addEventListener("keydown", onKey);
@@ -30,17 +36,19 @@ export function Modal({ title, role = "dialog", onClose, children, describedBy, 
     <div className="fixed inset-0 z-30 grid place-items-center p-4 print:hidden">
       <div className="absolute inset-0 bg-black/40" aria-hidden="true" onClick={onClose} />
       <div
+        ref={panel}
+        tabIndex={-1}
         role={role}
         aria-modal="true"
         aria-labelledby={titleId}
         aria-describedby={[subtitle ? subtitleId : null, describedBy].filter(Boolean).join(" ") || undefined}
-        className={`relative max-h-[calc(100dvh-2rem)] w-full overflow-auto rounded-xl bg-panel p-5 shadow-2xl ${
+        className={`relative max-h-[calc(100dvh-2rem)] w-full overflow-auto rounded-xl bg-panel p-5 shadow-2xl outline-none ${
           wide ? "max-w-xl" : narrow ? "max-w-sm" : "max-w-md"
         }`}
       >
-        {/* The icon/subtitle header (About only) uses a deliberate 20px rhythm, not the plain header's mb-3. */}
+        {/* The icon/subtitle header (About only) is centred and stacked, with a deliberate 20px gap below it. */}
         {icon || subtitle ? (
-          <div className="mb-5 flex items-center gap-3 max-[359px]:items-start">
+          <div className="mb-5 flex flex-col items-center gap-2 text-center">
             {icon}
             <div>
               <h2 id={titleId} className="text-lg font-bold leading-tight">

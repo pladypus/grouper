@@ -26,7 +26,7 @@ function sequentialIds() {
 const click = (el: HTMLElement) => fireEvent.click(el);
 
 describe("About Grouper (spec: screens.md#about-66)", () => {
-  it("opens from the last item of the ⋯ menu and closes again", () => {
+  it("opens from the last item of the ⋯ menu, takes focus, and closes with Esc", () => {
     render(<App storage={new MemoryStorage()} newId={sequentialIds()} />);
     click(screen.getByRole("button", { name: "New Roster" }));
     const create = screen.getByRole("dialog", { name: "New Roster" });
@@ -42,7 +42,9 @@ describe("About Grouper (spec: screens.md#about-66)", () => {
     const about = screen.getByRole("dialog", { name: "About Grouper" });
     expect(about).toHaveTextContent("Random student groups for teachers.");
     expect(about).toHaveTextContent("Class lists stay in this browser.Nothing is sent to a server.");
-    click(within(about).getByRole("button", { name: "Close" }));
+    expect(within(about).queryByRole("button")).not.toBeInTheDocument();
+    expect(about).toHaveFocus();
+    fireEvent.keyDown(document, { key: "Escape" });
     expect(screen.queryByRole("dialog", { name: "About Grouper" })).not.toBeInTheDocument();
   });
 

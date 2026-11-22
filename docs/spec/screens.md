@@ -42,10 +42,10 @@ No brand or logo in the bar. Size warnings, Conflicts, the out-of-date notice an
 - **iOS tip** (#8): on iOS/iPadOS Safari only, when not running from the Home Screen (`navigator.standalone !== true` and not `display-mode: standalone`), and only while no Roster exists, show a dismissible tip: "Add Grouper to your Home Screen and use it from there, so Safari can't clear your Rosters." Dismissed means gone for good.
 
 ## About (#66)
-Opened from **About Grouper**, the last item in the ⋯ menu. It's a modal dialog like the others, closed with Close, Esc or a click outside. It shows:
-- A header: the app icon, the title "About Grouper", and the subtitle "Random student groups for teachers."
+Opened from **About Grouper**, the last item in the ⋯ menu. It's a small modal with everything centred and no buttons: Esc or a click outside closes it, and the dialog takes focus when it opens so Esc works straight away. It shows, top to bottom:
+- The app icon, the title "About Grouper", and the subtitle "Random student groups for teachers."
 - "Class lists stay in this browser. Nothing is sent to a server.", in a green box with a shield icon.
-- A footer row with Close on the right. On the left are two lines:
+- Below a divider, two lines:
   - **Source code on GitHub ↗**, linking to https://github.com/pladypus/grouper in a new tab (`target="_blank" rel="noopener noreferrer"`).
   - "Version a47493d · 22 Nov 2026": the short commit and build date, injected at build time (Vite `define`). The commit links to that commit on GitHub, so a Teacher on an older cached build can say which one.
 
