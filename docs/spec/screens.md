@@ -42,11 +42,12 @@ No brand or logo in the bar. Size warnings, Conflicts, the out-of-date notice an
 - **iOS tip** (#8): on iOS/iPadOS Safari only, when not running from the Home Screen (`navigator.standalone !== true` and not `display-mode: standalone`), and only while no Roster exists, show a dismissible tip: "Add Grouper to your Home Screen and use it from there, so Safari can't clear your Rosters." Dismissed means gone for good.
 
 ## About (#66)
-Opened from **About Grouper**, the last item in the ⋯ menu. It's a modal dialog like the others, closed with ✕ or Esc. It shows:
-- "Grouper: random student groups for teachers."
-- "Class lists stay in this browser. Nothing is sent to a server."
-- **Source code on GitHub ↗**, linking to https://github.com/pladypus/grouper in a new tab (`target="_blank" rel="noopener"`).
-- "Version a47493d · 22 Nov 2026": the short commit and build date, injected at build time (Vite `define`). The commit links to that commit on GitHub, so a Teacher on an older cached build can say which one.
+Opened from **About Grouper**, the last item in the ⋯ menu. It's a small modal with everything centred. A ✕ in the top-right corner, Esc or a click outside closes it; the dialog takes focus when it opens so Esc works straight away. It shows, top to bottom:
+- The app icon, the title "Grouper" (screen readers hear "About Grouper", which is also the dialog's name), and the subtitle "Random student groups for teachers."
+- "Class lists stay in this browser. Nothing is sent to a server.", in a green box with a shield icon.
+- Below a divider, two lines:
+  - **Source code on GitHub ↗**, linking to https://github.com/pladypus/grouper in a new tab (`target="_blank" rel="noopener noreferrer"`).
+  - "Version a47493d · 22 Nov 2026": the short commit and build date, injected at build time (Vite `define`). The commit links to that commit on GitHub, so a Teacher on an older cached build can say which one.
 
 There are no special hiding rules: the dialog only appears when opened, the print layout shows only Groups, and Copy picture is drawn on a canvas. The source link stays out of the static crawler text in `index.html` (#63). The code is MIT-licensed (`LICENSE`, "Copyright (c) 2026 Peter Loftus"; `"license": "MIT"` in `package.json`).
 

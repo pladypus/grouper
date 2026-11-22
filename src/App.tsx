@@ -14,6 +14,7 @@ import {
   type StorageLike,
 } from "./lib";
 import { useCallback, useState } from "react";
+import { AboutDialog } from "./components/AboutDialog";
 import { Board } from "./components/Board";
 import { ConfirmDialog, NameDialog } from "./components/Dialog";
 import { useImport } from "./components/Import";
@@ -44,7 +45,7 @@ export default function App({ storage, newId = randomId, rng }: AppProps) {
   );
 }
 
-type Dialog = "new" | "rename" | "delete" | null;
+type Dialog = "new" | "rename" | "delete" | "about" | null;
 
 const SPLIT_ERROR_ID = "split-error";
 
@@ -105,6 +106,7 @@ function Main() {
         onImport={importFlow.pick}
         onDeleteRoster={() => setDialog("delete")}
         onDeleteRefused={() => setToast(ONLY_ROSTER_MESSAGE)}
+        onAbout={() => setDialog("about")}
         onToast={setToast}
       />
       <Board
@@ -158,6 +160,7 @@ function Main() {
           onClose={closeDialog}
         />
       )}
+      {dialog === "about" && <AboutDialog onClose={closeDialog} />}
       {importFlow.element}
       <Toast message={toast} onDone={clearToast} />
     </div>

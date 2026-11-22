@@ -13,9 +13,11 @@ export interface RosterMenuProps {
   onDelete: () => void;
   /** Delete Roster pressed while it's not allowed (the only Roster). */
   onDeleteRefused: () => void;
+  /** About Grouper (spec: screens.md#about-66). */
+  onAbout: () => void;
 }
 
-/** The ⋯ menu beside the Roster picker (spec: screens.md#top-bar-one-row-fixed-height item 1). New Roster, Rename, Export, Export all Rosters, Import, Delete Roster. */
+/** The ⋯ menu beside the Roster picker (spec: screens.md#top-bar-one-row-fixed-height item 1). New Roster, Rename, Export, Export all Rosters, Import, Delete Roster, then About Grouper. */
 export function RosterMenu({
   canDelete,
   onNew,
@@ -25,6 +27,7 @@ export function RosterMenu({
   onImport,
   onDelete,
   onDeleteRefused,
+  onAbout,
 }: RosterMenuProps) {
   const [open, setOpen] = useState(false);
   const menuId = useId();
@@ -115,6 +118,10 @@ export function RosterMenu({
             onClick={choose(canDelete ? onDelete : onDeleteRefused)}
           >
             Delete Roster
+          </button>
+          <hr className="mx-1.5 my-1 border-line" />
+          <button type="button" role="menuitem" tabIndex={-1} className={itemClass} onClick={choose(onAbout)}>
+            About Grouper
           </button>
         </div>
       )}

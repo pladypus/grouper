@@ -9,11 +9,45 @@ export interface ModalProps {
   describedBy?: string;
   /** A wider dialog, for tables and lists (New Roster with a class list). */
   wide?: boolean;
+  /** A narrower dialog, for a few short lines (About). */
+  narrow?: boolean;
+  /** Drawn before the title (About's app mark). */
+  icon?: ReactNode;
+  /** A muted line under the title; it also describes the dialog. */
+  subtitle?: string;
+  /** What screen readers hear as the title (and the dialog's name) when it differs from the visible `title`. */
+  srTitle?: string;
 }
 
 /** A centred modal with a dimmed backdrop. Escape or a backdrop click closes it. Scrolls when tall. */
-export function Modal({ title, role = "dialog", onClose, children, describedBy, wide }: ModalProps) {
+export function Modal({
+  title,
+  role = "dialog",
+  onClose,
+  children,
+  describedBy,
+  wide,
+  narrow,
+  icon,
+  subtitle,
+  srTitle,
+}: ModalProps) {
   const titleId = useId();
+  const subtitleId = useId();
+  const panel = useRef<HTMLDivElement>(null);
+  const heading = srTitle ? (
+    <>
+      <span className="sr-only">{srTitle}</span>
+      <span aria-hidden="true">{title}</span>
+    </>
+  ) : (
+    title
+  );
+  // A dialog with nothing focused inside it (About only has its ✕) takes focus itself, so Esc and screen readers
+  // land in it. Children's autoFocus and effects run first, so dialogs that focus a field or button keep theirs.
+  useEffect(() => {
+    if (!panel.current?.contains(document.activeElement)) panel.current?.focus();
+  }, []);
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
     document.addEventListener("keydown", onKey);
@@ -23,17 +57,36 @@ export function Modal({ title, role = "dialog", onClose, children, describedBy, 
     <div className="fixed inset-0 z-30 grid place-items-center p-4 print:hidden">
       <div className="absolute inset-0 bg-black/40" aria-hidden="true" onClick={onClose} />
       <div
+        ref={panel}
+        tabIndex={-1}
         role={role}
         aria-modal="true"
         aria-labelledby={titleId}
-        aria-describedby={describedBy}
-        className={`relative max-h-[calc(100dvh-2rem)] w-full overflow-auto rounded-xl bg-panel p-5 shadow-2xl ${
-          wide ? "max-w-xl" : "max-w-md"
+        aria-describedby={[subtitle ? subtitleId : null, describedBy].filter(Boolean).join(" ") || undefined}
+        className={`relative max-h-[calc(100dvh-2rem)] w-full overflow-auto rounded-xl bg-panel p-5 shadow-2xl outline-none ${
+          wide ? "max-w-xl" : narrow ? "max-w-sm" : "max-w-md"
         }`}
       >
-        <h2 id={titleId} className="mb-3 text-lg font-bold">
-          {title}
-        </h2>
+        {/* The icon/subtitle header (About only) is centred and stacked, with a deliberate 20px gap below it. */}
+        {icon || subtitle ? (
+          <div className="mb-5 flex flex-col items-center gap-2 text-center">
+            {icon}
+            <div>
+              <h2 id={titleId} className="text-lg font-bold leading-tight">
+                {heading}
+              </h2>
+              {subtitle && (
+                <p id={subtitleId} className="mt-0.5 text-balance text-sm text-mute">
+                  {subtitle}
+                </p>
+              )}
+            </div>
+          </div>
+        ) : (
+          <h2 id={titleId} className="mb-3 text-lg font-bold">
+            {heading}
+          </h2>
+        )}
         {children}
       </div>
     </div>
