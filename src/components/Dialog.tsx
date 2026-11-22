@@ -15,14 +15,35 @@ export interface ModalProps {
   icon?: ReactNode;
   /** A muted line under the title; it also describes the dialog. */
   subtitle?: string;
+  /** What screen readers hear as the title (and the dialog's name) when it differs from the visible `title`. */
+  srTitle?: string;
 }
 
 /** A centred modal with a dimmed backdrop. Escape or a backdrop click closes it. Scrolls when tall. */
-export function Modal({ title, role = "dialog", onClose, children, describedBy, wide, narrow, icon, subtitle }: ModalProps) {
+export function Modal({
+  title,
+  role = "dialog",
+  onClose,
+  children,
+  describedBy,
+  wide,
+  narrow,
+  icon,
+  subtitle,
+  srTitle,
+}: ModalProps) {
   const titleId = useId();
   const subtitleId = useId();
   const panel = useRef<HTMLDivElement>(null);
-  // A dialog with nothing focused inside it (About has no button) takes focus itself, so Esc and screen readers
+  const heading = srTitle ? (
+    <>
+      <span className="sr-only">{srTitle}</span>
+      <span aria-hidden="true">{title}</span>
+    </>
+  ) : (
+    title
+  );
+  // A dialog with nothing focused inside it (About only has its ✕) takes focus itself, so Esc and screen readers
   // land in it. Children's autoFocus and effects run first, so dialogs that focus a field or button keep theirs.
   useEffect(() => {
     if (!panel.current?.contains(document.activeElement)) panel.current?.focus();
@@ -52,7 +73,7 @@ export function Modal({ title, role = "dialog", onClose, children, describedBy, 
             {icon}
             <div>
               <h2 id={titleId} className="text-lg font-bold leading-tight">
-                {title}
+                {heading}
               </h2>
               {subtitle && (
                 <p id={subtitleId} className="mt-0.5 text-balance text-sm text-mute">
@@ -63,7 +84,7 @@ export function Modal({ title, role = "dialog", onClose, children, describedBy, 
           </div>
         ) : (
           <h2 id={titleId} className="mb-3 text-lg font-bold">
-            {title}
+            {heading}
           </h2>
         )}
         {children}

@@ -43,7 +43,7 @@ No brand or logo in the bar. Size warnings, Conflicts, the out-of-date notice an
 
 ## About (#66)
 Opened from **About Grouper**, the last item in the ⋯ menu. It's a small modal with everything centred. A ✕ in the top-right corner, Esc or a click outside closes it; the dialog takes focus when it opens so Esc works straight away. It shows, top to bottom:
-- The app icon, the title "About Grouper", and the subtitle "Random student groups for teachers."
+- The app icon, the title "Grouper" (screen readers hear "About Grouper", which is also the dialog's name), and the subtitle "Random student groups for teachers."
 - "Class lists stay in this browser. Nothing is sent to a server.", in a green box with a shield icon.
 - Below a divider, two lines:
   - **Source code on GitHub ↗**, linking to https://github.com/pladypus/grouper in a new tab (`target="_blank" rel="noopener noreferrer"`).

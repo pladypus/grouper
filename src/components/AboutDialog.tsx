@@ -24,7 +24,8 @@ export function AboutDialog({ onClose, build = BUILD_INFO }: AboutDialogProps) {
   const privacyId = useId();
   return (
     <Modal
-      title="About Grouper"
+      title="Grouper"
+      srTitle="About Grouper"
       subtitle="Random student groups for teachers."
       describedBy={privacyId}
       narrow

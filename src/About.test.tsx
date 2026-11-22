@@ -42,6 +42,9 @@ describe("About Grouper (spec: screens.md#about-66)", () => {
     const about = screen.getByRole("dialog", { name: "About Grouper" });
     expect(about).toHaveTextContent("Random student groups for teachers.");
     expect(about).toHaveTextContent("Class lists stay in this browser.Nothing is sent to a server.");
+    // Sighted Teachers see just "Grouper"; screen readers hear "About Grouper" for the heading and the dialog.
+    const heading = within(about).getByRole("heading", { name: "About Grouper" });
+    expect(heading.querySelector('[aria-hidden="true"]')).toHaveTextContent(/^Grouper$/);
     expect(about).toHaveFocus();
     fireEvent.keyDown(document, { key: "Escape" });
     expect(screen.queryByRole("dialog", { name: "About Grouper" })).not.toBeInTheDocument();
