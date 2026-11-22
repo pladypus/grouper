@@ -9,11 +9,18 @@ export interface ModalProps {
   describedBy?: string;
   /** A wider dialog, for tables and lists (New Roster with a class list). */
   wide?: boolean;
+  /** A narrower dialog, for a few short lines (About). */
+  narrow?: boolean;
+  /** Drawn before the title (About's app mark). */
+  icon?: ReactNode;
+  /** A muted line under the title; it also describes the dialog. */
+  subtitle?: string;
 }
 
 /** A centred modal with a dimmed backdrop. Escape or a backdrop click closes it. Scrolls when tall. */
-export function Modal({ title, role = "dialog", onClose, children, describedBy, wide }: ModalProps) {
+export function Modal({ title, role = "dialog", onClose, children, describedBy, wide, narrow, icon, subtitle }: ModalProps) {
   const titleId = useId();
+  const subtitleId = useId();
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
     document.addEventListener("keydown", onKey);
@@ -26,14 +33,31 @@ export function Modal({ title, role = "dialog", onClose, children, describedBy, 
         role={role}
         aria-modal="true"
         aria-labelledby={titleId}
-        aria-describedby={describedBy}
+        aria-describedby={[subtitle ? subtitleId : null, describedBy].filter(Boolean).join(" ") || undefined}
         className={`relative max-h-[calc(100dvh-2rem)] w-full overflow-auto rounded-xl bg-panel p-5 shadow-2xl ${
-          wide ? "max-w-xl" : "max-w-md"
+          wide ? "max-w-xl" : narrow ? "max-w-sm" : "max-w-md"
         }`}
       >
-        <h2 id={titleId} className="mb-3 text-lg font-bold">
-          {title}
-        </h2>
+        {/* The icon/subtitle header (About only) uses a deliberate 20px rhythm, not the plain header's mb-3. */}
+        {icon || subtitle ? (
+          <div className="mb-5 flex items-center gap-3 max-[359px]:items-start">
+            {icon}
+            <div>
+              <h2 id={titleId} className="text-lg font-bold leading-tight">
+                {title}
+              </h2>
+              {subtitle && (
+                <p id={subtitleId} className="mt-0.5 text-balance text-sm text-mute">
+                  {subtitle}
+                </p>
+              )}
+            </div>
+          </div>
+        ) : (
+          <h2 id={titleId} className="mb-3 text-lg font-bold">
+            {title}
+          </h2>
+        )}
         {children}
       </div>
     </div>

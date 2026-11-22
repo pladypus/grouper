@@ -24,6 +24,7 @@ export interface TopBarProps {
   onImport: () => void;
   onDeleteRoster: () => void;
   onDeleteRefused: () => void;
+  onAbout: () => void;
   /** Shows a toast (Share: "Copied 5 Groups as text."). */
   onToast: (message: string) => void;
 }
@@ -62,6 +63,7 @@ export function TopBar(props: TopBarProps) {
               onImport={props.onImport}
               onDelete={props.onDeleteRoster}
               onDeleteRefused={props.onDeleteRefused}
+              onAbout={props.onAbout}
             />
           </div>
           <div className={zoneClass}>

@@ -38,6 +38,7 @@
   --color-bad-line: #f3b7b0;
   --color-ok: #1d7a46;
   --color-ok-soft: #e3f3e9;
+  --color-ok-line: #b5dcc4;
   --color-lock: #5b3fb5;
   --color-lock-soft: #efeafd;
   --color-flash: #ffe58f;
@@ -84,6 +85,7 @@
     --color-bad-line: #6e2f2a;
     --color-ok: #5fd394;
     --color-ok-soft: #173726;
+    --color-ok-line: #2a5a3e;
     --color-lock: #b39dff;
     --color-lock-soft: #2a2342;
     --color-flash: #5a4a10;

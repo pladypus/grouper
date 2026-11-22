@@ -3,10 +3,25 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import { VitePWA } from "vite-plugin-pwa";
+import { execSync } from "node:child_process";
+
+/** The short commit being built, for the About dialog's version line; null outside a git checkout. */
+function shortCommit(): string | null {
+  try {
+    return execSync("git rev-parse --short HEAD", { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }).trim();
+  } catch {
+    return null;
+  }
+}
 
 // Served from the root of the custom domain grouper.pladypus.dev.
 export default defineConfig({
   base: "/",
+  // spec: screens.md#about-66: "Version <short commit> · <build date>" (read in src/buildInfo.ts).
+  define: {
+    __BUILD_COMMIT__: JSON.stringify(shortCommit()),
+    __BUILD_DATE__: JSON.stringify(new Date().toISOString()),
+  },
   plugins: [
     react(),
     tailwindcss(),
