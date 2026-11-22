@@ -1,6 +1,7 @@
 import { useId } from "react";
 import CodeXml from "lucide-react/icons/code-xml";
 import ShieldCheck from "lucide-react/icons/shield-check";
+import X from "lucide-react/icons/x";
 import { BUILD_INFO, REPO_URL, formatBuildDate, type BuildInfo } from "../buildInfo";
 import { Modal } from "./Dialog";
 
@@ -15,8 +16,8 @@ const focusRing =
 const NEW_TAB = " (opens in a new tab)";
 
 /**
- * About Grouper, from the ⋯ menu (spec: screens.md#about-66). Everything is centred; there's no Close button,
- * so Esc or a click outside closes it (the Modal focuses itself so Esc works straight away).
+ * About Grouper, from the ⋯ menu (spec: screens.md#about-66). Everything is centred. A ✕ in the top-right corner,
+ * Esc or a click outside closes it (the Modal focuses itself so Esc works straight away).
  */
 export function AboutDialog({ onClose, build = BUILD_INFO }: AboutDialogProps) {
   // Announced with the subtitle when the dialog opens: the reassurance a Teacher most needs.
@@ -30,6 +31,15 @@ export function AboutDialog({ onClose, build = BUILD_INFO }: AboutDialogProps) {
       onClose={onClose}
       icon={<img src="/icon.svg" alt="" width={48} height={48} className="size-12 flex-none" />}
     >
+      {/* Pinned to the panel's top-right corner (the Modal panel is `relative`); styled like the iOS tip's dismiss ✕. */}
+      <button
+        type="button"
+        aria-label="Close"
+        onClick={onClose}
+        className={`${focusRing} absolute right-3 top-3 grid size-9 place-items-center rounded-md text-mute hover:bg-bg hover:text-ink`}
+      >
+        <X aria-hidden="true" className="size-5" />
+      </button>
       <p
         id={privacyId}
         className="mx-auto flex w-fit max-w-full items-center gap-2.5 rounded-md border border-ok-line bg-ok-soft px-3.5 py-2.5 text-sm text-ink"
