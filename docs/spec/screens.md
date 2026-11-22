@@ -4,7 +4,7 @@ The [`archive/prototype/main-screen`](https://github.com/pladypus/grouper/tree/a
 
 ## Top bar (one row, fixed height)
 Left to right:
-1. **Roster picker**, then a **⋯** menu: New Roster, Rename, Export, Export all Rosters (Backup), Import, Delete Roster.
+1. **Roster picker**, then a **⋯** menu: New Roster, Rename, Export, Export all Rosters (Backup), Import, Delete Roster, then a divider and **About Grouper** (see [About](#about-66)).
    - Delete asks: "Delete "Period 2" and all its Students and pairs? Export it first if you might want it back." The only Roster can't be deleted ("You can't delete your only Roster.").
 2. **"23/25 Present ›"** opens the Students drawer.
 3. **"5 Pairs ›"** opens the Pairs drawer.
@@ -40,6 +40,15 @@ No brand or logo in the bar. Size warnings, Conflicts, the out-of-date notice an
 ## First visit
 - With no Rosters, the board offers New Roster and Import.
 - **iOS tip** (#8): on iOS/iPadOS Safari only, when not running from the Home Screen (`navigator.standalone !== true` and not `display-mode: standalone`), and only while no Roster exists, show a dismissible tip: "Add Grouper to your Home Screen and use it from there, so Safari can't clear your Rosters." Dismissed means gone for good.
+
+## About (#66)
+Opened from **About Grouper**, the last item in the ⋯ menu. It's a modal dialog like the others, closed with ✕ or Esc. It shows:
+- "Grouper: random student groups for teachers."
+- "Class lists stay in this browser. Nothing is sent to a server."
+- **Source code on GitHub ↗**, linking to https://github.com/pladypus/grouper in a new tab (`target="_blank" rel="noopener"`).
+- "Version a47493d · 22 Nov 2026": the short commit and build date, injected at build time (Vite `define`). The commit links to that commit on GitHub, so a Teacher on an older cached build can say which one.
+
+There are no special hiding rules: the dialog only appears when opened, the print layout shows only Groups, and Copy picture is drawn on a canvas. The source link stays out of the static crawler text in `index.html` (#63). The code is MIT-licensed (`LICENSE`, "Copyright (c) 2026 Peter Loftus"; `"license": "MIT"` in `package.json`).
 
 ## Toasts
 Top-centre, `role="status"`, about 3 s.
